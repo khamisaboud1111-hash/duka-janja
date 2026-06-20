@@ -22,7 +22,7 @@ export default function WishlistPage() {
       .select(`*, product:products(*, seller:sellers(store_name, status), images:product_images(*))`)
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         setItems(data ?? [])
         setLoading(false)
       })
