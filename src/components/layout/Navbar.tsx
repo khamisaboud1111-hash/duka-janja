@@ -42,7 +42,7 @@ export default function Navbar() {
       .select('id', { count: 'exact' })
       .eq('user_id', profile.id)
       .eq('is_read', false)
-      .then(({ count }) => setUnreadCount(count ?? 0))
+      .then(({ count }: any) => setUnreadCount(count ?? 0))
   }, [profile])
 
   async function handleLogout() {
