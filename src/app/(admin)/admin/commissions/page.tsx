@@ -36,10 +36,10 @@ export default function AdminCommissionsPage() {
     toast.success('Imewekwa kama imelipwa')
     setPayingId(null)
     load()
-  }
+  
 
-  const totalUnpaid = commissions.filter(c => !c.is_paid).reduce((s, c) => s + c.commission_amount, 0)
-  const totalPaid = commissions.filter(c => c.is_paid).reduce((s, c) => s + c.commission_amount, 0)
+  const totalUnpaid = commissions.filter((c: any) => !c.is_paid).reduce((s: number, c: any) => s + c.commission_amount, 0)
+  const totalPaid = commissions.filter((c: any) => c.is_paid).reduce((s: number, c: any) => s + c.commission_amount, 0)
 
   // Group by seller for unpaid view
   const bySeller: Record<string, { name: string; total: number; count: number; records: CommissionRecord[] }> = {}
