@@ -23,7 +23,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       .eq('id', params.id)
       .eq('seller_id', seller.id)
       .single()
-      .then(({ data }) => { setProduct(data); setLoading(false) })
+      .then(({ data }: any) => { setProduct(data); setLoading(false) })
   }, [seller, params.id])
 
   if (sellerLoading || loading) return <PageLoader />
