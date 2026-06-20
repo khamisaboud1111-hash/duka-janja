@@ -78,7 +78,7 @@ export function useSellerAnalytics(sellerId: string | null) {
       const allOrders = Array.from(orderMap.values())
       const totalRevenue = items.reduce((s: number, i: any) => s + i.total_price, 0)
       const pendingOrders = allOrders.filter((o: any) => ['pending','confirmed','packed'].includes(o?.status)).length
-      const unpaidCommissions = commissions.reduce((s, c) => s + c.commission_amount, 0)
+      const unpaidCommissions = commissions.reduce((s: number, c: any) => s + c.commission_amount, 0)
 
       const topProducts = [...products]
         .sort((a, b) => b.total_sold - a.total_sold)
@@ -89,7 +89,7 @@ export function useSellerAnalytics(sellerId: string | null) {
         totalOrders: orderMap.size,
         pendingOrders,
         totalProducts: products.length,
-        lowStockProducts: products.filter((p) => p.stock_quantity > 0 && p.stock_quantity <= 5).length,
+        lowStockProducts: products.filter((p: any) => p.stock_quantity > 0 && p.stock_quantity <= 5).length,
         unpaidCommissions,
         recentOrders: allOrders.slice(0, 5),
         topProducts,
