@@ -16,7 +16,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
     .select(`
       *,
       items:order_items(*, product:products(*, images:product_images(*))),
-      tracking:order_tracking(* order: created_at asc)
+      tracking:order_tracking(*)
     `)
     .eq('id', params.id)
     .eq('buyer_id', user.id)
@@ -24,7 +24,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
 
   if (!order) notFound()
 
-  const zone = DELIVERY_ZONES[order.delivery_zone as keyof typeof DELIVERY_ZONES]
+  const zone = DELIVERY_ZONES[(order as any).delivery_zone as keyof typeof DELIVERY_ZONES]
   const payment = PAYMENT_METHODS.find((p) => p.id === order.payment_method)
 
   return (
