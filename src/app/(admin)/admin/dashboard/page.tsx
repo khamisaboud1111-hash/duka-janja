@@ -49,7 +49,7 @@ export default function AdminDashboardPage() {
         totalProducts: productsRes.count ?? 0,
         pendingProducts: pendingProductsRes.count ?? 0,
         totalOrders: orders.length,
-        totalRevenue: orders.reduce((s, o) => s + o.total_amount, 0),
+        totalRevenue: orders.reduce((s: number, o: any) => s + o.total_amount, 0),
         totalCommissions: commissions.reduce((s, c) => s + c.commission_amount, 0),
         unpaidCommissions: commissions.filter(c => !c.is_paid).reduce((s, c) => s + c.commission_amount, 0),
       })
