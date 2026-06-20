@@ -20,7 +20,7 @@ async function getProduct(slug: string) {
       *,
       seller:sellers(*, profile:profiles(full_name, phone)),
       category:categories(*),
-      images:product_images(* order: sort_order asc),
+      images:product_images(*),
       reviews(*, buyer:profiles(full_name, avatar_url))
     `)
     .eq('slug', slug)
