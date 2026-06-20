@@ -50,8 +50,8 @@ export default function AdminDashboardPage() {
         pendingProducts: pendingProductsRes.count ?? 0,
         totalOrders: orders.length,
         totalRevenue: orders.reduce((s: number, o: any) => s + o.total_amount, 0),
-        totalCommissions: commissions.reduce((s, c) => s + c.commission_amount, 0),
-        unpaidCommissions: commissions.filter(c => !c.is_paid).reduce((s, c) => s + c.commission_amount, 0),
+        totalCommissions: commissions.reduce((s: number, c: any) => s + c.commission_amount, 0),
+        unpaidCommissions: commissions.filter((c: any) => !c.is_paid).reduce((s: number, c: any) => s + c.commission_amount, 0),
       })
 
       setRecentOrders(recentOrdersRes.data ?? [])
