@@ -30,7 +30,7 @@ export default function SearchPage() {
   })
 
   useEffect(() => {
-    supabase.from('categories').select('*').order('sort_order').then(({ data }) => setCategories(data ?? []))
+    supabase.from('categories').select('*').order('sort_order').then(({ data }: any) => setCategories(data ?? []))
   }, [])
 
   function setParam(key: string, value: string | null) {
