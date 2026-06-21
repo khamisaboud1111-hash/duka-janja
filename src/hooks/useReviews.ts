@@ -34,7 +34,6 @@ export function useReviewableOrders() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
 
-      // Get delivered orders
       const { data: orders } = await supabase
         .from('orders')
         .select('id, items:order_items(product_id, product:products(name))')
@@ -45,14 +44,13 @@ export function useReviewableOrders() {
         o.items.map((i: any) => ({ order_id: o.id, product_id: i.product_id, product_name: i.product?.name ?? '' }))
       )
 
-      // Filter out already-reviewed
       const { data: existingReviews } = await supabase
         .from('reviews')
         .select('order_id, product_id')
         .eq('buyer_id', user.id)
 
-      const reviewedKeys = new Set((existingReviews ?? []).map((r) => `${r.order_id}-${r.product_id}`))
-      setReviewable(candidates.filter((c) => !reviewedKeys.has(`${c.order_id}-${c.product_id}`)))
+      const reviewedKeys = new Set((existingReviews ?? []).map((r: any) => ${r.order_id}-${r.product_id}))
+      setReviewable(candidates.filter((c: any) => !reviewedKeys.has(${c.order_id}-${c.product_id})))
       setLoading(false)
     }
     load()
@@ -79,4 +77,4 @@ export async function submitReview(opts: { productId: string; orderId: string; r
     .single()
 
   return { data, error: error?.message ?? null }
-}
+}       
