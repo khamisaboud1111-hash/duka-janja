@@ -49,8 +49,8 @@ export function useReviewableOrders() {
         .select('order_id, product_id')
         .eq('buyer_id', user.id)
 
-      const reviewedKeys = new Set((existingReviews ?? []).map((r: any) => ${r.order_id}-${r.product_id}))
-      setReviewable(candidates.filter((c: any) => !reviewedKeys.has(${c.order_id}-${c.product_id})))
+      const reviewedKeys = new Set((existingReviews ?? []).map((r: any) => `${r.order_id}-${r.product_id}`))
+      setReviewable(candidates.filter((c: any) => !reviewedKeys.has(`${c.order_id}-${c.product_id}`)))
       setLoading(false)
     }
     load()
