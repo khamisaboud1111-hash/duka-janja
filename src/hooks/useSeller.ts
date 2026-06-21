@@ -81,7 +81,7 @@ export function useSellerAnalytics(sellerId: string | null) {
       const unpaidCommissions = commissions.reduce((s: number, c: any) => s + c.commission_amount, 0)
 
       const topProducts = [...products]
-        .sort((a, b) => b.total_sold - a.total_sold)
+        .sort((a: any, b: any) => b.total_sold - a.total_sold)
         .slice(0, 5)
 
       setAnalytics({
