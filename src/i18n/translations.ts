@@ -112,7 +112,7 @@ export const translations = {
     save: 'Save',
     cancel: 'Cancel',
     confirm: 'Confirm',
-    delete: 'Delete',
+    
     back: 'Back',
     next: 'Next',
     previous: 'Previous',
@@ -232,7 +232,7 @@ export const translations = {
     save: 'Hifadhi',
     cancel: 'Ghairi',
     confirm: 'Thibitisha',
-    delete: 'Futa',
+    
     back: 'Rudi',
     next: 'Mbele',
     previous: 'Nyuma',
