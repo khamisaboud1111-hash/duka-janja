@@ -12,6 +12,7 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
-}
+  transpilePackages: ['lucide-react'],
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
