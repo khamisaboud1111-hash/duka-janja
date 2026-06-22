@@ -4,10 +4,15 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'img.clerk.com'
+        hostname: '*.supabase.co',
+        pathnam:  '/storage/v1/object/public/**',
       },
     ],
   },
-  transpilePackages: ['lucide-react']
+  experimental: {
+   serverComponentsExternalPackages: ['@supabase/supabase-js'],
+  },
+  transpilePackages: ['lucide-react'],
 },
-export default nextConfig;
+
+module.exports = nextConfig;
