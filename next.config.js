@@ -5,14 +5,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: '*.supabase.co',
-        pathnam:  '/storage/v1/object/public/**',
+        pathname: '/storage/v1/object/public/**',
       },
     ],
   },
   experimental: {
-   serverComponentsExternalPackages: ['@supabase/supabase-js'],
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
-  transpilePackages: ['lucide-react'],
-},
+}
 
-module.exports = nextConfig;
+module.exports = nextConfig
