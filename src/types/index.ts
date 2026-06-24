@@ -58,10 +58,84 @@ export interface Seller {
   review_count: number
   is_featured: boolean
   verified_at: string | null
+  location_area: string | null
+  national_id_verified: boolean
+  business_license_verified: boolean
   created_at: string
   updated_at: string
   // joins
   profile?: Profile
+}
+
+// ─── Seller verification ──────────────────────────────────────────────────────
+
+export type VerificationDocType = 'national_id' | 'business_license' | 'tax_id' | 'other'
+export type VerificationStatus = 'pending' | 'approved' | 'rejected'
+
+export interface SellerVerificationDocument {
+  id: string
+  seller_id: string
+  doc_type: VerificationDocType
+  file_url: string
+  status: VerificationStatus
+  reviewer_note: string | null
+  created_at: string
+}
+
+// ─── Payments ──────────────────────────────────────────────────────────────────
+
+export type PaymentProvider = 'mpesa' | 'airtel_money' | 'tigo_pesa' | 'cash_on_delivery' | 'manual'
+export type PaymentStatus = 'initiated' | 'pending' | 'completed' | 'failed' | 'cancelled' | 'refunded'
+
+export interface PaymentTransaction {
+  id: string
+  order_id: string
+  provider: PaymentProvider
+  status: PaymentStatus
+  amount: number
+  currency: string
+  phone_number: string | null
+  provider_reference: string | null
+  initiated_at: string
+  completed_at: string | null
+  failure_reason: string | null
+}
+
+// ─── Delivery tracking events ─────────────────────────────────────────────────
+
+export interface DeliveryTrackingEvent {
+  id: string
+  order_id: string
+  status: OrderStatus
+  note: string | null
+  latitude: number | null
+  longitude: number | null
+  created_at: string
+  created_by: string | null
+}
+
+// ─── Recently viewed ───────────────────────────────────────────────────────────
+
+export interface RecentlyViewedItem {
+  id: string
+  user_id: string
+  product_id: string
+  viewed_at: string
+  product?: Product
+}
+
+// ─── Testimonials ──────────────────────────────────────────────────────────────
+
+export interface Testimonial {
+  id: string
+  author_name: string
+  author_role: string | null
+  avatar_url: string | null
+  quote_en: string
+  quote_sw: string
+  rating: number | null
+  is_published: boolean
+  sort_order: number
 }
 
 // ─── Category ─────────────────────────────────────────────────────────────────
@@ -86,6 +160,14 @@ export interface ProductImage {
   is_primary: boolean
 }
 
+export interface ProductVideo {
+  id: string
+  product_id: string
+  url: string
+  thumbnail_url: string | null
+  sort_order: number
+}
+
 export interface Product {
   id: string
   seller_id: string
@@ -100,6 +182,9 @@ export interface Product {
   weight_grams: number | null
   status: ProductStatus
   is_made_in_zanzibar: boolean
+  location_area: string | null
+  pickup_available: boolean
+  delivery_available: boolean
   tags: string[]
   average_rating: number
   review_count: number
@@ -110,6 +195,7 @@ export interface Product {
   seller?: Seller
   category?: Category
   images?: ProductImage[]
+  videos?: ProductVideo[]
   reviews?: Review[]
 }
 
