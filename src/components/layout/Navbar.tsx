@@ -10,7 +10,7 @@ import { t } from '@/i18n/translations'
 import type { Profile } from '@/types'
 import { cn } from '@/utils'
 
-export default function Navbar() {
+export function Navbar() {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
