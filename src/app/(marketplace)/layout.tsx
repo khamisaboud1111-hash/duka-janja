@@ -7,8 +7,14 @@ export default function MarketplaceLayout({
 }) {
   return (
     <>
-      <Navbar />
+      {/* Temporarily commenting out the navbar to isolate the crash */}
+      {/* <Navbar /> */}
+      <div className="bg-amber-500 p-3 text-black text-center font-bold tracking-wide">
+        ⚠️ Testing Isolation: If you see this, the layout itself works!
+      </div>
+      
       <div className="min-h-screen">{children}</div>
+      
       <footer className="hidden sm:block bg-ink-900 text-ink-300 py-10 mt-8">
         <div className="page-container">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
