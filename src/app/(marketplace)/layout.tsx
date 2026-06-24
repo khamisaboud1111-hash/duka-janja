@@ -1,9 +1,8 @@
 import dynamic from "next/dynamic";
 
-// This dynamically loads the Navbar only on the client side.
-// It bypasses all build-time server prerendering checks and handles both default/named exports!
+// Dynamically import the named Navbar component safely for the client side
 const Navbar = dynamic(
-  () => import("@/components/layout/Navbar").then((mod) => mod.Navbar || mod.default),
+  () => import("@/components/layout/Navbar").then((mod) => mod.Navbar),
   { ssr: false }
 );
 
