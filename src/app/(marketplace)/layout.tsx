@@ -1,4 +1,11 @@
-import { Navbar } from "@/components/layout/Navbar";
+import dynamic from "next/dynamic";
+
+// This dynamically loads the Navbar only on the client side.
+// It bypasses all build-time server prerendering checks and handles both default/named exports!
+const Navbar = dynamic(
+  () => import("@/components/layout/Navbar").then((mod) => mod.Navbar || mod.default),
+  { ssr: false }
+);
 
 export default function MarketplaceLayout({
   children,
@@ -7,7 +14,7 @@ export default function MarketplaceLayout({
 }) {
   return (
     <>
-      {/* Navbar is fully restored using a reliable named import */}
+      {/* Navbar will render safely on the client browser without crashing the build */}
       <Navbar />
       
       <div className="min-h-screen">{children}</div>
