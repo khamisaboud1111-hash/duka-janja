@@ -61,7 +61,19 @@ export const PAYMENT_METHODS = [
   { id: 'tigopesa',    label: 'Tigo Pesa',    icon: '📱' },
   { id: 'airtelmoney', label: 'Airtel Money', icon: '📱' },
   { id: 'halopesa',    label: 'Halopesa',     icon: '📱' },
+  { id: 'cod',         label: 'Malipo Mkononi', icon: '💵' },
 ]
+
+// Maps the checkout UI's payment_method id to the payment_transactions.provider enum
+export function toPaymentProvider(methodId: string): 'mpesa' | 'airtel_money' | 'tigo_pesa' | 'cash_on_delivery' | 'manual' {
+  switch (methodId) {
+    case 'mpesa': return 'mpesa'
+    case 'tigopesa': return 'tigo_pesa'
+    case 'airtelmoney': return 'airtel_money'
+    case 'cod': return 'cash_on_delivery'
+    default: return 'manual' // e.g. halopesa, not yet supported by an adapter
+  }
+}
 
 export function whatsappUrl(phone: string, message: string): string {
   const cleaned = phone.replace(/\D/g, '')
