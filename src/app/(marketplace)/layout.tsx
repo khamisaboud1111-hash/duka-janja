@@ -1,4 +1,4 @@
-import Navbar from "@/components/layout/Navbar";
+import { Navbar } from "@/components/layout/Navbar";
 
 export default function MarketplaceLayout({
   children,
@@ -7,11 +7,8 @@ export default function MarketplaceLayout({
 }) {
   return (
     <>
-      {/* Temporarily commenting out the navbar to isolate the crash */}
-      {/* <Navbar /> */}
-      <div className="bg-amber-500 p-3 text-black text-center font-bold tracking-wide">
-        ⚠️ Testing Isolation: If you see this, the layout itself works!
-      </div>
+      {/* Navbar is fully restored using a reliable named import */}
+      <Navbar />
       
       <div className="min-h-screen">{children}</div>
       
