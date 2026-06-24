@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { Plus, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import ImageUploader from '@/components/shared/ImageUploader'
+import VideoUploader from '@/components/shared/VideoUploader'
 import { slugify, generateSKU } from '@/utils'
 import type { Product, Category, Seller } from '@/types'
 import toast from 'react-hot-toast'
@@ -22,6 +23,9 @@ const schema = z.object({
   sku:                z.string().optional(),
   weight_grams:       z.coerce.number().optional(),
   is_made_in_zanzibar: z.boolean(),
+  location_area:      z.string().optional(),
+  pickup_available:   z.boolean(),
+  delivery_available: z.boolean(),
   status:             z.enum(['draft', 'active']),
 })
 type FormData = z.infer<typeof schema>
@@ -36,6 +40,7 @@ export default function ProductForm({ seller, product }: Props) {
   const supabase = createClient()
   const [categories, setCategories] = useState<Category[]>([])
   const [images, setImages] = useState<string[]>(product?.images?.map(i => i.url) ?? [])
+  const [videos, setVideos] = useState<string[]>(product?.videos?.map(v => v.url) ?? [])
   const [saving, setSaving] = useState(false)
   const isEdit = !!product
 
@@ -51,9 +56,14 @@ export default function ProductForm({ seller, product }: Props) {
       sku:                 product.sku ?? '',
       weight_grams:        product.weight_grams ?? undefined,
       is_made_in_zanzibar: product.is_made_in_zanzibar,
+      location_area:       product.location_area ?? '',
+      pickup_available:    product.pickup_available ?? false,
+      delivery_available:  product.delivery_available ?? true,
       status:              product.status as 'draft' | 'active',
     } : {
       is_made_in_zanzibar: false,
+      pickup_available: false,
+      delivery_available: true,
       status: 'draft',
       stock_quantity: 0,
     }
@@ -62,7 +72,7 @@ export default function ProductForm({ seller, product }: Props) {
   const name = watch('name')
 
   useEffect(() => {
-    supabase.from('categories').select('*').order('sort_order').then(({ data }: any) => setCategories(data ?? []))
+    supabase.from('categories').select('*').order('sort_order').then(({ data }) => setCategories(data ?? []))
   }, [])
 
   async function onSubmit(data: FormData) {
@@ -94,6 +104,13 @@ export default function ProductForm({ seller, product }: Props) {
         product_id: productId!, url, sort_order: i, is_primary: i === 0,
       }))
       await supabase.from('product_images').insert(imgRows)
+
+      // Sync videos
+      if (isEdit) await supabase.from('product_videos').delete().eq('product_id', productId)
+      if (videos.length > 0) {
+        const vidRows = videos.map((url, i) => ({ product_id: productId!, url, sort_order: i }))
+        await supabase.from('product_videos').insert(vidRows)
+      }
     }
 
     toast.success(isEdit ? 'Bidhaa imesasishwa' : 'Bidhaa imeundwa!')
@@ -162,6 +179,50 @@ export default function ProductForm({ seller, product }: Props) {
             <label className="label">Uzito (gramu, hiari)</label>
             <input type="number" {...register('weight_grams')} className="input" placeholder="500" />
           </div>
+        </div>
+      </div>
+
+      {/* Location & delivery options */}
+      <div className="card p-5 space-y-4">
+        <h2 className="font-semibold text-ink-800">Mahali na Uwasilishaji</h2>
+        <div>
+          <label className="label">Eneo la bidhaa (hiari)</label>
+          <input {...register('location_area')} className="input" placeholder="Mfano: Stone Town, Michenzani" />
+        </div>
+        <div className="flex gap-3">
+          <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${watch('delivery_available') ? 'border-brand-500 bg-brand-50' : 'border-ink-200'}`}>
+            <input type="checkbox" {...register('delivery_available')} className="w-4 h-4 rounded accent-brand-500" />
+            <span className="text-sm font-medium">🚚 Uwasilishaji unapatikana</span>
+          </label>
+          <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${watch('pickup_available') ? 'border-brand-500 bg-brand-50' : 'border-ink-200'}`}>
+            <input type="checkbox" {...register('pickup_available')} className="w-4 h-4 rounded accent-brand-500" />
+            <span className="text-sm font-medium">🏪 Kuchukua dukani</span>
+          </label>
+        </div>
+      </div>
+
+      {/* Videos */}
+      <div className="card p-5 space-y-4">
+        <div>
+          <h2 className="font-semibold text-ink-800">Video za Bidhaa (hiari)</h2>
+          <p className="text-xs text-ink-500 mt-0.5">Ongeza hadi video 2 kuonyesha bidhaa yako vizuri zaidi.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {videos.map((url, i) => (
+            <div key={i} className="relative aspect-video rounded-xl overflow-hidden bg-ink-100 group">
+              <video src={url} className="w-full h-full object-cover" muted />
+              <button type="button" onClick={() => setVideos(v => v.filter((_, idx) => idx !== i))}
+                className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+          {videos.length < 2 && (
+            <VideoUploader
+              folder={`${seller.id}`}
+              onChange={(url) => setVideos(prev => [...prev, url])}
+            />
+          )}
         </div>
       </div>
 
