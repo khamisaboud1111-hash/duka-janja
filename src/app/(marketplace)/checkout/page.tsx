@@ -9,7 +9,7 @@ import Image from 'next/image'
 import { Trash2, Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
 import { useCartStore, useLangStore } from '@/store'
 import { createClient } from '@/lib/supabase/client'
-import { formatTZS, DELIVERY_ZONES, PAYMENT_METHODS } from '@/utils'
+import { formatTZS, DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider } from '@/utils'
 import { t } from '@/i18n/translations'
 import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
@@ -120,6 +120,32 @@ export default function CheckoutPage() {
     }
 
     clearCart()
+
+    // Initiate payment for the order (cash on delivery succeeds immediately;
+    // mobile money providers will report "not configured" until real credentials exist)
+    const provider = toPaymentProvider(data.payment_method)
+    try {
+      const res = await fetch('/api/payments/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: order.id,
+          provider,
+          phone_number: data.delivery_phone,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error(
+          provider === 'cash_on_delivery'
+            ? 'Agizo limewekwa, lakini hitilafu imetokea kwenye malipo.'
+            : json.error ?? 'Malipo ya simu hayajawekwa bado — wasiliana na muuzaji kuthibitisha malipo.'
+        )
+      }
+    } catch {
+      // Order already exists either way — payment can be retried/confirmed manually
+    }
+
     setSuccess(order.id)
     setSubmitting(false)
   }
