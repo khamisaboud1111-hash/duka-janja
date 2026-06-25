@@ -19,10 +19,10 @@ export default function WishlistPage() {
     if (!profile) return
     supabase
       .from('wishlists')
-      .select(`*, product:products(*, seller:sellers(store_name, status), images:product_images(*))`)
+      .select(`*, product:products(*, seller:sellers(store_name, status, national_id_verified), images:product_images(*))`)
       .eq('user_id', profile.id)
       .order('created_at', { ascending: false })
-      .then(({ data }: any) => {
+      .then(({ data }) => {
         setItems(data ?? [])
         setLoading(false)
       })
