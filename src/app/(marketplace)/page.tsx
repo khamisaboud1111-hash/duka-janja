@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import Image from 'next/image'
 import ProductCard from '@/components/product/ProductCard'
+import KikoiStripe from '@/components/shared/KikoiStripe'
 import type { Product, Category } from '@/types'
 
 export const revalidate = 60 // ISR: revalidate every 60s
@@ -12,7 +13,7 @@ async function getHomeData() {
   const [productsRes, categoriesRes, featuredSellersRes, testimonialsRes] = await Promise.all([
     supabase
       .from('products')
-      .select(`*, seller:sellers(id, store_name, store_slug, status, logo_url), category:categories(id, name_en, name_sw, slug), images:product_images(*)`)
+      .select(`*, seller:sellers(id, store_name, store_slug, status, logo_url, national_id_verified), category:categories(id, name_en, name_sw, slug), images:product_images(*)`)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(12),
@@ -55,8 +56,18 @@ export default async function HomePage() {
   return (
     <main className="pb-20 sm:pb-0">
       {/* Hero Banner */}
-      <section className="bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 text-white">
-        <div className="page-container py-12 sm:py-16">
+      <section className="relative bg-gradient-to-br from-brand-700 via-brand-600 to-brand-500 text-white overflow-hidden">
+        {/* Dhow silhouette — Zanzibar's traditional sailing vessel, low-opacity backdrop */}
+        <svg
+          className="absolute -right-6 bottom-0 w-[420px] sm:w-[560px] opacity-15 pointer-events-none"
+          viewBox="0 0 400 200" fill="none" aria-hidden="true"
+        >
+          <path d="M40 170 Q200 195 380 165 L360 175 Q200 200 50 178 Z" fill="white" />
+          <path d="M180 170 L180 20 L300 165 Z" fill="white" />
+          <path d="M170 170 L170 60 L90 165 Z" fill="white" />
+        </svg>
+
+        <div className="page-container py-12 sm:py-16 relative z-10">
           <div className="max-w-xl">
             <p className="text-brand-200 text-sm font-semibold uppercase tracking-widest mb-3">
               Soko la Zanzibar
@@ -79,6 +90,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <KikoiStripe />
+
 
       {/* Payments strip */}
       <div className="bg-ink-50 border-b border-ink-100">
