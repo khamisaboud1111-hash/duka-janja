@@ -83,7 +83,7 @@ export default function AdminVerificationQueuePage() {
       </div>
 
       {docs.length === 0 ? (
-        <EmptyState icon={FileText} title="Hakuna hati" description="Hakuna hati za uthibitisho katika kundi hili" />
+        <EmptyState icon={FileText as any} title="Hakuna hati" description="Hakuna hati za uthibitisho katika kundi hili" />
       ) : (
         <div className="space-y-3">
           {docs.map((doc) => (
