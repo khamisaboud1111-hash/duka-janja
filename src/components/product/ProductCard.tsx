@@ -109,7 +109,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
         <div className="p-3">
           <p className="text-xs text-ink-500 mb-0.5 truncate">
             {product.seller?.store_name}
-            {product.seller?.status === 'approved' && (
+            {(product.seller as any)?.national_id_verified && (
               <BadgeCheck className="w-3 h-3 inline ml-1 text-brand-500" />
             )}
           </p>
