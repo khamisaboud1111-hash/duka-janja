@@ -37,7 +37,7 @@ async function getRelated(categoryId: string, productId: string) {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('products')
-    .select(`*, seller:sellers(store_name, status), images:product_images(*)`)
+    .select(`*, seller:sellers(store_name, status, national_id_verified), images:product_images(*)`)
     .eq('category_id', categoryId)
     .eq('status', 'active')
     .neq('id', productId)
@@ -47,15 +47,15 @@ async function getRelated(categoryId: string, productId: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id)
-   if (!product) return { title: 'Product not found' }
+  if (!product) return { title: 'Product not found' }
   return {
-    title: `${(product as any).name} - Duka Janja`,
-    description: (product as any).description?.slice(0, 160),
+    title: `${product.name} — Duka Janja`,
+    description: product.description?.slice(0, 160),
   }
 }
- 
+
 export default async function ProductPage({ params }: Props) {
-  const product = await getProduct(params.id) as any
+  const product = await getProduct(params.id)
   if (!product) notFound()
 
   const related = await getRelated(product.category_id, product.id)
