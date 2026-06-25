@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { BadgeCheck, Star, Package, MessageCircle, MapPin } from 'lucide-react'
+import KikoiStripe from '@/components/shared/KikoiStripe'
 import ProductCard from '@/components/product/ProductCard'
 import { formatDate, whatsappUrl } from '@/utils'
 import type { Metadata } from 'next'
@@ -23,7 +24,7 @@ async function getSellerProducts(sellerId: string) {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('products')
-    .select(`*, seller:sellers(store_name, status), category:categories(name_sw), images:product_images(*)`)
+    .select(`*, seller:sellers(store_name, status, national_id_verified), category:categories(name_sw), images:product_images(*)`)
     .eq('seller_id', sellerId)
     .eq('status', 'active')
     .order('created_at', { ascending: false })
@@ -53,6 +54,7 @@ export default async function SellerStorePage({ params }: Props) {
           <Image src={seller.banner_url} alt="" fill className="object-cover opacity-50" />
         )}
       </div>
+      <KikoiStripe />
 
       <div className="page-container">
         {/* Store info */}
