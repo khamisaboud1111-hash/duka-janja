@@ -49,8 +49,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id)
   if (!product) return { title: 'Product not found' }
   return {
-    title: `${product.name} — Duka Janja`,
-    description: product.description?.slice(0, 160),
+    title: `${product as any}.name} — Duka Janja`,
+    description: (product as any).description?.slice(0, 160),
   }
 }
 
