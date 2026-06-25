@@ -39,6 +39,16 @@ export function OrderStatusBadge({ status }: { status: string }) {
   return <Badge variant={map[status] ?? 'gray'}>{labels[status] ?? status}</Badge>
 }
 
+/** Shows on a seller's storefront / product cards once national ID is verified. */
+export function VerifiedSellerBadge({ verified, className }: { verified: boolean; className?: string }) {
+  if (!verified) return null
+  return (
+    <Badge variant="blue" className={className}>
+      ✓ Muuzaji Aliyethibitishwa
+    </Badge>
+  )
+}
+
 export function SellerStatusBadge({ status }: { status: string }) {
   const map: Record<string, BadgeVariant> = { approved: 'green', pending: 'orange', suspended: 'red' }
   const labels: Record<string, string> = { approved: 'Imeidhinishwa', pending: 'Inasubiri', suspended: 'Imesimamishwa' }
