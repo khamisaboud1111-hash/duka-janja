@@ -4,6 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Star, BadgeCheck, MessageCircle, Heart, Share2, Package, ArrowLeft } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
+import { VerifiedSellerBadge } from '@/components/ui/Badge'
+import TrackView from './TrackView'
+import RecentlyViewedRow from './RecentlyViewedRow'
 import AddToCartSection from './AddToCartSection'
 import { formatTZS, formatDate, whatsappUrl } from '@/utils'
 import type { Metadata } from 'next'
@@ -20,7 +23,8 @@ async function getProduct(slug: string) {
       *,
       seller:sellers(*, profile:profiles(full_name, phone)),
       category:categories(*),
-      images:product_images(*),
+      images:product_images(* order: sort_order asc),
+      videos:product_videos(* order: sort_order asc),
       reviews(*, buyer:profiles(full_name, avatar_url))
     `)
     .eq('slug', slug)
@@ -56,15 +60,18 @@ export default async function ProductPage({ params }: Props) {
 
   const related = await getRelated(product.category_id, product.id)
   const images = product.images ?? []
+  const videos = product.videos ?? []
   const primaryImage = images.find((i: any) => i.is_primary) ?? images[0]
   const seller = product.seller
   const reviews = product.reviews ?? []
+  const isVerifiedSeller = seller?.national_id_verified ?? false
 
   const waMessage = `Habari! Nimeona bidhaa yako kwenye Duka Janja: ${product.name} (${formatTZS(product.price)}). Je, ipo?`
   const waUrl = seller ? whatsappUrl(seller.whatsapp_number, waMessage) : '#'
 
   return (
     <main className="pb-20 sm:pb-8">
+      <TrackView productId={product.id} />
       <div className="page-container py-4 sm:py-6">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-ink-500 mb-4">
@@ -111,6 +118,15 @@ export default async function ProductPage({ params }: Props) {
                 ))}
               </div>
             )}
+
+            {/* Videos */}
+            {videos.length > 0 && (
+              <div className="grid grid-cols-2 gap-2">
+                {videos.map((vid: any) => (
+                  <video key={vid.id} src={vid.url} controls className="w-full aspect-video rounded-xl bg-ink-100 object-cover" />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product info */}
@@ -118,7 +134,7 @@ export default async function ProductPage({ params }: Props) {
             <div>
               <Link href={`/sellers/${seller?.store_slug}`} className="text-sm text-brand-600 font-medium hover:underline flex items-center gap-1">
                 {seller?.store_name}
-                {seller?.status === 'approved' && <BadgeCheck className="w-3.5 h-3.5" />}
+                {isVerifiedSeller && <BadgeCheck className="w-3.5 h-3.5" />}
               </Link>
               <h1 className="font-display font-black text-2xl sm:text-3xl text-ink-900 mt-1 leading-tight">
                 {product.name}
@@ -196,7 +212,7 @@ export default async function ProductPage({ params }: Props) {
                   <div>
                     <div className="flex items-center gap-1.5">
                       <p className="font-bold text-ink-900">{seller.store_name}</p>
-                      {seller.status === 'approved' && <BadgeCheck className="w-4 h-4 text-brand-500" />}
+                      {isVerifiedSeller && <BadgeCheck className="w-4 h-4 text-brand-500" />}
                     </div>
                     <p className="text-xs text-ink-500">
                       ⭐ {seller.average_rating.toFixed(1)} · {seller.review_count} maoni · Mauzo {seller.total_sales}
@@ -263,6 +279,8 @@ export default async function ProductPage({ params }: Props) {
             </div>
           </section>
         )}
+
+        <RecentlyViewedRow excludeProductId={product.id} />
       </div>
     </main>
   )
