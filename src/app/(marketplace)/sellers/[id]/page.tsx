@@ -1,7 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { BadgeCheck, Star, Package, MessageCircle } from 'lucide-react'
+import { BadgeCheck, Star, Package, MessageCircle, MapPin } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { formatDate, whatsappUrl } from '@/utils'
 import type { Metadata } from 'next'
@@ -70,8 +70,13 @@ export default async function SellerStorePage({ params }: Props) {
             <div className="pb-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="font-display font-black text-xl text-ink-900">{seller.store_name}</h1>
-                <BadgeCheck className="w-5 h-5 text-brand-500" />
+                {seller.national_id_verified && <BadgeCheck className="w-5 h-5 text-brand-500" />}
               </div>
+              {seller.national_id_verified && (
+                <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 bg-brand-50 px-2 py-0.5 rounded-full mt-1">
+                  ✓ Muuzaji Aliyethibitishwa
+                </span>
+              )}
               <div className="flex items-center gap-3 text-sm text-ink-500 mt-0.5">
                 <span className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
@@ -81,6 +86,12 @@ export default async function SellerStorePage({ params }: Props) {
                   <Package className="w-3.5 h-3.5" />
                   Mauzo {seller.total_sales}
                 </span>
+                {seller.location_area && (
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5" />
+                    {seller.location_area}
+                  </span>
+                )}
               </div>
             </div>
           </div>
