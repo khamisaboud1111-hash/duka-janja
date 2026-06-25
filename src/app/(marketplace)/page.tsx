@@ -92,6 +92,28 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* Trust strip */}
+      <div className="bg-white border-b border-ink-100">
+        <div className="page-container py-4">
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div>
+              <p className="font-display font-black text-lg text-ink-900">{featuredSellers.length > 0 ? `${featuredSellers.length}+` : '—'}</p>
+              <p className="text-xs text-ink-500">Wauzaji wateule</p>
+            </div>
+            <div>
+              <p className="font-display font-black text-lg text-ink-900">{products.length > 0 ? `${products.length}+` : '—'}</p>
+              <p className="text-xs text-ink-500">Bidhaa zinazouzwa</p>
+            </div>
+            <div>
+              <Link href="/policies/returns-refunds" className="block">
+                <p className="font-display font-black text-lg text-ink-900">↩</p>
+                <p className="text-xs text-brand-600 font-medium underline">Sera ya marejesho</p>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Categories */}
       <section className="section">
         <div className="page-container">
