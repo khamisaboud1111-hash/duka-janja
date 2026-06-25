@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('products')
-    .select(`*, seller:sellers(id, store_name, store_slug, status, logo_url), category:categories(*), images:product_images(*)`, { count: 'exact' })
+    .select(`*, seller:sellers(id, store_name, store_slug, status, logo_url, national_id_verified), category:categories(*), images:product_images(*)`, { count: 'exact' })
     .eq('status', 'active')
     .range(from, to)
 
