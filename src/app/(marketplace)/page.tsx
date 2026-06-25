@@ -9,7 +9,7 @@ export const revalidate = 60 // ISR: revalidate every 60s
 async function getHomeData() {
   const supabase = createServerClient()
 
-  const [productsRes, categoriesRes, featuredSellersRes] = await Promise.all([
+  const [productsRes, categoriesRes, featuredSellersRes, testimonialsRes] = await Promise.all([
     supabase
       .from('products')
       .select(`*, seller:sellers(id, store_name, store_slug, status, logo_url), category:categories(id, name_en, name_sw, slug), images:product_images(*)`)
@@ -29,17 +29,25 @@ async function getHomeData() {
       .eq('is_featured', true)
       .order('average_rating', { ascending: false })
       .limit(6),
+
+    supabase
+      .from('testimonials')
+      .select('*')
+      .eq('is_published', true)
+      .order('sort_order')
+      .limit(6),
   ])
 
   return {
     products: productsRes.data ?? [],
     categories: categoriesRes.data ?? [],
     featuredSellers: featuredSellersRes.data ?? [],
+    testimonials: testimonialsRes.data ?? [],
   }
 }
 
 export default async function HomePage() {
-  const { products, categories, featuredSellers } = await getHomeData()
+  const { products, categories, featuredSellers, testimonials } = await getHomeData()
 
   const madeInZanzibar = products.filter((p: any) => p.is_made_in_zanzibar).slice(0, 6)
   const newArrivals = products.slice(0, 8)
@@ -172,6 +180,40 @@ export default async function HomePage() {
                     <p className="text-xs text-ink-500">⭐ {seller.average_rating.toFixed(1)}</p>
                   </div>
                 </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Testimonials */}
+      {testimonials.length > 0 && (
+        <section className="section">
+          <div className="page-container">
+            <h2 className="font-display font-black text-xl text-ink-900 mb-5">Wateja wanasema nini</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {testimonials.map((tt: any) => (
+                <div key={tt.id} className="card p-4">
+                  <div className="flex items-center gap-0.5 mb-2">
+                    {[1,2,3,4,5].map((n) => (
+                      <span key={n} className={n <= (tt.rating ?? 5) ? 'text-amber-400' : 'text-ink-200'}>★</span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-ink-700 mb-3">&ldquo;{tt.quote_sw}&rdquo;</p>
+                  <div className="flex items-center gap-2">
+                    {tt.avatar_url ? (
+                      <img src={tt.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center text-xs font-bold text-brand-700">
+                        {tt.author_name.charAt(0)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-xs font-semibold text-ink-800">{tt.author_name}</p>
+                      {tt.author_role && <p className="text-xs text-ink-400">{tt.author_role}</p>}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
