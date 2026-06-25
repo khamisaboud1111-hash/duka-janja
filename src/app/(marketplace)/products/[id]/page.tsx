@@ -5,8 +5,8 @@ import Link from 'next/link'
 import { Star, BadgeCheck, MessageCircle, Heart, Share2, Package, ArrowLeft } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { VerifiedSellerBadge } from '@/components/ui/Badge'
-import TrackView from './TrackView'
-import RecentlyViewedRow from './RecentlyViewedRow'
+import TrackView from '../TrackView'
+import RecentlyViewedRow from '../RecentlyViewedRow'
 import AddToCartSection from './AddToCartSection'
 import { formatTZS, formatDate, whatsappUrl } from '@/utils'
 import type { Metadata } from 'next'
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
  
 export default async function ProductPage({ params }: Props) {
-  const product = await getProduct(params.id)
+  const product = await getProduct(params.id) as any
   if (!product) notFound()
 
   const related = await getRelated(product.category_id, product.id)
