@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('wishlists')
-    .select('*, product:products(*, seller:sellers(store_name, status), images:product_images(*))')
+    .select('*, product:products(*, seller:sellers(store_name, status, national_id_verified), images:product_images(*))')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
 
