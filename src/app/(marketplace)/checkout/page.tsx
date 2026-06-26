@@ -95,6 +95,34 @@ export default function CheckoutPage() {
 
     await supabase.from('order_items').insert(orderItems)
 
+    // Notify each seller in this order
+    const sellerIds = [...new Set(items.map((item) => item.product.seller_id))]
+    for (const sellerId of sellerIds) {
+      const { data: sellerRow } = await supabase.from('sellers').select('user_id').eq('id', sellerId).single()
+      if (sellerRow) {
+        await supabase.from('notifications').insert({
+          user_id: sellerRow.user_id,
+          type: 'new_order',
+          title_en: 'New order received',
+          title_sw: 'Agizo jipya limepokelewa',
+          body_en: `You have a new order (#${order.id.slice(0, 8)}). Check your orders to fulfill it.`,
+          body_sw: `Una agizo jipya (#${order.id.slice(0, 8)}). Angalia maagizo yako kulitekeleza.`,
+          link: `/seller/orders`,
+        })
+      }
+    }
+
+    // Confirm to the buyer
+    await supabase.from('notifications').insert({
+      user_id: user.id,
+      type: 'order_placed',
+      title_en: 'Order placed',
+      title_sw: 'Agizo limewekwa',
+      body_en: 'Your order has been placed and sellers have been notified.',
+      body_sw: 'Agizo lako limewekwa na wauzaji wamejulishwa.',
+      link: `/orders/${order.id}`,
+    })
+
     // Initial tracking event
     await supabase.from('order_tracking').insert({
       order_id:   order.id,
