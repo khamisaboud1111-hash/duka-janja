@@ -19,33 +19,35 @@ async function getProduct(slug: string) {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('products')
-          .select(`
-        *,
-        seller:sellers(*, profile:profiles(full_name, phone)),
-        category:categories(*),
-        images:product_images(*),
-        videos:product_videos(*),
-        reviews(*, buyer:profiles(full_name, avatar_url))
-      `)
-      .eq('slug', slug)
-         .eq('status', 'active')
-      .order('sort_order', { referencedTable: 'product_images', ascending: true })
-      .order('sort_order', { referencedTable: 'product_videos', ascending: true })
-      .single()
+    .select(`
+      *,
+      seller:sellers(*, profile:profiles(full_name, phone)),
+      category:categories(*),
+      images:product_images(*),
+      videos:product_videos(*),
+      reviews(*, buyer:profiles(full_name, avatar_url))
+    `)
+    .eq('slug', slug)
+    .eq('status', 'active')
+    .order('sort_order', { referencedTable: 'product_images', ascending: true })
+    .order('sort_order', { referencedTable: 'product_videos', ascending: true })
+    .single()
 
-  
+  return data
+}
+
 async function getRelated(categoryId: string, productId: string) {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('products')
     .select('*, seller:sellers(store_name, status, national_id_verified), images:product_images(*)')
     .eq('category_id', categoryId)
-
-    .eq('status', 'active')
     .neq('id', productId)
     .limit(4)
+
   return data ?? []
 }
+
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id)
