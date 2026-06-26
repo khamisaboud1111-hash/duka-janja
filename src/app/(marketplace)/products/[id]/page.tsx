@@ -19,26 +19,28 @@ async function getProduct(slug: string) {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('products')
-    .select(`
-      *,
-      seller:sellers(*, profile:profiles(full_name, phone)),
-      category:categories(*),
-      images:product_images(* order: sort_order asc),
-      videos:product_videos(* order: sort_order asc),
-      reviews(*, buyer:profiles(full_name, avatar_url))
-    `)
-    .eq('slug', slug)
-    .eq('status', 'active')
-    .single()
-  return data
-}
+          .select(`
+        *,
+        seller:sellers(*, profile:profiles(full_name, phone)),
+        category:categories(*),
+        images:product_images(*),
+        videos:product_videos(*),
+        reviews(*, buyer:profiles(full_name, avatar_url))
+      `)
+      .eq('slug', slug)
+         .eq('status', 'active')
+      .order('sort_order', { referencedTable: 'product_images', ascending: true })
+      .order('sort_order', { referencedTable: 'product_videos', ascending: true })
+      .single()
 
+  
 async function getRelated(categoryId: string, productId: string) {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('products')
-    .select(`*, seller:sellers(store_name, status, national_id_verified), images:product_images(*)`)
+    .select('*, seller:sellers(store_name, status, national_id_verified), images:product_images(*)')
     .eq('category_id', categoryId)
+
     .eq('status', 'active')
     .neq('id', productId)
     .limit(4)
