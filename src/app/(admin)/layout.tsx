@@ -10,6 +10,7 @@ import { cn } from '@/utils'
 const NAV = [
   { href: '/admin/dashboard',   label: 'Dashibodi',         icon: LayoutDashboard },
   { href: '/admin/sellers',     label: 'Wauuzaji',          icon: Store },
+  { href: '/admin/verification',label: 'Uthibitisho',       icon: ShieldCheck },
   { href: '/admin/products',    label: 'Bidhaa',            icon: Package },
   { href: '/admin/orders',      label: 'Maagizo',           icon: ShoppingBag },
   { href: '/admin/commissions', label: 'Kamisheni',         icon: Percent },
