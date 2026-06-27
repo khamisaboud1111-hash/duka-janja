@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
+import ThemeScript from '@/components/layout/ThemeScript'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
@@ -32,8 +33,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="sw" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-white text-ink-900`}>
-        {children}
+      <head>
+        <ThemeScript />
+      </head>
+      <body className={`${inter.variable} font-sans antialiased bg-white text-ink-900 dark:bg-ink-950 dark:text-ink-50`}>        {children}
         <Toaster
           position="top-center"
           toastOptions={{
