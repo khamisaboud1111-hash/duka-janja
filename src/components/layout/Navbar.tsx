@@ -3,21 +3,23 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { ShoppingCart, Heart, Bell, User, Search, Menu, X, Globe, LogOut, Package, Store, LayoutDashboard } from 'lucide-react'
+import { ShoppingCart, Heart, Bell, User, Search, Menu, X, Globe, LogOut, Package, Store, LayoutDashboard, Grid3x3, MapPin, Tag, Sun, Moon } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
-import { useCartStore, useLangStore } from '@/store'
+import { useCartStore, useLangStore, useThemeStore } from '@/store'
 import { t } from '@/i18n/translations'
-import type { Profile } from '@/types'
+import type { Profile, Category } from '@/types'
 import { cn } from '@/utils'
 
-export function Navbar() {
+export default function Navbar({ categories = [] }: { categories?: Category[] }) {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
   const { lang, setLang } = useLangStore()
+  const { theme, toggleTheme } = useThemeStore()
   const itemCount = useCartStore((s) => s.itemCount())
   const [profile, setProfile] = useState<Profile | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -42,7 +44,7 @@ export function Navbar() {
       .select('id', { count: 'exact' })
       .eq('user_id', profile.id)
       .eq('is_read', false)
-      .then(({ count }: any) => setUnreadCount(count ?? 0))
+      .then(({ count }) => setUnreadCount(count ?? 0))
   }, [profile])
 
   async function handleLogout() {
@@ -62,7 +64,7 @@ export function Navbar() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-white border-b border-ink-100 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white dark:bg-ink-900 border-b border-ink-100 dark:border-ink-800 shadow-sm">
         <div className="page-container">
           <div className="flex items-center h-14 gap-3">
             {/* Logo */}
@@ -70,10 +72,38 @@ export function Navbar() {
               <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-black text-sm">DJ</span>
               </div>
-              <span className="font-display font-black text-brand-700 text-lg tracking-tight hidden sm:block">
+              <span className="font-display font-black text-brand-700 dark:text-brand-300 text-lg tracking-tight hidden sm:block">
                 Duka Janja
               </span>
             </Link>
+
+            {/* Categories mega-menu trigger */}
+            <div className="relative hidden md:block flex-shrink-0">
+              <button
+                onClick={() => setCategoriesOpen((v) => !v)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
+              >
+                <Grid3x3 className="w-4 h-4" /> Kategoria
+              </button>
+              {categoriesOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setCategoriesOpen(false)} />
+                  <div className="absolute left-0 top-full mt-2 w-72 grid grid-cols-2 gap-1 p-3 card z-50 shadow-modal dark:bg-ink-900 dark:border-ink-800">
+                    {categories.map((cat) => (
+                      <Link
+                        key={cat.id}
+                        href={`/search?category=${cat.slug}`}
+                        onClick={() => setCategoriesOpen(false)}
+                        className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-ink-700 dark:text-ink-200 hover:bg-brand-50 dark:hover:bg-ink-800 transition-colors"
+                      >
+                        <span>{cat.icon}</span>
+                        <span className="truncate">{cat.name_sw}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* Search */}
             <form onSubmit={handleSearch} className="flex-1 max-w-xl">
@@ -90,18 +120,38 @@ export function Navbar() {
 
             {/* Right actions */}
             <div className="flex items-center gap-1 ml-auto">
+              {/* Quick links */}
+              <Link href="/#marketplace-map" className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
+                <MapPin className="w-3.5 h-3.5" /> Ramani
+              </Link>
+              <Link href="/search?sort=discount" className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
+                <Tag className="w-3.5 h-3.5" /> Ofa
+              </Link>
+              <Link href={profile?.role === 'seller' ? '/seller/dashboard' : '/register?type=seller'} className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
+                <Store className="w-3.5 h-3.5" /> Kituo cha Wauzaji
+              </Link>
+
+              {/* Dark / light mode toggle */}
+              <button
+                onClick={toggleTheme}
+                aria-label="Badilisha mwonekano"
+                className="p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5 text-ink-200" /> : <Moon className="w-5 h-5 text-ink-700" />}
+              </button>
+
               {/* Language toggle */}
               <button
                 onClick={() => setLang(lang === 'en' ? 'sw' : 'en')}
-                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 hover:bg-ink-100 transition-colors"
+                className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
               >
                 <Globe className="w-3.5 h-3.5" />
                 {lang === 'en' ? 'SW' : 'EN'}
               </button>
 
               {/* Cart */}
-              <Link href="/checkout" className="relative p-2 rounded-lg hover:bg-ink-100 transition-colors">
-                <ShoppingCart className="w-5 h-5 text-ink-700" />
+              <Link href="/checkout" className="relative p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
+                <ShoppingCart className="w-5 h-5 text-ink-700 dark:text-ink-200" />
                 {itemCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-spice-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                     {itemCount > 9 ? '9+' : itemCount}
