@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useSearchParams, useRouter } from 'next/navigation'
-import { Store, Loader2 } from 'lucide-react'
+import { Store, Loader2, MapPin } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
 import { useSeller } from '@/hooks/useSeller'
@@ -32,6 +32,9 @@ export default function SellerSettingsPage() {
   const [logo, setLogo] = useState<string | undefined>()
   const [banner, setBanner] = useState<string | undefined>()
   const [saving, setSaving] = useState(false)
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
+  const [locationLabel, setLocationLabel] = useState('')
+  const [locating, setLocating] = useState(false)
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -46,6 +49,10 @@ export default function SellerSettingsPage() {
       })
       setLogo(seller.logo_url ?? undefined)
       setBanner(seller.banner_url ?? undefined)
+      if (seller.latitude && seller.longitude) {
+        setCoords({ lat: seller.latitude, lng: seller.longitude })
+      }
+      setLocationLabel(seller.location_label ?? '')
     } else if (profile) {
       reset({ whatsapp_number: profile.phone ?? '' })
     }
@@ -59,6 +66,9 @@ export default function SellerSettingsPage() {
       ...data,
       logo_url: logo ?? null,
       banner_url: banner ?? null,
+      latitude: coords?.lat ?? null,
+      longitude: coords?.lng ?? null,
+      location_label: locationLabel || null,
       updated_at: new Date().toISOString(),
     }
 
@@ -149,6 +159,57 @@ export default function SellerSettingsPage() {
             {errors.whatsapp_number && <p className="mt-1 text-xs text-red-500">{errors.whatsapp_number.message}</p>}
             <p className="text-xs text-ink-400 mt-1">Wateja watawasiliana nawe kupitia nambari hii</p>
           </div>
+        </div>
+
+        {/* Store location — shown as a marker on the homepage marketplace map */}
+        <div className="card p-5 space-y-4">
+          <h2 className="font-semibold text-ink-800 flex items-center gap-2">
+            <MapPin className="w-4 h-4" /> Mahali pa Duka
+          </h2>
+          <p className="text-xs text-ink-500">
+            Hii itaonyesha duka lako kwenye Ramani ya Soko ukurasa wa nyumbani, ili wateja walio karibu wakupate.
+          </p>
+          <div>
+            <label className="label">Eneo (mfano: Mji Mkongwe, Paje)</label>
+            <input
+              value={locationLabel}
+              onChange={(e) => setLocationLabel(e.target.value)}
+              className="input"
+              placeholder="Mfano: Mji Mkongwe, Zanzibar"
+            />
+          </div>
+          <button
+            type="button"
+            disabled={locating}
+            onClick={() => {
+              if (!navigator.geolocation) {
+                toast.error('Kivinjari chako hakitumii huduma ya mahali')
+                return
+              }
+              setLocating(true)
+              navigator.geolocation.getCurrentPosition(
+                (pos) => {
+                  setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+                  setLocating(false)
+                  toast.success('Mahali pa duka pamenaswa')
+                },
+                () => {
+                  setLocating(false)
+                  toast.error('Imeshindwa kupata mahali. Ruhusu ufikiaji wa mahali kwenye kivinjari.')
+                },
+                { enableHighAccuracy: true, timeout: 10000 }
+              )
+            }}
+            className="btn-secondary text-sm"
+          >
+            {locating && <Loader2 className="w-4 h-4 animate-spin" />}
+            {coords ? 'Sasisha Mahali pa Sasa' : 'Tumia Mahali Pangu pa Sasa'}
+          </button>
+          {coords && (
+            <p className="text-xs text-brand-600">
+              ✓ Mahali pamenaswa ({coords.lat.toFixed(4)}, {coords.lng.toFixed(4)})
+            </p>
+          )}
         </div>
 
         <button type="submit" disabled={saving} className="btn-primary w-full justify-center py-3">
