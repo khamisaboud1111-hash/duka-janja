@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, ShoppingCart, Star, BadgeCheck } from 'lucide-react'
+import { Heart, ShoppingCart, Star, BadgeCheck, Eye, PlayCircle, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { useCartStore, useLangStore } from '@/store'
 import { createClient } from '@/lib/supabase/client'
@@ -97,6 +97,29 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             <Heart className={cn('w-4 h-4', wishlisted && 'fill-current')} />
           </button>
 
+          {/* Quick view */}
+          <Link
+            href={`/products/${product.slug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-ink-800 text-xs font-semibold shadow-sm"
+          >
+            <Eye className="w-3.5 h-3.5" /> Tazama
+          </Link>
+
+          {/* Video / gallery indicators */}
+          <div className="absolute bottom-2 right-2 flex items-center gap-1">
+            {(product as any).videos?.length > 0 && (
+              <span className="w-6 h-6 rounded-full bg-black/55 flex items-center justify-center" aria-label="Video ipo">
+                <PlayCircle className="w-3.5 h-3.5 text-white" />
+              </span>
+            )}
+            {product.images && product.images.length > 1 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-black/55 text-white text-[10px] font-semibold">
+                1/{product.images.length}
+              </span>
+            )}
+          </div>
+
           {/* Out of stock overlay */}
           {product.stock_quantity === 0 && (
             <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
@@ -119,12 +142,26 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
 
           {/* Rating */}
           {product.review_count > 0 && (
-            <div className="flex items-center gap-1 mb-2">
+            <div className="flex items-center gap-1 mb-1.5">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
               <span className="text-xs text-ink-600 font-medium">{product.average_rating.toFixed(1)}</span>
               <span className="text-xs text-ink-400">({product.review_count})</span>
             </div>
           )}
+
+          {/* Stock + delivery availability */}
+          <div className="flex items-center gap-1.5 mb-2">
+            {product.stock_quantity > 0 ? (
+              <span className={cn('text-xs font-medium', product.stock_quantity <= 5 ? 'text-spice-600' : 'text-brand-600')}>
+                {product.stock_quantity <= 5 ? `Vipo ${product.stock_quantity} tu` : t('inStock', lang)}
+              </span>
+            ) : (
+              <span className="text-xs font-medium text-ink-400">{t('outOfStock', lang)}</span>
+            )}
+            <span className="flex items-center gap-0.5 text-xs text-ink-400">
+              <Truck className="w-3 h-3" /> Inafikishwa
+            </span>
+          </div>
 
           {/* Price & cart */}
           <div className="flex items-center justify-between gap-2">
