@@ -81,3 +81,31 @@ export const useLangStore = create<LangStore>()(
     { name: 'duka-janja-lang' }
   )
 )
+
+// ─── Theme Store (dark / light mode) ──────────────────────────────────────────
+
+export type Theme = 'light' | 'dark'
+
+interface ThemeStore {
+  theme: Theme
+  toggleTheme: () => void
+  setTheme: (theme: Theme) => void
+}
+
+export const useThemeStore = create<ThemeStore>()(
+  persist(
+    (set, get) => ({
+      theme: 'light',
+      toggleTheme: () => {
+        const next: Theme = get().theme === 'light' ? 'dark' : 'light'
+        document.documentElement.classList.toggle('dark', next === 'dark')
+        set({ theme: next })
+      },
+      setTheme: (theme) => {
+        document.documentElement.classList.toggle('dark', theme === 'dark')
+        set({ theme })
+      },
+    }),
+    { name: 'duka-janja-theme' }
+  )
+)
