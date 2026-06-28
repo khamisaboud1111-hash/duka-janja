@@ -1,0 +1,143 @@
+'use client'
+
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
+
+export interface ActiveOffer {
+  id: string
+  pickup_address: string
+  delivery_address: string
+  delivery_fee: number
+  distance_meters: number | null
+  timeout_expires_at: string | null
+  status: string
+}
+
+/**
+ * Manages a rider's online/offline state, periodic GPS pings while online,
+ * and listens for incoming delivery offers via Supabase Realtime + a
+ * client-side timeout poller (see Phase 9 notes on zero-budget dispatch).
+ */
+export function useRiderTracking(riderId: string | undefined) {
+  const supabase = createClient()
+  const [isOnline, setIsOnline] = useState(false)
+  const [offer, setOffer] = useState<ActiveOffer | null>(null)
+  const watchIdRef = useRef<number | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const pingLocation = useCallback((lat: number, lng: number) => {
+    fetch('/api/rider/location', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lat, lng }),
+    }).catch(() => {})
+  }, [])
+
+  // Start/stop GPS watch when online status flips.
+  useEffect(() => {
+    if (!isOnline || !riderId) {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
+      return
+    }
+    if (!('geolocation' in navigator)) return
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => pingLocation(pos.coords.latitude, pos.coords.longitude),
+      (err) => console.warn('[useRiderTracking] geolocation error:', err.message),
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
+    )
+
+    return () => {
+      if (watchIdRef.current !== null) navigator.geolocation.clearWatch(watchIdRef.current)
+    }
+  }, [isOnline, riderId, pingLocation])
+
+  // Realtime: listen for deliveries assigned to this rider.
+  useEffect(() => {
+    if (!riderId) return
+
+    const channel = supabase
+      .channel(`rider-offers-${riderId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'deliveries', filter: `rider_id=eq.${riderId}` },
+        (payload) => {
+          const row = payload.new as ActiveOffer
+          if (row.status === 'pending_dispatch') {
+            setOffer(row)
+          } else {
+            setOffer((current) => (current?.id === row.id ? null : current))
+          }
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [riderId, supabase])
+
+  // Client-side timeout poller — checks the active offer every 4s. This is
+  // the zero-budget stand-in for a server cron job (see Phase 9 notes).
+  useEffect(() => {
+    if (!offer?.id) {
+      if (pollRef.current) clearInterval(pollRef.current)
+      return
+    }
+
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch('/api/delivery/check-timeout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ delivery_id: offer.id }),
+        })
+        const json = await res.json()
+        if (json.expired) setOffer(null)
+      } catch {
+        // ignore transient network errors, next tick will retry
+      }
+    }, 4000)
+
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+    }
+  }, [offer?.id])
+
+  async function toggleOnline(next: boolean) {
+    if (!riderId) return
+    const { error } = await supabase.from('rider_profiles').update({ is_online: next }).eq('id', riderId)
+    if (!error) setIsOnline(next)
+    return !error
+  }
+
+  async function acceptOffer() {
+    if (!offer) return false
+    const res = await fetch('/api/delivery/accept', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ delivery_id: offer.id }),
+    })
+    if (res.ok) {
+      setOffer(null)
+      return true
+    }
+    return false
+  }
+
+  async function declineOffer() {
+    if (!offer) return false
+    await fetch('/api/delivery/decline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ delivery_id: offer.id }),
+    })
+    setOffer(null)
+    return true
+  }
+
+  return { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer }
+}
