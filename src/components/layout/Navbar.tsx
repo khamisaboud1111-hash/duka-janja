@@ -76,8 +76,17 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
                 Duka Janja
               </span>
             </Link>
+               {profile?.role === 'admin' && (
+        <Link 
+          href="/admin/dashboard" 
+          className="ml-4 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md text-sm font-bold transition-colors"
+        >
+          ⚙️ Usimamizi
+        </Link>
+      )}
 
-            {/* Categories mega-menu trigger */}
+      {/* Categories mega-menu trigger */}
+
             <div className="relative hidden md:block flex-shrink-0">
               <button
                 onClick={() => setCategoriesOpen((v) => !v)}
