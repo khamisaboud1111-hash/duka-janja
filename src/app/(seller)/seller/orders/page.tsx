@@ -141,7 +141,8 @@ export default function SellerOrdersPage() {
                           {updatingId === order.id ? 'Inabadilisha...' : `→ ${STATUS_LABELS[next]}`}
                         </button>
                       ) : null}
-                      {order.status !== 'out_for_delivery' && order.status !== 'delivered' && (
+                    {(order as any).status !== 'out_for_delivery' && (order as any).status !== 'delivered' && (
+
                         <button
                           onClick={() => handleCancel(order)}
                           disabled={!!updatingId}
