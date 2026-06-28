@@ -12,6 +12,7 @@ import { formatTZS, formatDate, ORDER_STATUS_STEPS } from '@/utils'
 import type { Order, OrderStatus } from '@/types'
 import toast from 'react-hot-toast'
 import ReadyForPickupButton from '@/components/seller/ReadyForPickupButton'
+import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
 
 const NEXT_STATUS: Record<string, OrderStatus> = {
   pending: 'confirmed', confirmed: 'packed', packed: 'out_for_delivery', out_for_delivery: 'delivered',
@@ -149,6 +150,12 @@ export default function SellerOrdersPage() {
                         </button>
                       )}
                     </div>
+                  </div>
+                )}
+
+                {order.status === 'delivered' && seller && (
+                  <div className="border-t border-ink-100 pt-3 mt-1">
+                    <DeliveryRatingSection orderId={order.id} reviewerId={seller.user_id} reviewerRole="seller" />
                   </div>
                 )}
               </div>
