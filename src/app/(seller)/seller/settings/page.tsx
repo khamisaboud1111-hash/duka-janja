@@ -40,7 +40,7 @@ export default function SellerSettingsPage() {
     resolver: zodResolver(schema),
   })
 
-  useEffect(() => {
+   useEffect(() => {
     if (seller) {
       reset({
         store_name: seller.store_name,
@@ -49,15 +49,20 @@ export default function SellerSettingsPage() {
       })
       setLogo(seller.logo_url ?? undefined)
       setBanner(seller.banner_url ?? undefined)
-            if ((seller as any).latitude && (seller as any).longitude) {
-      setCoords({ lat: (seller as any).latitude, lng: (seller as any).longitude })
-    }
-    setLocationLabel((seller as any).location_label ?? '')
+
+      // We separate the type cast here once, so the lines below stay clean
+      const sellerData = seller as any
+
+      if (sellerData.latitude && sellerData.longitude) {
+        setCoords({ lat: sellerData.latitude, lng: sellerData.longitude })
+      }
+      setLocationLabel(sellerData.location_label ?? '')
 
     } else if (profile) {
       reset({ whatsapp_number: profile.phone ?? '' })
     }
   }, [seller, profile])
+
 
   async function onSubmit(data: FormData) {
     if (!profile) return
