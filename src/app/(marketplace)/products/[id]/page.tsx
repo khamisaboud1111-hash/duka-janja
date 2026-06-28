@@ -48,14 +48,18 @@ async function getRelated(categoryId: string, productId: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id)
   if (!product) return { title: 'Product not found' }
+  
+  const productData = product as any
+
   return {
-    title: `${product.name} — Duka Janja`,
-    description: product.description?.slice(0, 160),
+    title: `${productData.name} - Duka Janja`,
+    description: productData.description?.slice(0, 160),
   }
+
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = await getProduct(params.id)
+   const product = (await getProduct(params.id)) as any
   if (!product) notFound()
 
   const related = await getRelated(product.category_id, product.id)
