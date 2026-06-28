@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client'
 import { PageLoader } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
+import RiderNavigationMap from '@/components/rider/RiderNavigationMap'
 
 interface RiderProfileRow {
   id: string
@@ -28,6 +29,17 @@ interface Metrics {
   completedToday: number
 }
 
+interface ActiveDelivery {
+  delivery_id: string
+  status: 'accepted' | 'picked_up'
+  pickup_lat: number
+  pickup_lng: number
+  delivery_lat: number | null
+  delivery_lng: number | null
+  pickup_address: string
+  delivery_address: string
+}
+
 export default function RiderDashboardPage() {
   const router = useRouter()
   const supabase = createClient()
@@ -36,13 +48,36 @@ export default function RiderDashboardPage() {
   const [metrics, setMetrics] = useState<Metrics>({ todayEarnings: 0, weekEarnings: 0, completedToday: 0 })
   const [loadingData, setLoadingData] = useState(true)
   const [togglingOnline, setTogglingOnline] = useState(false)
+  const [activeDelivery, setActiveDelivery] = useState<ActiveDelivery | null>(null)
+  const [riderLatLng, setRiderLatLng] = useState<{ lat: number; lng: number } | null>(null)
 
-  const { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer } = useRiderTracking(profile?.id)
+  const { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer, activeDeliveryId } = useRiderTracking(profile?.id)
 
   useEffect(() => {
     if (!profile) return
     loadRiderData()
   }, [profile])
+
+  useEffect(() => {
+    if (!activeDeliveryId || !profile) {
+      setActiveDelivery(null)
+      return
+    }
+    supabase.rpc('get_active_delivery_for_rider', { p_rider_id: profile.id }).then(({ data }) => {
+      const row = Array.isArray(data) ? data[0] : null
+      setActiveDelivery(row ?? null)
+    })
+  }, [activeDeliveryId, profile])
+
+  useEffect(() => {
+    if (!activeDelivery || !('geolocation' in navigator)) return
+    const id = navigator.geolocation.watchPosition(
+      (pos) => setRiderLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    )
+    return () => navigator.geolocation.clearWatch(id)
+  }, [activeDelivery])
 
   async function loadRiderData() {
     if (!profile) return
@@ -172,6 +207,53 @@ export default function RiderDashboardPage() {
           {isOnline ? 'Tunakutafutia safari karibu na eneo lako...' : 'Washa hali ya mtandaoni ili kuanza kupokea ofa za safari.'}
         </p>
       </div>
+
+      {activeDelivery && (
+        <div className="bg-white rounded-2xl shadow-card p-4 sm:p-5 mt-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-bold text-ink-900">Safari Inayoendelea</h2>
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 text-brand-600">
+              {activeDelivery.status === 'accepted' ? 'Unakwenda kuchukua' : 'Bidhaa Zimechukuliwa'}
+            </span>
+          </div>
+
+          <RiderNavigationMap
+            riderLocation={riderLatLng}
+            pickupLocation={{ lat: activeDelivery.pickup_lat, lng: activeDelivery.pickup_lng }}
+            deliveryLocation={
+              activeDelivery.delivery_lat && activeDelivery.delivery_lng
+                ? { lat: activeDelivery.delivery_lat, lng: activeDelivery.delivery_lng }
+                : null
+            }
+            leg={activeDelivery.status === 'accepted' ? 'to_pickup' : 'to_delivery'}
+          />
+
+          <Button
+            fullWidth
+            onClick={async () => {
+              const nextStatus = activeDelivery.status === 'accepted' ? 'picked_up' : 'delivered'
+              const res = await fetch('/api/delivery/update-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ delivery_id: activeDelivery.delivery_id, status: nextStatus }),
+              })
+              if (res.ok) {
+                if (nextStatus === 'delivered') {
+                  setActiveDelivery(null)
+                  toast.success('Safari imekamilika!')
+                  loadRiderData()
+                } else {
+                  setActiveDelivery({ ...activeDelivery, status: 'picked_up' })
+                }
+              } else {
+                toast.error('Imeshindikana kusasisha')
+              }
+            }}
+          >
+            {activeDelivery.status === 'accepted' ? 'Nimechukua Bidhaa' : 'Nimefikisha Bidhaa'}
+          </Button>
+        </div>
+      )}
 
       {offer && (
         <ActiveJobOverlay offer={offer} onAccept={acceptOffer} onDecline={declineOffer} />
