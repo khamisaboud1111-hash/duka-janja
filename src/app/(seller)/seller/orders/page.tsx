@@ -115,12 +115,13 @@ export default function SellerOrdersPage() {
                       {next && order.status === 'packed' ? (
                         <div className="flex-1">
                           <ReadyForPickupButton
-                            orderId={order.id}
-                            sellerId={seller!.id}
-                            sellerLatitude={seller!.latitude}
-                            sellerLongitude={seller!.longitude}
-                            sellerAddress={seller!.store_name}
-                            deliveryAddress={order.delivery_address}
+                                               orderId={order.id}
+                    sellerId={seller!.id}
+                    sellerLatitude={(seller as any).latitude}
+                    sellerLongitude={(seller as any).longitude}
+                    sellerAddress={seller!.store_name}
+                    deliveryAddress={order.delivery_address}
+
                             suggestedFee={order.delivery_fee}
                           />
                           <button
