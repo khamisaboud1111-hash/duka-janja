@@ -62,9 +62,12 @@ export function useChat(buyerId: string | undefined, sellerId: string | undefine
       activeRoom = created
     }
 
-    setRoom(activeRoom)
-    await loadMessages(activeRoom.id)
-    setLoading(false)
+           setRoom(activeRoom)
+        if (activeRoom) {
+          await loadMessages(activeRoom.id)
+        }
+        setLoading(false)
+
   }
 
   async function loadMessages(roomId: string) {
