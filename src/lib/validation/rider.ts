@@ -38,8 +38,8 @@ export const riderApplicationSchema = z.object({
     errorMap: () => ({ message: 'Chagua njia sahihi ya malipo' }),
   }),
   payout_account_number: eastAfricanPhone,
-  selfie_url: z.string().url('Picha ya selfie inahitajika').optional(),
-  license_scan_url: z.string().url('Picha ya leseni inahitajika').optional(),
+  selfie_url: z.string().min(3, 'Picha ya selfie inahitajika').optional(),
+  license_scan_url: z.string().min(3, 'Picha ya leseni inahitajika').optional(),
 })
 
 export type RiderApplicationInput = z.infer<typeof riderApplicationSchema>
