@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Package, ShoppingBag, BarChart2, Settings, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Package, ShoppingBag, BarChart2, Settings, ArrowLeft, ShieldCheck, MessageCircle } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { useSeller } from '@/hooks/useSeller'
 import { PageLoader } from '@/components/ui'
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/seller/dashboard',  label: 'Dashibodi', icon: LayoutDashboard },
   { href: '/seller/products',   label: 'Bidhaa',    icon: Package },
   { href: '/seller/orders',     label: 'Maagizo',   icon: ShoppingBag },
+  { href: '/seller/messages',   label: 'Ujumbe',    icon: MessageCircle },
   { href: '/seller/analytics',  label: 'Takwimu',   icon: BarChart2 },
   { href: '/seller/verification', label: 'Uthibitisho', icon: ShieldCheck },
   { href: '/seller/settings',   label: 'Mipangilio',icon: Settings },
