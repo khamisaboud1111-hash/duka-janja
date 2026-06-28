@@ -149,29 +149,35 @@ export default function CheckoutPage() {
 
     clearCart()
 
-    // Initiate payment for the order (cash on delivery succeeds immediately;
-    // mobile money providers will report "not configured" until real credentials exist)
     const provider = toPaymentProvider(data.payment_method)
+
+    // Cash on delivery: no online payment step, just confirm the order.
+    if (provider === 'cash_on_delivery') {
+      setSuccess(order.id)
+      setSubmitting(false)
+      return
+    }
+
+    // Mobile money / card: redirect to the Flutterwave-hosted checkout page.
+    // This replaces a direct per-telco integration (M-Pesa/Tigo/Airtel each
+    // need their own merchant agreement) with one aggregator account that
+    // only charges a transaction fee — zero setup cost, works today.
     try {
-      const res = await fetch('/api/payments/initiate', {
+      const res = await fetch('/api/payments/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          order_id: order.id,
-          provider,
-          phone_number: data.delivery_phone,
-        }),
+        body: JSON.stringify({ order_id: order.id }),
       })
       const json = await res.json()
-      if (!res.ok) {
-        toast.error(
-          provider === 'cash_on_delivery'
-            ? 'Agizo limewekwa, lakini hitilafu imetokea kwenye malipo.'
-            : json.error ?? 'Malipo ya simu hayajawekwa bado — wasiliana na muuzaji kuthibitisha malipo.'
-        )
+
+      if (res.ok && json.payment_link) {
+        window.location.href = json.payment_link
+        return // page is navigating away, nothing else to do
       }
+
+      toast.error(json.error ?? 'Imeshindikana kuanzisha malipo. Agizo limewekwa — unaweza kulipa baadaye kwenye ukurasa wa agizo.')
     } catch {
-      // Order already exists either way — payment can be retried/confirmed manually
+      toast.error('Hitilafu ya mtandao. Agizo limewekwa — unaweza kulipa baadaye kwenye ukurasa wa agizo.')
     }
 
     setSuccess(order.id)
