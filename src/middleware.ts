@@ -38,13 +38,12 @@ export async function middleware(req: NextRequest) {
     redirectUrl.searchParams.set('redirect', path)
     return NextResponse.redirect(redirectUrl)
   }
-
   if (isAdminRoute && session) {
-    const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single()
-    if (profile?.role !== 'admin') {
+    if (session.user.email !== 'khamisaboud26@gmail.com') {
       return NextResponse.redirect(new URL('/', req.url))
     }
   }
+
 
   return res
 }
