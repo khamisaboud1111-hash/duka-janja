@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Store, Package, ShoppingBag, Percent, ArrowLeft, ShieldCheck } from 'lucide-react'
+import { LayoutDashboard, Store, Package, ShoppingBag, Percent, ArrowLeft, ShieldCheck, Bike, Truck } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { PageLoader } from '@/components/ui'
 import { cn } from '@/utils'
@@ -11,6 +11,8 @@ const NAV = [
   { href: '/admin/dashboard',   label: 'Dashibodi',         icon: LayoutDashboard },
   { href: '/admin/sellers',     label: 'Wauuzaji',          icon: Store },
   { href: '/admin/verification',label: 'Uthibitisho',       icon: ShieldCheck },
+  { href: '/admin/riders',      label: 'Madereva',          icon: Bike },
+  { href: '/admin/deliveries',  label: 'Usafirishaji',      icon: Truck },
   { href: '/admin/products',    label: 'Bidhaa',            icon: Package },
   { href: '/admin/orders',      label: 'Maagizo',           icon: ShoppingBag },
   { href: '/admin/commissions', label: 'Kamisheni',         icon: Percent },
