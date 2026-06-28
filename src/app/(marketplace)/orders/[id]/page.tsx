@@ -7,6 +7,7 @@ import OrderTracker from '@/components/order/OrderTracker'
 import { formatTZS, formatDate, DELIVERY_ZONES, PAYMENT_METHODS } from '@/utils'
 import PayNowButton from '@/components/order/PayNowButton'
 import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
+import OrderLiveMapSection from '@/components/delivery/OrderLiveMapSection'
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
@@ -116,6 +117,10 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
             )}
           </div>
         </div>
+
+        {order.status === 'out_for_delivery' && (
+          <OrderLiveMapSection orderId={order.id} />
+        )}
 
         {order.status === 'delivered' && (
           <div className="mt-4">
