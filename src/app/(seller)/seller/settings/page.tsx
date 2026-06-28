@@ -49,10 +49,11 @@ export default function SellerSettingsPage() {
       })
       setLogo(seller.logo_url ?? undefined)
       setBanner(seller.banner_url ?? undefined)
-      if (seller.latitude && seller.longitude) {
-        setCoords({ lat: seller.latitude, lng: seller.longitude })
-      }
-      setLocationLabel(seller.location_label ?? '')
+            if ((seller as any).latitude && (seller as any).longitude) {
+      setCoords({ lat: (seller as any).latitude, lng: (seller as any).longitude })
+    }
+    setLocationLabel((seller as any).location_label ?? '')
+
     } else if (profile) {
       reset({ whatsapp_number: profile.phone ?? '' })
     }
