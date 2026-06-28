@@ -6,6 +6,7 @@ import { Package, ArrowLeft } from 'lucide-react'
 import OrderTracker from '@/components/order/OrderTracker'
 import { formatTZS, formatDate, DELIVERY_ZONES, PAYMENT_METHODS } from '@/utils'
 import PayNowButton from '@/components/order/PayNowButton'
+import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
@@ -115,6 +116,12 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
             )}
           </div>
         </div>
+
+        {order.status === 'delivered' && (
+          <div className="mt-4">
+            <DeliveryRatingSection orderId={order.id} reviewerId={order.buyer_id} reviewerRole="buyer" />
+          </div>
+        )}
       </div>
     </main>
   )
