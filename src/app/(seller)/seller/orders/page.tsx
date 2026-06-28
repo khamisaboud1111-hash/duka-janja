@@ -11,6 +11,7 @@ import { PageLoader, EmptyState } from '@/components/ui'
 import { formatTZS, formatDate, ORDER_STATUS_STEPS } from '@/utils'
 import type { Order, OrderStatus } from '@/types'
 import toast from 'react-hot-toast'
+import ReadyForPickupButton from '@/components/seller/ReadyForPickupButton'
 
 const NEXT_STATUS: Record<string, OrderStatus> = {
   pending: 'confirmed', confirmed: 'packed', packed: 'out_for_delivery', out_for_delivery: 'delivered',
@@ -110,7 +111,26 @@ export default function SellerOrdersPage() {
                       className="input text-xs resize-none"
                     />
                     <div className="flex gap-2">
-                      {next && (
+                      {next && order.status === 'packed' ? (
+                        <div className="flex-1">
+                          <ReadyForPickupButton
+                            orderId={order.id}
+                            sellerId={seller!.id}
+                            sellerLatitude={seller!.latitude}
+                            sellerLongitude={seller!.longitude}
+                            sellerAddress={seller!.store_name}
+                            deliveryAddress={order.delivery_address}
+                            suggestedFee={order.delivery_fee}
+                          />
+                          <button
+                            onClick={() => handleAdvance(order)}
+                            disabled={!!updatingId}
+                            className="text-xs text-ink-400 underline mt-2"
+                          >
+                            Au weka alama ya kusafirishwa moja kwa moja (bila dereva wa Duka Janja)
+                          </button>
+                        </div>
+                      ) : next ? (
                         <button
                           onClick={() => handleAdvance(order)}
                           disabled={!!updatingId}
@@ -118,8 +138,8 @@ export default function SellerOrdersPage() {
                         >
                           {updatingId === order.id ? 'Inabadilisha...' : `→ ${STATUS_LABELS[next]}`}
                         </button>
-                      )}
-                      {(order.status as string) !== 'out_for_delivery' && (order.status as string) !== 'delivered' && (
+                      ) : null}
+                      {order.status !== 'out_for_delivery' && order.status !== 'delivered' && (
                         <button
                           onClick={() => handleCancel(order)}
                           disabled={!!updatingId}
