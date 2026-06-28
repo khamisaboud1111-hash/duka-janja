@@ -23,16 +23,13 @@ async function getProduct(slug: string) {
       *,
       seller:sellers(*, profile:profiles(full_name, phone)),
       category:categories(*),
-      images:product_images(*),
-      videos:product_videos(*),
+      images:product_images(* order: sort_order asc),
+      videos:product_videos(* order: sort_order asc),
       reviews(*, buyer:profiles(full_name, avatar_url))
     `)
     .eq('slug', slug)
     .eq('status', 'active')
-    .order('sort_order', { referencedTable: 'product_images', ascending: true })
-    .order('sort_order', { referencedTable: 'product_videos', ascending: true })
     .single()
-
   return data
 }
 
@@ -40,21 +37,20 @@ async function getRelated(categoryId: string, productId: string) {
   const supabase = createServerClient()
   const { data } = await supabase
     .from('products')
-    .select('*, seller:sellers(store_name, status, national_id_verified), images:product_images(*)')
+    .select(`*, seller:sellers(store_name, status, national_id_verified), images:product_images(*)`)
     .eq('category_id', categoryId)
+    .eq('status', 'active')
     .neq('id', productId)
     .limit(4)
-
   return data ?? []
 }
-
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id)
   if (!product) return { title: 'Product not found' }
   return {
-    title: `${product as any}.name} — Duka Janja`,
-    description: (product as any).description?.slice(0, 160),
+    title: `${product.name} — Duka Janja`,
+    description: product.description?.slice(0, 160),
   }
 }
 
@@ -184,13 +180,20 @@ export default async function ProductPage({ params }: Props) {
             {/* Add to cart */}
             <AddToCartSection product={product} />
 
-            {/* WhatsApp */}
+            {/* WhatsApp + In-app chat */}
             {seller && (
-              <a href={waUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 font-semibold hover:bg-emerald-50 transition-colors">
-                <MessageCircle className="w-5 h-5" />
-                Wasiliana na muuzaji (WhatsApp)
-              </a>
+              <div className="grid grid-cols-2 gap-2">
+                <a href={waUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 font-semibold hover:bg-emerald-50 transition-colors text-sm">
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </a>
+                <Link href={`/messages/${seller.id}`}
+                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-brand-500 text-brand-600 font-semibold hover:bg-brand-50 transition-colors text-sm">
+                  <MessageCircle className="w-4 h-4" />
+                  Ongea Hapa
+                </Link>
+              </div>
             )}
 
             {/* Description */}
