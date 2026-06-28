@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Package, ArrowLeft } from 'lucide-react'
 import OrderTracker from '@/components/order/OrderTracker'
 import { formatTZS, formatDate, DELIVERY_ZONES, PAYMENT_METHODS } from '@/utils'
+import PayNowButton from '@/components/order/PayNowButton'
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
@@ -16,7 +17,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
     .select(`
       *,
       items:order_items(*, product:products(*, images:product_images(*))),
-      tracking:order_tracking(*)
+      tracking:order_tracking(* order: created_at asc)
     `)
     .eq('id', params.id)
     .eq('buyer_id', user.id)
@@ -24,7 +25,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
 
   if (!order) notFound()
 
-  const zone = DELIVERY_ZONES[(order as any).delivery_zone as keyof typeof DELIVERY_ZONES]
+  const zone = DELIVERY_ZONES[order.delivery_zone as keyof typeof DELIVERY_ZONES]
   const payment = PAYMENT_METHODS.find((p) => p.id === order.payment_method)
 
   return (
@@ -107,6 +108,11 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
             <span className={`badge mt-2 text-xs ${order.payment_confirmed ? 'badge-green' : 'badge-gray'}`}>
               {order.payment_confirmed ? 'Imethibitishwa' : 'Inasubiri'}
             </span>
+            {!order.payment_confirmed && order.payment_method !== 'cod' && (
+              <div>
+                <PayNowButton orderId={order.id} />
+              </div>
+            )}
           </div>
         </div>
       </div>
