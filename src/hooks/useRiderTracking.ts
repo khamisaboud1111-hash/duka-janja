@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useDeliveryBroadcastPublisher } from './useDeliveryBroadcast'
 
 export interface ActiveOffer {
   id: string
@@ -15,23 +16,34 @@ export interface ActiveOffer {
 
 /**
  * Manages a rider's online/offline state, periodic GPS pings while online,
- * and listens for incoming delivery offers via Supabase Realtime + a
- * client-side timeout poller (see Phase 9 notes on zero-budget dispatch).
+ * listens for incoming delivery offers via Supabase Realtime + a client-side
+ * timeout poller (see Phase 9 notes on zero-budget dispatch), and tracks
+ * whichever delivery is currently accepted/picked_up so its location can be
+ * broadcast live to the buyer/admin tracking map (Phase 11).
  */
 export function useRiderTracking(riderId: string | undefined) {
   const supabase = createClient()
   const [isOnline, setIsOnline] = useState(false)
   const [offer, setOffer] = useState<ActiveOffer | null>(null)
+  const [activeDeliveryId, setActiveDeliveryId] = useState<string | null>(null)
   const watchIdRef = useRef<number | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { publish } = useDeliveryBroadcastPublisher(activeDeliveryId)
 
-  const pingLocation = useCallback((lat: number, lng: number) => {
-    fetch('/api/rider/location', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lat, lng }),
-    }).catch(() => {})
-  }, [])
+  const pingLocation = useCallback(
+    (lat: number, lng: number, heading?: number | null) => {
+      fetch('/api/rider/location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat, lng }),
+      }).catch(() => {})
+
+      if (activeDeliveryId) {
+        publish({ lat, lng, heading, ts: Date.now() })
+      }
+    },
+    [activeDeliveryId, publish]
+  )
 
   // Start/stop GPS watch when online status flips.
   useEffect(() => {
@@ -45,7 +57,7 @@ export function useRiderTracking(riderId: string | undefined) {
     if (!('geolocation' in navigator)) return
 
     watchIdRef.current = navigator.geolocation.watchPosition(
-      (pos) => pingLocation(pos.coords.latitude, pos.coords.longitude),
+      (pos) => pingLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.heading),
       (err) => console.warn('[useRiderTracking] geolocation error:', err.message),
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     )
@@ -70,6 +82,12 @@ export function useRiderTracking(riderId: string | undefined) {
             setOffer(row)
           } else {
             setOffer((current) => (current?.id === row.id ? null : current))
+          }
+
+          if (row.status === 'accepted' || row.status === 'picked_up') {
+            setActiveDeliveryId(row.id)
+          } else if (row.status === 'delivered' || row.status === 'cancelled' || row.status === 'declined') {
+            setActiveDeliveryId((current) => (current === row.id ? null : current))
           }
         }
       )
@@ -139,5 +157,5 @@ export function useRiderTracking(riderId: string | undefined) {
     return true
   }
 
-  return { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer }
+  return { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer, activeDeliveryId }
 }
