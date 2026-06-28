@@ -1,0 +1,56 @@
+import { NextResponse } from 'next/server'
+import { z } from 'zod'
+import { createServerClient } from '@/lib/supabase/server'
+import { withValidation } from '@/lib/validation/withValidation'
+import { createCheckoutLink } from '@/lib/payments/aggregator'
+
+const checkoutSchema = z.object({
+  order_id: z.string().uuid(),
+})
+
+export const POST = withValidation(checkoutSchema, async (data, req) => {
+  const supabase = createServerClient()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth?.user) {
+    return NextResponse.json({ error: 'Hujaingia (not authenticated)' }, { status: 401 })
+  }
+
+  const { data: order, error: orderErr } = await supabase
+    .from('orders')
+    .select('id, buyer_id, total_amount, payment_confirmed, delivery_name, delivery_phone')
+    .eq('id', data.order_id)
+    .single()
+
+  if (orderErr || !order) {
+    return NextResponse.json({ error: 'Agizo halipo' }, { status: 404 })
+  }
+
+  if (order.buyer_id !== auth.user.id) {
+    return NextResponse.json({ error: 'Hauruhusiwi' }, { status: 403 })
+  }
+
+  if (order.payment_confirmed) {
+    return NextResponse.json({ error: 'Agizo hili limelipiwa tayari' }, { status: 409 })
+  }
+
+  const origin = new URL(req.url).origin
+
+  const result = await createCheckoutLink({
+    orderId: order.id,
+    amount: order.total_amount,
+    customerEmail: auth.user.email ?? 'buyer@dukajanja.app',
+    customerPhone: order.delivery_phone,
+    customerName: order.delivery_name,
+    redirectUrl: `${origin}/orders/${order.id}?payment=callback`,
+  })
+
+  if (!result.success || !result.paymentLink) {
+    return NextResponse.json({ error: result.message ?? 'Imeshindikana kuunda kiungo cha malipo' }, { status: 502 })
+  }
+
+  // Stash the tx_ref so the webhook can match it back to this order even
+  // though Flutterwave's meta.order_id is also passed (belt-and-suspenders).
+  await supabase.from('orders').update({ payment_reference: result.txRef }).eq('id', order.id)
+
+  return NextResponse.json({ payment_link: result.paymentLink })
+})
