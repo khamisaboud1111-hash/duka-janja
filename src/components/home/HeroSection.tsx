@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { Search, Store } from 'lucide-react'
+import { Search, Store, Bike } from 'lucide-react'
 
 interface HomeStats {
   active_sellers: number
@@ -36,9 +36,6 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
 
       <div className="page-container relative z-10 pt-12 pb-8 sm:pt-20 sm:pb-14 lg:pt-28 lg:pb-20">
         <div className="max-w-2xl">
-          <p className="inline-flex items-center gap-2 text-brand-200 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-4 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
-            🌴 Soko Namba 1 la Zanzibar
-          </p>
           <h1 className="font-display font-black text-white text-3xl sm:text-5xl lg:text-6xl leading-[1.08] mb-5 [text-shadow:0_2px_24px_rgba(0,0,0,0.35)]">
             Nunua Bidhaa Bora<br />Kutoka Zanzibar
           </h1>
@@ -67,6 +64,9 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             </Link>
             <Link href="/register?type=seller" className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/30 backdrop-blur-sm">
               <Store className="w-4 h-4" /> Fungua Duka
+            </Link>
+            <Link href="/rider/apply" className="inline-flex items-center gap-2 px-6 py-3 bg-transparent text-brand-200 font-semibold rounded-xl hover:bg-brand-400/10 transition-colors border-2 border-brand-300/70">
+              <Bike className="w-4 h-4" /> Jiunge kama Dereva
             </Link>
           </div>
         </div>
