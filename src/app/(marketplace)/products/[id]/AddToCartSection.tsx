@@ -12,11 +12,22 @@ export default function AddToCartSection({ product }: { product: Product }) {
   const [qty, setQty] = useState(1)
   const { addItem } = useCartStore()
   const { lang } = useLangStore()
-  const inStock = product.stock_quantity > 0
+  const isSold = product.status === 'sold'
+  const inStock = product.stock_quantity > 0 && !isSold
 
   function handleAdd() {
     for (let i = 0; i < qty; i++) addItem(product)
-    toast.success(`${product.name} imeongezwa kikapuni`)
+    toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`)
+  }
+
+  if (isSold) {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="inline-flex items-center gap-2 px-4 py-3 bg-red-600 text-white font-bold uppercase tracking-wide rounded-xl text-sm flex-1 justify-center">
+          {t('sold', lang)}
+        </span>
+      </div>
+    )
   }
 
   return (
