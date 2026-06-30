@@ -1,10 +1,10 @@
 // ─── Database Types ────────────────────────────────────────────────────────────
 
-export type UserRole = 'buyer' | 'seller' | 'admin' | 'rider'
+export type UserRole = 'buyer' | 'seller' | 'admin'
 
 export type SellerStatus = 'pending' | 'approved' | 'suspended'
 
-export type ProductStatus = 'draft' | 'active' | 'out_of_stock' | 'rejected'
+export type ProductStatus = 'draft' | 'active' | 'out_of_stock' | 'sold' | 'rejected'
 
 export type OrderStatus =
   | 'pending'
