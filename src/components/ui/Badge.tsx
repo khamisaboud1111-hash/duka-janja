@@ -56,7 +56,7 @@ export function SellerStatusBadge({ status }: { status: string }) {
 }
 
 export function ProductStatusBadge({ status }: { status: string }) {
-  const map: Record<string, BadgeVariant> = { active: 'green', draft: 'gray', out_of_stock: 'orange', rejected: 'red' }
-  const labels: Record<string, string> = { active: 'Inauzwa', draft: 'Rasimu', out_of_stock: 'Imeisha', rejected: 'Imekataliwa' }
+  const map: Record<string, BadgeVariant> = { active: 'green', draft: 'gray', out_of_stock: 'orange', sold: 'red', rejected: 'red' }
+  const labels: Record<string, string> = { active: 'Inauzwa', draft: 'Rasimu', out_of_stock: 'Imeisha', sold: 'Imeuzwa', rejected: 'Imekataliwa' }
   return <Badge variant={map[status] ?? 'gray'}>{labels[status] ?? status}</Badge>
 }
