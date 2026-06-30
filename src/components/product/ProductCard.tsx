@@ -37,19 +37,17 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
     setWishlistLoading(true)
     if (wishlisted) {
       await supabase.from('wishlists').delete().eq('user_id', user.id).eq('product_id', product.id)
-      setWishlisted(false)
+      function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (Number(product.stock_quantity) > 0 && product.status !== 'sold') {
+      addItem(product);
+      toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`);
     } else {
-      await supabase.from('wishlists').insert({ user_id: user.id, product_id: product.id })
-      setWishlisted(true)
+      toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`);
     }
-    setWishlistLoading(false)
   }
 
-  function handleAddToCart(e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
- if (Number(product.stock_quantity) > 0 && product.status !== 'sold') {
-  addItem(product);
   toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`);
 } else {
   toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`);
