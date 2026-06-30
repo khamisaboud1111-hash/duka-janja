@@ -55,6 +55,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
   toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`);
 }
 
+const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'sold';
 
   return (
     <Link href={`/products/${product.slug}`} className="group block">
@@ -149,22 +150,22 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
                   {formatTZS(product.compare_at_price)}
                 </span>
               )}
-            </div>
-            <button
-              onClick={handleAddToCart}
-              disabled={product.stock_quantity === 0 || product.status === 'sold'}
-              className={cn(
-                'w-8 h-8 rounded-xl flex items-center justify-center transition-colors flex-shrink-0',
-                product.stock_quantity > 0 && product.status !== 'sold'
-                  ? 'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700'
-                  : 'bg-ink-100 text-ink-400 cursor-not-allowed'
-              )}
-            >
-              <ShoppingCart className="w-4 h-4" />
-            </button>
-          </div>
+                     <button
+            onClick={handleAddToCart}
+            disabled={!isAvailable}
+            className={cn(
+              'w-8 h-8 rounded-xl flex items-center justify-center transition-colors flex-shrink-0',
+              isAvailable
+                ? 'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700'
+                : 'bg-ink-100 text-ink-400 cursor-not-allowed'
+            )}
+          >
+            <ShoppingCart className="w-4 h-4" />
+          </button>
+
+                </div>
         </div>
       </div>
     </Link>
-  )
+  );
 }
