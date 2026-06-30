@@ -32,6 +32,7 @@ export const translations = {
     addToWishlist: 'Save',
     removeFromWishlist: 'Saved',
     outOfStock: 'Out of stock',
+    sold: 'Sold',
     inStock: 'In stock',
     pieces: 'pieces',
     madeInZanzibar: 'Made in Zanzibar',
@@ -112,7 +113,7 @@ export const translations = {
     save: 'Save',
     cancel: 'Cancel',
     confirm: 'Confirm',
-    
+    delete: 'Delete',
     back: 'Back',
     next: 'Next',
     previous: 'Previous',
@@ -152,6 +153,7 @@ export const translations = {
     addToWishlist: 'Hifadhi',
     removeFromWishlist: 'Imehifadhiwa',
     outOfStock: 'Imeisha',
+    sold: 'Imeuzwa',
     inStock: 'Ipo',
     pieces: 'vipande',
     madeInZanzibar: 'Imezalishwa Zanzibar',
@@ -232,7 +234,7 @@ export const translations = {
     save: 'Hifadhi',
     cancel: 'Ghairi',
     confirm: 'Thibitisha',
-    
+    delete: 'Futa',
     back: 'Rudi',
     next: 'Mbele',
     previous: 'Nyuma',
