@@ -48,10 +48,13 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    if (product.stock_quantity === 0 || product.status === 'sold') return
-    addItem(product)
-    toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`)
-  }
+ if (Number(product.stock_quantity) > 0 && product.status !== 'sold') {
+  addItem(product);
+  toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`);
+} else {
+  toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`);
+}
+
 
   return (
     <Link href={`/products/${product.slug}`} className="group block">
