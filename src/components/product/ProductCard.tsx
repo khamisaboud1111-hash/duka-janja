@@ -150,7 +150,7 @@ const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'so
                   {formatTZS(product.compare_at_price)}
                 </span>
               )}
-                     <button
+                              <button
             onClick={handleAddToCart}
             disabled={!isAvailable}
             className={cn(
@@ -162,10 +162,9 @@ const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'so
           >
             <ShoppingCart className="w-4 h-4" />
           </button>
-
-                </div>
         </div>
       </div>
-    </Link>
-  );
+    </div>
+  </Link>
+);
 }
