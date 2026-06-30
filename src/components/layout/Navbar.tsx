@@ -9,6 +9,7 @@ import { useCartStore, useLangStore, useThemeStore } from '@/store'
 import { t } from '@/i18n/translations'
 import type { Profile, Category } from '@/types'
 import { cn } from '@/utils'
+import Sidebar from './Sidebar'
 
 export default function Navbar({ categories = [] }: { categories?: Category[] }) {
   const router = useRouter()
@@ -20,6 +21,7 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
   const [profile, setProfile] = useState<Profile | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
 
@@ -67,6 +69,15 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
       <header className="sticky top-0 z-50 bg-white dark:bg-ink-900 border-b border-ink-100 dark:border-ink-800 shadow-sm">
         <div className="page-container">
           <div className="flex items-center h-14 gap-3">
+            {/* Sidebar menu trigger */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Menu"
+              className="p-2 -ml-1 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors flex-shrink-0"
+            >
+              <Menu className="w-5 h-5 text-ink-700 dark:text-ink-200" />
+            </button>
+
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0 mr-2">
               <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
@@ -76,23 +87,14 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
                 Duka Janja
               </span>
             </Link>
-               {profile?.role === 'admin' && (
-        <Link 
-          href="/admin/dashboard" 
-          className="ml-4 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-md text-sm font-bold transition-colors"
-        >
-          ⚙️ Usimamizi
-        </Link>
-      )}
 
-      {/* Categories mega-menu trigger */}
-
+            {/* Categories mega-menu trigger */}
             <div className="relative hidden md:block flex-shrink-0">
               <button
                 onClick={() => setCategoriesOpen((v) => !v)}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-ink-700 dark:text-ink-200 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
               >
-                <Grid3x3 className="w-4 h-4" /> Kategoria
+                <Grid3x3 className="w-4 h-4" /> {lang === 'en' ? 'Categories' : 'Kategoria'}
               </button>
               {categoriesOpen && (
                 <>
@@ -103,10 +105,9 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
                         key={cat.id}
                         href={`/search?category=${cat.slug}`}
                         onClick={() => setCategoriesOpen(false)}
-                        className="flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm text-ink-700 dark:text-ink-200 hover:bg-brand-50 dark:hover:bg-ink-800 transition-colors"
+                        className="flex items-center px-2.5 py-2 rounded-lg text-sm text-ink-700 dark:text-ink-200 hover:bg-brand-50 dark:hover:bg-ink-800 transition-colors"
                       >
-                        <span>{cat.icon}</span>
-                        <span className="truncate">{cat.name_sw}</span>
+                        <span className="truncate">{lang === 'en' ? cat.name_en : cat.name_sw}</span>
                       </Link>
                     ))}
                   </div>
@@ -131,19 +132,19 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
             <div className="flex items-center gap-1 ml-auto">
               {/* Quick links */}
               <Link href="/#marketplace-map" className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
-                <MapPin className="w-3.5 h-3.5" /> Ramani
+                <MapPin className="w-3.5 h-3.5" /> {lang === 'en' ? 'Map' : 'Ramani'}
               </Link>
               <Link href="/search?sort=discount" className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
-                <Tag className="w-3.5 h-3.5" /> Ofa
+                <Tag className="w-3.5 h-3.5" /> {lang === 'en' ? 'Deals' : 'Ofa'}
               </Link>
               <Link href={profile?.role === 'seller' ? '/seller/dashboard' : '/register?type=seller'} className="hidden md:flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
-                <Store className="w-3.5 h-3.5" /> Kituo cha Wauzaji
+                <Store className="w-3.5 h-3.5" /> {lang === 'en' ? 'Seller Hub' : 'Kituo cha Wauzaji'}
               </Link>
 
               {/* Dark / light mode toggle */}
               <button
                 onClick={toggleTheme}
-                aria-label="Badilisha mwonekano"
+                aria-label={lang === 'en' ? 'Toggle theme' : 'Badilisha mwonekano'}
                 className="p-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
               >
                 {theme === 'dark' ? <Sun className="w-5 h-5 text-ink-200" /> : <Moon className="w-5 h-5 text-ink-700" />}
@@ -257,6 +258,13 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
           <BottomNavLink href={profile ? '/notifications' : '/login'} icon={<Bell className="w-5 h-5" />} label="You" active={pathname === '/notifications'} badge={unreadCount} />
         </div>
       </nav>
+
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        profile={profile}
+        onLogout={handleLogout}
+      />
     </>
   )
 }
