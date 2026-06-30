@@ -53,9 +53,13 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
   toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`);
 } else {
   toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`);
-}
+     } else {
+      toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`);
+    }
+  }
 
-const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'sold';
+  const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'sold';
+
 
   return (
     <Link href={`/products/${product.slug}`} className="group block">
