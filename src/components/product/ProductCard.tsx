@@ -25,10 +25,8 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
   const [wishlistLoading, setWishlistLoading] = useState(false)
 
   const primaryImage = product.images?.find((img) => img.is_primary) ?? product.images?.[0]
-  const discount = product.compare_at_price
-    ? Math.round((1 - product.price / product.compare_at_price) * 100)
-    : null
-
+  
+  // Define availability logic
   const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'sold'
 
   async function toggleWishlist(e: React.MouseEvent) {
@@ -62,11 +60,23 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
       <div className="card overflow-hidden hover:shadow-card-hover transition-shadow duration-200">
         <div className="product-image-container relative h-64 w-full">
           {primaryImage ? (
-            <Image src={primaryImage.url} alt={product.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+            <Image 
+              src={primaryImage.url} 
+              alt={product.name} 
+              fill 
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" 
+              className="object-cover group-hover:scale-105 transition-transform duration-300" 
+            />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-ink-100"><span className="text-ink-300 text-4xl">📦</span></div>
+            <div className="absolute inset-0 flex items-center justify-center bg-ink-100">
+              <span className="text-ink-300 text-4xl">📦</span>
+            </div>
           )}
-          <button onClick={toggleWishlist} disabled={wishlistLoading} className={cn('absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all', wishlisted ? 'bg-red-500 text-white' : 'bg-white/90 text-ink-600 hover:bg-white opacity-0 group-hover:opacity-100')}>
+          <button 
+            onClick={toggleWishlist} 
+            disabled={wishlistLoading} 
+            className={cn('absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all', wishlisted ? 'bg-red-500 text-white' : 'bg-white/90 text-ink-600 hover:bg-white opacity-0 group-hover:opacity-100')}
+          >
             <Heart className={cn('w-4 h-4', wishlisted && 'fill-current')} />
           </button>
         </div>
@@ -74,7 +84,10 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
           <h3 className="font-semibold text-sm text-ink-900 line-clamp-2 leading-tight mb-2">{product.name}</h3>
           <div className="flex items-center justify-between gap-2">
             <span className="font-bold text-sm text-ink-900">{formatTZS(product.price)}</span>
-            <button onClick={handleAddToCart} className={cn('w-8 h-8 rounded-xl flex items-center justify-center transition-colors', isAvailable ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-400 cursor-not-allowed')}>
+            <button 
+              onClick={handleAddToCart} 
+              className={cn('w-8 h-8 rounded-xl flex items-center justify-center transition-colors', isAvailable ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-400 cursor-not-allowed')}
+            >
               <ShoppingCart className="w-4 h-4" />
             </button>
           </div>
