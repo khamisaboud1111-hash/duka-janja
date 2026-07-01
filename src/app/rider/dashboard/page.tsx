@@ -132,7 +132,7 @@ export default function RiderDashboardPage() {
 
   if (userLoading || loadingData) return <PageLoader />
 
-  if (!profile || profile.role !== 'rider') {
+  if (!profile || (profile.role as string) !== 'rider') {
     return (
       <div className="page-container py-16 text-center">
         <p className="text-ink-600 mb-4">Ukurasa huu ni kwa madereva tu.</p>
