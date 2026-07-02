@@ -35,8 +35,13 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ data: null, error: error.message }, { status: 400 })
 
-  // Update profile role
-  await supabase.from('profiles').update({ role: 'seller' }).eq('id', user.id)
+  // Update profile role — but don't downgrade an existing admin. They keep
+  // their admin role and can still access the seller dashboard by switching
+  // roles from Settings once approved.
+  const { data: currentProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  if (currentProfile?.role !== 'admin') {
+    await supabase.from('profiles').update({ role: 'seller' }).eq('id', user.id)
+  }
 
   return NextResponse.json({ data, error: null })
 }
