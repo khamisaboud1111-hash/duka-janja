@@ -10,13 +10,24 @@ export const POST = withValidation(riderApplicationSchema, async (data) => {
     return NextResponse.json({ error: 'Hujaingia (not authenticated)' }, { status: 401 })
   }
 
-  // Update the base profile: name, phone, role -> rider (pending verification).
+  // Don't let a rider application clobber an existing admin's role — keep
+  // them as admin, just also let them hold a rider_profiles row so they can
+  // switch into rider mode from Settings if they want to.
+  const { data: currentProfile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', auth.user.id)
+    .single()
+  const nextRole = currentProfile?.role === 'admin' ? 'admin' : 'rider'
+
+  // Update the base profile: name, phone, role -> rider (pending verification),
+  // unless this account is an admin, in which case role is left untouched.
   const { error: profileErr } = await supabase
     .from('profiles')
     .update({
       full_name: data.full_name,
       phone: data.phone_number,
-      role: 'rider',
+      role: nextRole,
       updated_at: new Date().toISOString(),
     })
     .eq('id', auth.user.id)
