@@ -1,6 +1,6 @@
 // ─── Database Types ────────────────────────────────────────────────────────────
 
-export type UserRole = 'buyer' | 'seller' | 'admin'
+export type UserRole = 'buyer' | 'seller' | 'admin' | 'rider'
 
 export type SellerStatus = 'pending' | 'approved' | 'suspended'
 
