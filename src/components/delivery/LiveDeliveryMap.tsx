@@ -48,16 +48,29 @@ export default function LiveDeliveryMap({ deliveryId, pickupLocation, deliveryLo
         maxZoom: 19,
       }).addTo(map)
 
-      L.marker([pickupLocation.lat, pickupLocation.lng]).addTo(map).bindPopup('Mahali pa Kuchukua')
+      const pickupIcon = L.divIcon({
+        html: `<div style="background:#f97316;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
+        className: '', iconSize: [14, 14],
+      })
+      L.marker([pickupLocation.lat, pickupLocation.lng], { icon: pickupIcon }).addTo(map).bindPopup('Mahali pa Kuchukua')
+
       if (deliveryLocation) {
-        L.marker([deliveryLocation.lat, deliveryLocation.lng]).addTo(map).bindPopup('Mahali pa Kufikisha')
+        const dropIcon = L.divIcon({
+          html: `<div style="background:#1da8ab;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
+          className: '', iconSize: [14, 14],
+        })
+        L.marker([deliveryLocation.lat, deliveryLocation.lng], { icon: dropIcon }).addTo(map).bindPopup('Mahali pa Kufikisha')
       }
 
       const startPos = initialRiderLocation ?? pickupLocation
       const riderIcon = L.divIcon({
-        html: '<div style="background:#1da8ab;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 2px rgba(29,168,171,0.4)"></div>',
+        html: `<div style="position:relative;width:22px;height:22px;">
+                 <div style="position:absolute;inset:0;background:rgba(29,168,171,0.35);border-radius:50%;animation:pulse-ring 1.6s ease-out infinite;"></div>
+                 <div style="position:absolute;top:2px;left:2px;background:#1da8ab;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 2px rgba(29,168,171,0.4)"></div>
+               </div>
+               <style>@keyframes pulse-ring{0%{transform:scale(0.8);opacity:1}100%{transform:scale(2.2);opacity:0}}</style>`,
         className: '',
-        iconSize: [18, 18],
+        iconSize: [22, 22],
       })
       riderMarkerRef.current = L.marker([startPos.lat, startPos.lng], { icon: riderIcon }).addTo(map).bindPopup('Dereva')
     }
@@ -87,12 +100,12 @@ export default function LiveDeliveryMap({ deliveryId, pickupLocation, deliveryLo
 
   return (
     <div className="relative">
-      <div ref={mapRef} className="w-full h-[320px] sm:h-[420px] rounded-2xl overflow-hidden border border-ink-100 z-0" />
-      <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-medium shadow-card z-10">
+      <div ref={mapRef} className="w-full h-[320px] sm:h-[420px] rounded-2xl overflow-hidden border border-ink-100 dark:border-ink-800 z-0" />
+      <div className="absolute top-3 right-3 bg-white/95 dark:bg-ink-900/90 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-medium shadow-card z-10">
         {lastUpdate ? (
-          <span className="text-emerald-600">● Moja kwa moja {secondsSinceUpdate !== null && secondsSinceUpdate > 2 ? `(${secondsSinceUpdate}s)` : ''}</span>
+          <span className="text-emerald-600 dark:text-emerald-400">● Moja kwa moja {secondsSinceUpdate !== null && secondsSinceUpdate > 2 ? `(${secondsSinceUpdate}s)` : ''}</span>
         ) : (
-          <span className="text-ink-400">○ Inasubiri taarifa za dereva...</span>
+          <span className="text-ink-400 dark:text-ink-500">○ Inasubiri taarifa za dereva...</span>
         )}
       </div>
     </div>
