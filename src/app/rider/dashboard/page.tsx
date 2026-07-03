@@ -1,214 +1,75 @@
-'use client'
-
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import { Power, Wallet, Package, Star, TrendingUp, ShieldAlert } from 'lucide-react'
-import { useUser } from '@/hooks/useUser'
-import { useRiderTracking } from '@/hooks/useRiderTracking'
-import { createClient } from '@/lib/supabase/client'
-import { PageLoader } from '@/components/ui'
-import { Button } from '@/components/ui/Button'
-import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
-import RiderNavigationMap from '@/components/rider/RiderNavigationMap'
-
-interface RiderProfileRow {
-  id: string
-  is_verified: boolean
-  is_online: boolean
-  account_status: 'active' | 'suspended'
-  wallet_balance: number
-  rating_average: number
-  total_ratings: number
-  total_deliveries: number
-}
-
-interface Metrics {
-  todayEarnings: number
-  weekEarnings: number
-  completedToday: number
-}
-
-interface ActiveDelivery {
-  delivery_id: string
-  status: 'accepted' | 'picked_up'
-  pickup_lat: number
-  pickup_lng: number
-  delivery_lat: number | null
-  delivery_lng: number | null
-  pickup_address: string
-  delivery_address: string
-}
-
-export default function RiderDashboardPage() {
-  const router = useRouter()
-  const supabase = createClient()
-  const { profile, loading: userLoading } = useUser()
-  const [riderProfile, setRiderProfile] = useState<RiderProfileRow | null>(null)
-  const [metrics, setMetrics] = useState<Metrics>({ todayEarnings: 0, weekEarnings: 0, completedToday: 0 })
-  const [loadingData, setLoadingData] = useState(true)
-  const [togglingOnline, setTogglingOnline] = useState(false)
-  const [activeDelivery, setActiveDelivery] = useState<ActiveDelivery | null>(null)
-  const [riderLatLng, setRiderLatLng] = useState<{ lat: number; lng: number } | null>(null)
-
-  const { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer, activeDeliveryId } = useRiderTracking(profile?.id)
-
-  useEffect(() => {
-    if (!profile) return
-    loadRiderData()
-  }, [profile])
-
-  useEffect(() => {
-    if (!activeDeliveryId || !profile) {
-      setActiveDelivery(null)
-      return
-    }
-    supabase.rpc('get_active_delivery_for_rider', { p_rider_id: profile.id }).then(({ data }) => {
-      const row = Array.isArray(data) ? data[0] : null
-      setActiveDelivery(row ?? null)
-    })
-  }, [activeDeliveryId, profile])
-
-  useEffect(() => {
-    if (!activeDelivery || !('geolocation' in navigator)) return
-    const id = navigator.geolocation.watchPosition(
-      (pos) => setRiderLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 5000 }
-    )
-    return () => navigator.geolocation.clearWatch(id)
-  }, [activeDelivery])
-
-  async function loadRiderData() {
-    if (!profile) return
-    setLoadingData(true)
-
-    const { data: rp } = await supabase.from('rider_profiles').select('*').eq('id', profile.id).single()
-    if (rp) {
-      setRiderProfile(rp)
-      setIsOnline(rp.is_online)
-    }
-
-    const startOfDay = new Date()
-    startOfDay.setHours(0, 0, 0, 0)
-    const startOfWeek = new Date()
-    startOfWeek.setDate(startOfWeek.getDate() - 7)
-
-    const { data: deliveries } = await supabase
-      .from('deliveries')
-      .select('delivery_fee, delivered_at, status')
-      .eq('rider_id', profile.id)
-      .eq('status', 'delivered')
-      .gte('delivered_at', startOfWeek.toISOString())
-
-    let todayEarnings = 0
-    let weekEarnings = 0
-    let completedToday = 0
-
-    for (const d of deliveries ?? []) {
-      if (!d.delivered_at) continue
-      weekEarnings += d.delivery_fee
-      if (new Date(d.delivered_at) >= startOfDay) {
-        todayEarnings += d.delivery_fee
-        completedToday += 1
-      }
-    }
-
-    setMetrics({ todayEarnings, weekEarnings, completedToday })
-    setLoadingData(false)
-  }
-
-  async function handleToggle() {
-    if (!riderProfile) return
-    if (!riderProfile.is_verified) {
-      toast.error('Akaunti yako bado inasubiri uthibitisho wa msimamizi')
-      return
-    }
-    setTogglingOnline(true)
-    const ok = await toggleOnline(!isOnline)
-    if (!ok) toast.error('Imeshindikana kubadilisha hali')
-    setTogglingOnline(false)
-  }
-
-  if (userLoading || loadingData) return <PageLoader />
-
-  if (!profile || (profile.role as string) !== 'rider') {
-    return (
-      <div className="page-container py-16 text-center dark:bg-ink-950 min-h-screen">
-        <p className="text-ink-600 dark:text-ink-300 mb-4">Ukurasa huu ni kwa madereva tu.</p>
-        <Button onClick={() => router.push('/rider/apply')}>Jiunge kama Dereva</Button>
-      </div>
-    )
-  }
-
-  if (!riderProfile) return <PageLoader />
-
-  if (riderProfile.account_status === 'suspended') {
-    return (
-      <div className="page-container py-16 text-center max-w-md mx-auto dark:bg-ink-950 min-h-screen">
-        <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">Akaunti Imesimamishwa</h1>
-        <p className="text-ink-600 dark:text-ink-300 text-sm">
-          Akaunti yako ya dereva imesimamishwa kwa sasa kutokana na tathmini ya chini. Wasiliana na msimamizi kwa maelezo zaidi.
-        </p>
-      </div>
-    )
-  }
-
-  if (!riderProfile.is_verified) {
-    return (
-      <div className="page-container py-16 text-center max-w-md mx-auto dark:bg-ink-950 min-h-screen">
-        <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center mx-auto mb-4">
-          <ShieldAlert className="w-6 h-6 text-amber-600 dark:text-amber-300" />
-        </div>
-        <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">Inasubiri Uthibitisho</h1>
-        <p className="text-ink-600 dark:text-ink-300 text-sm">
-          Maombi yako yanahakikiwa na msimamizi. Utaweza kuanza kupokea safari pindi utakapothibitishwa.
-        </p>
-      </div>
-    )
-  }
-
+if (riderProfile && !riderProfile.is_verified) {
   return (
-    <div className="page-container py-6 sm:py-8 max-w-3xl mx-auto dark:bg-ink-950 min-h-screen">
-      {/* Online toggle header */}
-      <div className="flex items-center justify-between card dark:bg-ink-900 dark:border-ink-800 p-4 sm:p-5 mb-6">
-        <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-ink-300 dark:bg-ink-600'}`} />
-          <div>
-            <p className="font-display font-bold text-ink-900 dark:text-white">{isOnline ? 'Uko Mtandaoni' : 'Uko Nje ya Mtandao'}</p>
-            <p className="text-xs text-ink-500 dark:text-ink-400">{isOnline ? 'Unapokea safari mpya' : 'Bonyeza ili kuanza kupokea safari'}</p>
+    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-white dark:from-ink-950 dark:via-ink-950 dark:to-black flex items-center justify-center px-6">
+      <div className="w-full max-w-lg rounded-3xl border border-slate-200 dark:border-ink-800 bg-white dark:bg-ink-900 shadow-xl p-8 text-center">
+
+        {/* Status Icon */}
+        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-10 w-10 text-amber-600 animate-pulse"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-ink-900 dark:text-white">
+          Inasubiri Uthibitisho
+        </h1>
+
+        {/* Description */}
+        <p className="mt-4 text-sm leading-7 text-ink-600 dark:text-ink-300">
+          Maombi yako ya kuwa Rider wa Duka Janja yamepokelewa na yanakaguliwa
+          na timu yetu.
+        </p>
+
+        {/* Progress */}
+        <div className="mt-8">
+          <div className="flex justify-between text-xs text-ink-500 mb-2">
+            <span>Maombi Yamepokelewa</span>
+            <span>Yanakaguliwa</span>
+          </div>
+
+          <div className="h-3 rounded-full bg-slate-200 dark:bg-ink-800 overflow-hidden">
+            <div className="h-full w-2/3 bg-gradient-to-r from-amber-400 to-orange-500 rounded-full animate-pulse"></div>
           </div>
         </div>
-        <button
-          onClick={handleToggle}
-          disabled={togglingOnline}
-          className={`w-16 h-9 rounded-full relative transition-colors flex-shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-ink-200 dark:bg-ink-700'} disabled:opacity-60`}
-        >
-          <span
-            className={`absolute top-1 left-1 w-7 h-7 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform ${isOnline ? 'translate-x-7' : ''}`}
+
+        {/* Info Card */}
+        <div className="mt-8 rounded-2xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 p-4">
+          <p className="text-sm text-blue-700 dark:text-blue-300">
+            ⏳ Kwa kawaida uthibitisho huchukua ndani ya saa 24–48.
+          </p>
+        </div>
+
+        {/* Buttons */}
+        <div className="mt-8 flex flex-col gap-3">
+
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full rounded-xl bg-primary-600 hover:bg-primary-700 text-white py-3 font-semibold transition"
           >
-            <Power className={`w-3.5 h-3.5 ${isOnline ? 'text-emerald-600' : 'text-ink-400'}`} />
-          </span>
-        </button>
-      </div>
+            Angalia Tena
+          </button>
 
-      {/* Metrics grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-        <MetricCard icon={<Wallet className="w-4 h-4" />} label="Mapato ya Leo" value={`TZS ${metrics.todayEarnings.toLocaleString()}`} accent="brand" />
-        <MetricCard icon={<TrendingUp className="w-4 h-4" />} label="Mapato ya Wiki" value={`TZS ${metrics.weekEarnings.toLocaleString()}`} accent="green" />
-        <MetricCard icon={<Wallet className="w-4 h-4" />} label="Salio la Pochi" value={`TZS ${riderProfile.wallet_balance.toLocaleString()}`} accent="gold" />
-        <MetricCard icon={<Package className="w-4 h-4" />} label="Safari Zilizokamilika" value={String(riderProfile.total_deliveries)} accent="spice" />
-        <MetricCard icon={<Star className="w-4 h-4" />} label="Tathmini" value={riderProfile.rating_average.toFixed(1)} accent="gold" />
-      </div>
+          <button
+            className="w-full rounded-xl border border-slate-300 dark:border-ink-700 py-3 text-ink-700 dark:text-white hover:bg-slate-50 dark:hover:bg-ink-800 transition"
+          >
+            Wasiliana na Support
+          </button>
 
-      <div className="card dark:bg-ink-900 dark:border-ink-800 p-5 text-center">
-        <p className="text-sm text-ink-500 dark:text-ink-400">
-          {isOnline ? 'Tunakutafutia safari karibu na eneo lako...' : 'Washa hali ya mtandaoni ili kuanza kupokea ofa za safari.'}
-        </p>
-      </div>
+        </div>
 
-      {activeDelivery && (
-        <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 sm:p-5 mt-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold text-ink-900 dark:text-white">Safari
+      </div>
+    </div>
+  );
+}
