@@ -134,8 +134,8 @@ export default function RiderDashboardPage() {
 
   if (!profile || (profile.role as string) !== 'rider') {
     return (
-      <div className="page-container py-16 text-center">
-        <p className="text-ink-600 mb-4">Ukurasa huu ni kwa madereva tu.</p>
+      <div className="page-container py-16 text-center dark:bg-ink-950 min-h-screen">
+        <p className="text-ink-600 dark:text-ink-300 mb-4">Ukurasa huu ni kwa madereva tu.</p>
         <Button onClick={() => router.push('/rider/apply')}>Jiunge kama Dereva</Button>
       </div>
     )
@@ -145,10 +145,10 @@ export default function RiderDashboardPage() {
 
   if (riderProfile.account_status === 'suspended') {
     return (
-      <div className="page-container py-16 text-center max-w-md mx-auto">
+      <div className="page-container py-16 text-center max-w-md mx-auto dark:bg-ink-950 min-h-screen">
         <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
-        <h1 className="font-display font-bold text-xl text-ink-900 mb-2">Akaunti Imesimamishwa</h1>
-        <p className="text-ink-600 text-sm">
+        <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">Akaunti Imesimamishwa</h1>
+        <p className="text-ink-600 dark:text-ink-300 text-sm">
           Akaunti yako ya dereva imesimamishwa kwa sasa kutokana na tathmini ya chini. Wasiliana na msimamizi kwa maelezo zaidi.
         </p>
       </div>
@@ -157,12 +157,12 @@ export default function RiderDashboardPage() {
 
   if (!riderProfile.is_verified) {
     return (
-      <div className="page-container py-16 text-center max-w-md mx-auto">
-        <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
-          <ShieldAlert className="w-6 h-6 text-amber-600" />
+      <div className="page-container py-16 text-center max-w-md mx-auto dark:bg-ink-950 min-h-screen">
+        <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-500/15 flex items-center justify-center mx-auto mb-4">
+          <ShieldAlert className="w-6 h-6 text-amber-600 dark:text-amber-300" />
         </div>
-        <h1 className="font-display font-bold text-xl text-ink-900 mb-2">Inasubiri Uthibitisho</h1>
-        <p className="text-ink-600 text-sm">
+        <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">Inasubiri Uthibitisho</h1>
+        <p className="text-ink-600 dark:text-ink-300 text-sm">
           Maombi yako yanahakikiwa na msimamizi. Utaweza kuanza kupokea safari pindi utakapothibitishwa.
         </p>
       </div>
@@ -170,20 +170,20 @@ export default function RiderDashboardPage() {
   }
 
   return (
-    <div className="page-container py-6 sm:py-8 max-w-3xl mx-auto">
+    <div className="page-container py-6 sm:py-8 max-w-3xl mx-auto dark:bg-ink-950 min-h-screen">
       {/* Online toggle header */}
-      <div className="flex items-center justify-between bg-white rounded-2xl shadow-card p-4 sm:p-5 mb-6">
+      <div className="flex items-center justify-between card dark:bg-ink-900 dark:border-ink-800 p-4 sm:p-5 mb-6">
         <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-ink-300'}`} />
+          <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-ink-300 dark:bg-ink-600'}`} />
           <div>
-            <p className="font-display font-bold text-ink-900">{isOnline ? 'Uko Mtandaoni' : 'Uko Nje ya Mtandao'}</p>
-            <p className="text-xs text-ink-500">{isOnline ? 'Unapokea safari mpya' : 'Bonyeza ili kuanza kupokea safari'}</p>
+            <p className="font-display font-bold text-ink-900 dark:text-white">{isOnline ? 'Uko Mtandaoni' : 'Uko Nje ya Mtandao'}</p>
+            <p className="text-xs text-ink-500 dark:text-ink-400">{isOnline ? 'Unapokea safari mpya' : 'Bonyeza ili kuanza kupokea safari'}</p>
           </div>
         </div>
         <button
           onClick={handleToggle}
           disabled={togglingOnline}
-          className={`w-16 h-9 rounded-full relative transition-colors flex-shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-ink-200'} disabled:opacity-60`}
+          className={`w-16 h-9 rounded-full relative transition-colors flex-shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-ink-200 dark:bg-ink-700'} disabled:opacity-60`}
         >
           <span
             className={`absolute top-1 left-1 w-7 h-7 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform ${isOnline ? 'translate-x-7' : ''}`}
@@ -202,78 +202,13 @@ export default function RiderDashboardPage() {
         <MetricCard icon={<Star className="w-4 h-4" />} label="Tathmini" value={riderProfile.rating_average.toFixed(1)} accent="gold" />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-card p-5 text-center">
-        <p className="text-sm text-ink-500">
+      <div className="card dark:bg-ink-900 dark:border-ink-800 p-5 text-center">
+        <p className="text-sm text-ink-500 dark:text-ink-400">
           {isOnline ? 'Tunakutafutia safari karibu na eneo lako...' : 'Washa hali ya mtandaoni ili kuanza kupokea ofa za safari.'}
         </p>
       </div>
 
       {activeDelivery && (
-        <div className="bg-white rounded-2xl shadow-card p-4 sm:p-5 mt-6 space-y-4">
+        <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 sm:p-5 mt-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold text-ink-900">Safari Inayoendelea</h2>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 text-brand-600">
-              {activeDelivery.status === 'accepted' ? 'Unakwenda kuchukua' : 'Bidhaa Zimechukuliwa'}
-            </span>
-          </div>
-
-          <RiderNavigationMap
-            riderLocation={riderLatLng}
-            pickupLocation={{ lat: activeDelivery.pickup_lat, lng: activeDelivery.pickup_lng }}
-            deliveryLocation={
-              activeDelivery.delivery_lat && activeDelivery.delivery_lng
-                ? { lat: activeDelivery.delivery_lat, lng: activeDelivery.delivery_lng }
-                : null
-            }
-            leg={activeDelivery.status === 'accepted' ? 'to_pickup' : 'to_delivery'}
-          />
-
-          <Button
-            fullWidth
-            onClick={async () => {
-              const nextStatus = activeDelivery.status === 'accepted' ? 'picked_up' : 'delivered'
-              const res = await fetch('/api/delivery/update-status', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ delivery_id: activeDelivery.delivery_id, status: nextStatus }),
-              })
-              if (res.ok) {
-                if (nextStatus === 'delivered') {
-                  setActiveDelivery(null)
-                  toast.success('Safari imekamilika!')
-                  loadRiderData()
-                } else {
-                  setActiveDelivery({ ...activeDelivery, status: 'picked_up' })
-                }
-              } else {
-                toast.error('Imeshindikana kusasisha')
-              }
-            }}
-          >
-            {activeDelivery.status === 'accepted' ? 'Nimechukua Bidhaa' : 'Nimefikisha Bidhaa'}
-          </Button>
-        </div>
-      )}
-
-      {offer && (
-        <ActiveJobOverlay offer={offer} onAccept={acceptOffer} onDecline={declineOffer} />
-      )}
-    </div>
-  )
-}
-
-function MetricCard({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string; accent: 'brand' | 'spice' | 'green' | 'gold' }) {
-  const colors = {
-    brand: 'text-brand-600 bg-brand-50',
-    spice: 'text-spice-600 bg-spice-50',
-    green: 'text-emerald-600 bg-emerald-50',
-    gold: 'text-amber-600 bg-amber-50',
-  }
-  return (
-    <div className="bg-white rounded-2xl shadow-card p-3.5">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${colors[accent]}`}>{icon}</div>
-      <p className="font-display font-black text-base text-ink-900 leading-tight">{value}</p>
-      <p className="text-[10px] text-ink-500 leading-tight mt-0.5">{label}</p>
-    </div>
-  )
-}
+            <h2 className="font-display font-bold text-ink-900 dark:text-white">Safari
