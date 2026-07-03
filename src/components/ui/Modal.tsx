@@ -29,11 +29,11 @@ export function Modal({ open, onClose, title, children, size = 'md' }: ModalProp
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Panel */}
-      <div className={cn('relative w-full bg-white shadow-modal z-10 sm:rounded-2xl rounded-t-2xl max-h-[90dvh] overflow-y-auto', widths[size])}>
+    <div className={cn('relative w-full bg-white dark:bg-ink-900 shadow-modal z-10 sm:rounded-2xl rounded-t-2xl max-h-[90dvh] overflow-y-auto', widths[size])}>
         {title && (
-          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-ink-100 sticky top-0 bg-white z-10">
-            <h2 className="font-display font-bold text-lg text-ink-900">{title}</h2>
-            <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-ink-500 hover:bg-ink-100 transition-colors">
+          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-ink-100 dark:border-ink-800 sticky top-0 bg-white dark:bg-ink-900 z-10">
+            <h2 className="font-display font-bold text-lg text-ink-900 dark:text-ink-50">{title}</h2>
+            <button onClick={onClose} className="w-8 h-8 rounded-xl flex items-center justify-center text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors">
               <X className="w-4 h-4" />
             </button>
           </div>
