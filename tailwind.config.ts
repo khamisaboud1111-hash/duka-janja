@@ -8,6 +8,27 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // ADD THIS COLORS SECTION
+      colors: {
+        ink: {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a', // The 900 color your CSS is looking for
+          950: '#020617',
+        },
+        brand: {
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+        },
+        // Add other colors here if you see errors for them
+      },
       boxShadow: {
         'card': '0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 12px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.06)',
