@@ -1,14 +1,34 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import { SlidersHorizontal, X, Search } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { SlidersHorizontal, X, Search, Clock, TrendingUp } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { useProducts } from '@/hooks/useProducts'
 import { useLangStore } from '@/store'
 import { createClient } from '@/lib/supabase/client'
-import { LoadingSpinner, EmptyState } from '@/components/ui'
+import { EmptyState } from '@/components/ui'
+import { Skeleton } from '@/components/ui/Card'
 import type { Category } from '@/types'
+
+const RECENT_KEY = 'dj_recent_searches'
+const POPULAR_SEARCHES = ['Karafuu', 'Kanga', 'Mafuta ya Nazi', 'Vazi la Kiislamu', 'Vikapu vya Ukili']
+
+function getRecent(): string[] {
+  if (typeof window === 'undefined') return []
+  try {
+    return JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]')
+  } catch {
+    return []
+  }
+}
+
+function pushRecent(q: string) {
+  if (typeof window === 'undefined' || !q.trim()) return
+  const current = getRecent().filter((r) => r.toLowerCase() !== q.toLowerCase())
+  const updated = [q, ...current].slice(0, 6)
+  localStorage.setItem(RECENT_KEY, JSON.stringify(updated))
+}
 
 export default function SearchPage() {
   const router = useRouter()
@@ -18,6 +38,10 @@ export default function SearchPage() {
 
   const [categories, setCategories] = useState<Category[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [suggestOpen, setSuggestOpen] = useState(false)
+  const [recent, setRecent] = useState<string[]>([])
+  const [inputValue, setInputValue] = useState('')
+  const searchWrapRef = useRef<HTMLDivElement | null>(null)
 
   const q          = params.get('q') ?? ''
   const category   = params.get('category') ?? ''
@@ -31,6 +55,18 @@ export default function SearchPage() {
 
   useEffect(() => {
     supabase.from('categories').select('*').order('sort_order').then(({ data }: any) => setCategories(data ?? []))
+    setRecent(getRecent())
+    setInputValue(q)
+  }, [])
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (searchWrapRef.current && !searchWrapRef.current.contains(e.target as Node)) {
+        setSuggestOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside)
+    return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
   function setParam(key: string, value: string | null) {
@@ -41,30 +77,129 @@ export default function SearchPage() {
     router.push(`/search?${p.toString()}`)
   }
 
+  function runSearch(value: string) {
+    if (!value.trim()) return
+    pushRecent(value.trim())
+    setRecent(getRecent())
+    setSuggestOpen(false)
+    setParam('q', value.trim())
+  }
+
   function clearAll() {
     router.push('/search')
+  }
+
+  function clearRecent() {
+    localStorage.removeItem(RECENT_KEY)
+    setRecent([])
   }
 
   const hasFilters = !!(q || category || madeInZnz || sort !== 'newest')
 
   return (
-    <main className="pb-20 sm:pb-8">
+    <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
       <div className="page-container py-4 sm:py-6">
-        <div className="flex items-center gap-3 mb-4">
-          {/* Search bar */}
+        <div className="flex items-center gap-3 mb-4 relative" ref={searchWrapRef}>
+          {/* Search bar with instant suggestions */}
           <form
-            onSubmit={(e) => { e.preventDefault(); setParam('q', (e.currentTarget.elements.namedItem('q') as HTMLInputElement).value) }}
+            onSubmit={(e) => { e.preventDefault(); runSearch(inputValue) }}
             className="flex-1 relative"
           >
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 dark:text-ink-500 z-10" />
             <input
               name="q"
-              defaultValue={q}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onFocus={() => setSuggestOpen(true)}
               placeholder={lang === 'sw' ? 'Tafuta bidhaa...' : 'Search products...'}
               className="input pl-9 w-full"
+              autoComplete="off"
             />
+            {inputValue && (
+              <button
+                type="button"
+                onClick={() => { setInputValue(''); setParam('q', null) }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </form>
-          <button onClick={() => setFiltersOpen(!filtersOpen)} className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-colors ${filtersOpen ? 'bg-brand-500 text-white border-brand-500' : 'bg-white border-ink-200 text-ink-700 hover:border-brand-300'}`}>
+
+          {/* Suggestions dropdown */}
+          {suggestOpen && (
+            <div className="absolute top-full left-0 right-0 sm:right-auto sm:w-[26rem] mt-2 card dark:bg-ink-900 dark:border-ink-800 shadow-modal z-30 animate-scale-in origin-top overflow-hidden">
+              {recent.length > 0 && (
+                <div className="p-3 border-b border-ink-100 dark:border-ink-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5" /> {lang === 'sw' ? 'Ulizosaka Hivi Karibuni' : 'Recent'}
+                    </p>
+                    <button onClick={clearRecent} className="text-xs text-red-500 hover:underline">
+                      {lang === 'sw' ? 'Futa' : 'Clear'}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {recent.map((r) => (
+                      <button
+                        key={r}
+                        onClick={() => { setInputValue(r); runSearch(r) }}
+                        className="text-xs px-3 py-1.5 rounded-full bg-ink-50 dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 transition-colors"
+                      >
+                        {r}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="p-3 border-b border-ink-100 dark:border-ink-800">
+                <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5" /> {lang === 'sw' ? 'Zinazotafutwa Zaidi' : 'Popular Searches'}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {POPULAR_SEARCHES.map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => { setInputValue(p); runSearch(p) }}
+                      className="text-xs px-3 py-1.5 rounded-full bg-ink-50 dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 transition-colors"
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {categories.length > 0 && (
+                <div className="p-3">
+                  <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">
+                    {lang === 'sw' ? 'Kategoria' : 'Categories'}
+                  </p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {categories.slice(0, 6).map((cat) => (
+                      <button
+                        key={cat.id}
+                        onClick={() => { setSuggestOpen(false); setParam('category', cat.slug) }}
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors text-left"
+                      >
+                        <span>{cat.icon}</span>
+                        <span className="truncate">{cat.name_sw}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={() => setFiltersOpen(!filtersOpen)}
+            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
+              filtersOpen
+                ? 'bg-brand-500 text-white border-brand-500'
+                : 'bg-white dark:bg-ink-900 border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-200 hover:border-brand-300'
+            }`}
+          >
             <SlidersHorizontal className="w-4 h-4" />
             <span className="hidden sm:inline">Chuja</span>
           </button>
@@ -77,44 +212,41 @@ export default function SearchPage() {
             {category && <FilterChip label={categories.find(c => c.slug === category)?.name_sw ?? category} onRemove={() => setParam('category', null)} />}
             {madeInZnz && <FilterChip label="🏅 Imezalishwa Zanzibar" onRemove={() => setParam('made_in_zanzibar', null)} />}
             {sort !== 'newest' && <FilterChip label={sortLabel(sort)} onRemove={() => setParam('sort', null)} />}
-            <button onClick={clearAll} className="text-xs text-red-500 font-medium hover:underline px-1">Futa chujio zote</button>
+            <button onClick={clearAll} className="text-xs text-red-500 dark:text-red-400 font-medium hover:underline px-1">Futa chujio zote</button>
           </div>
         )}
 
         {/* Filter panel */}
         {filtersOpen && (
-          <div className="card p-4 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Categories */}
+          <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-up">
             <div>
-              <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">Aina</p>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Aina</p>
               <div className="flex flex-wrap gap-1.5">
                 {categories.map((cat) => (
                   <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)}
-                    className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 text-ink-600 hover:border-brand-300'}`}>
+                    className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
                     {cat.icon} {cat.name_sw}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Sort */}
             <div>
-              <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">Panga kwa</p>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Panga kwa</p>
               <div className="flex flex-col gap-1.5">
                 {[['newest','Mpya zaidi'],['price_asc','Bei: chini kwenda juu'],['price_desc','Bei: juu kwenda chini'],['popular','Maarufu zaidi']].map(([v, label]) => (
                   <button key={v} onClick={() => setParam('sort', v)}
-                    className={`text-xs text-left px-3 py-1.5 rounded-lg border transition-colors ${sort === v ? 'bg-brand-50 border-brand-400 text-brand-700 font-semibold' : 'border-ink-200 text-ink-600 hover:border-brand-300'}`}>
+                    className={`text-xs text-left px-3 py-1.5 rounded-lg border transition-colors ${sort === v ? 'bg-brand-50 dark:bg-brand-500/15 border-brand-400 text-brand-700 dark:text-brand-300 font-semibold' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
                     {label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Special */}
             <div>
-              <p className="text-xs font-semibold text-ink-500 uppercase tracking-wide mb-2">Maalum</p>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Maalum</p>
               <button onClick={() => setParam('made_in_zanzibar', madeInZnz ? null : 'true')}
-                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${madeInZnz ? 'bg-amber-100 text-amber-700 border-amber-300' : 'border-ink-200 text-ink-600 hover:border-amber-300'}`}>
+                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${madeInZnz ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-amber-300'}`}>
                 🏅 Imezalishwa Zanzibar
               </button>
             </div>
@@ -123,7 +255,7 @@ export default function SearchPage() {
 
         {/* Results header */}
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-ink-500">
+          <p className="text-sm text-ink-500 dark:text-ink-400">
             {loading ? 'Inatafuta...' : `Bidhaa ${count.toLocaleString()}`}
           </p>
         </div>
@@ -149,7 +281,7 @@ export default function SearchPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button onClick={() => setParam('page', String(page - 1))} disabled={page <= 1} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">← Nyuma</button>
-            <span className="text-sm text-ink-600 px-2">Ukurasa {page} / {totalPages}</span>
+            <span className="text-sm text-ink-600 dark:text-ink-300 px-2">Ukurasa {page} / {totalPages}</span>
             <button onClick={() => setParam('page', String(page + 1))} disabled={page >= totalPages} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">Mbele →</button>
           </div>
         )}
@@ -160,9 +292,9 @@ export default function SearchPage() {
 
 function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 rounded-full text-xs font-medium">
       {label}
-      <button onClick={onRemove} className="hover:text-brand-900"><X className="w-3 h-3" /></button>
+      <button onClick={onRemove} className="hover:text-brand-900 dark:hover:text-brand-100"><X className="w-3 h-3" /></button>
     </span>
   )
 }
@@ -174,12 +306,12 @@ function sortLabel(sort: string) {
 
 function ProductCardSkeleton() {
   return (
-    <div className="card overflow-hidden animate-pulse">
-      <div className="aspect-square bg-ink-100" />
+    <div className="card dark:bg-ink-900 dark:border-ink-800 overflow-hidden">
+      <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-3 space-y-2">
-        <div className="h-3 bg-ink-100 rounded w-2/3" />
-        <div className="h-3 bg-ink-100 rounded w-full" />
-        <div className="h-4 bg-ink-100 rounded w-1/2" />
+        <Skeleton className="h-3 w-2/3" />
+        <Skeleton className="h-3 w-full" />
+        <Skeleton className="h-4 w-1/2" />
       </div>
     </div>
   )
