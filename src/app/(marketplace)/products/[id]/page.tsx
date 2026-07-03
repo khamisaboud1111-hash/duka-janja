@@ -2,9 +2,8 @@ import { createServerClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, BadgeCheck, MessageCircle, Heart, Share2, Package, ArrowLeft } from 'lucide-react'
+import { Star, BadgeCheck, MessageCircle, Package } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
-import { VerifiedSellerBadge } from '@/components/ui/Badge'
 import TrackView from './TrackView'
 import RecentlyViewedRow from './RecentlyViewedRow'
 import AddToCartSection from './AddToCartSection'
@@ -48,18 +47,17 @@ async function getRelated(categoryId: string, productId: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id)
   if (!product) return { title: 'Product not found' }
-  
+
   const productData = product as any
 
   return {
     title: `${productData.name} - Duka Janja`,
     description: productData.description?.slice(0, 160),
   }
-
 }
 
 export default async function ProductPage({ params }: Props) {
-   const product = (await getProduct(params.id)) as any
+  const product = (await getProduct(params.id)) as any
   if (!product) notFound()
 
   const related = await getRelated(product.category_id, product.id)
@@ -74,23 +72,23 @@ export default async function ProductPage({ params }: Props) {
   const waUrl = seller ? whatsappUrl(seller.whatsapp_number, waMessage) : '#'
 
   return (
-    <main className="pb-20 sm:pb-8">
+    <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
       <TrackView productId={product.id} />
       <div className="page-container py-4 sm:py-6">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs text-ink-500 mb-4">
-          <Link href="/" className="hover:text-brand-600">Nyumbani</Link>
+        <nav className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400 mb-4">
+          <Link href="/" className="hover:text-brand-600 dark:hover:text-brand-300">Nyumbani</Link>
           <span>/</span>
-          <Link href={`/search?category=${product.category?.slug}`} className="hover:text-brand-600">{product.category?.name_sw}</Link>
+          <Link href={`/search?category=${product.category?.slug}`} className="hover:text-brand-600 dark:hover:text-brand-300">{product.category?.name_sw}</Link>
           <span>/</span>
-          <span className="text-ink-700 line-clamp-1">{product.name}</span>
+          <span className="text-ink-700 dark:text-ink-300 line-clamp-1">{product.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
           {/* Images */}
           <div className="space-y-3">
-            {/* Main image */}
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-ink-100">
+            {/* Main image — zoom on hover */}
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-ink-100 dark:bg-ink-800 group cursor-zoom-in">
               {primaryImage ? (
                 <Image
                   src={primaryImage.url}
@@ -98,15 +96,15 @@ export default async function ProductPage({ params }: Props) {
                   fill
                   priority
                   sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-cover"
+                  className="object-cover transition-transform duration-500 group-hover:scale-125"
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Package className="w-16 h-16 text-ink-300" />
+                  <Package className="w-16 h-16 text-ink-300 dark:text-ink-600" />
                 </div>
               )}
               {product.is_made_in_zanzibar && (
-                <span className="absolute top-3 left-3 badge bg-amber-100 text-amber-700">
+                <span className="absolute top-3 left-3 badge-orange">
                   🏅 Imezalishwa Zanzibar
                 </span>
               )}
@@ -116,7 +114,7 @@ export default async function ProductPage({ params }: Props) {
             {images.length > 1 && (
               <div className="grid grid-cols-5 gap-2">
                 {images.map((img: any, idx: number) => (
-                  <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-transparent cursor-pointer hover:border-brand-400 transition-colors">
+                  <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-transparent dark:border-ink-800 cursor-pointer hover:border-brand-400 transition-colors">
                     <Image src={img.url} alt={`${product.name} ${idx + 1}`} fill sizes="80px" className="object-cover" />
                   </div>
                 ))}
@@ -127,7 +125,7 @@ export default async function ProductPage({ params }: Props) {
             {videos.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {videos.map((vid: any) => (
-                  <video key={vid.id} src={vid.url} controls className="w-full aspect-video rounded-xl bg-ink-100 object-cover" />
+                  <video key={vid.id} src={vid.url} controls className="w-full aspect-video rounded-xl bg-ink-100 dark:bg-ink-800 object-cover" />
                 ))}
               </div>
             )}
@@ -136,11 +134,11 @@ export default async function ProductPage({ params }: Props) {
           {/* Product info */}
           <div className="space-y-5">
             <div>
-              <Link href={`/sellers/${seller?.store_slug}`} className="text-sm text-brand-600 font-medium hover:underline flex items-center gap-1">
+              <Link href={`/sellers/${seller?.store_slug}`} className="text-sm text-brand-600 dark:text-brand-300 font-medium hover:underline flex items-center gap-1">
                 {seller?.store_name}
                 {isVerifiedSeller && <BadgeCheck className="w-3.5 h-3.5" />}
               </Link>
-              <h1 className="font-display font-black text-2xl sm:text-3xl text-ink-900 mt-1 leading-tight">
+              <h1 className="font-display font-black text-2xl sm:text-3xl text-ink-900 dark:text-white mt-1 leading-tight">
                 {product.name}
               </h1>
             </div>
@@ -149,21 +147,21 @@ export default async function ProductPage({ params }: Props) {
             {product.review_count > 0 && (
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5">
-                  {[1,2,3,4,5].map((n) => (
-                    <Star key={n} className={`w-4 h-4 ${n <= Math.round(product.average_rating) ? 'fill-amber-400 text-amber-400' : 'text-ink-200'}`} />
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <Star key={n} className={`w-4 h-4 ${n <= Math.round(product.average_rating) ? 'fill-amber-400 text-amber-400' : 'text-ink-200 dark:text-ink-700'}`} />
                   ))}
                 </div>
-                <span className="text-sm font-semibold text-ink-700">{product.average_rating.toFixed(1)}</span>
-                <span className="text-sm text-ink-500">({product.review_count} maoni)</span>
+                <span className="text-sm font-semibold text-ink-700 dark:text-ink-200">{product.average_rating.toFixed(1)}</span>
+                <span className="text-sm text-ink-500 dark:text-ink-400">({product.review_count} maoni)</span>
               </div>
             )}
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span className="font-black text-3xl text-ink-900">{formatTZS(product.price)}</span>
+              <span className="font-black text-3xl text-ink-900 dark:text-white">{formatTZS(product.price)}</span>
               {product.compare_at_price && (
                 <>
-                  <span className="text-ink-400 line-through text-lg">{formatTZS(product.compare_at_price)}</span>
+                  <span className="text-ink-400 dark:text-ink-500 line-through text-lg">{formatTZS(product.compare_at_price)}</span>
                   <span className="badge-orange">
                     -{Math.round((1 - product.price / product.compare_at_price) * 100)}%
                   </span>
@@ -174,7 +172,7 @@ export default async function ProductPage({ params }: Props) {
             {/* Stock */}
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${product.stock_quantity > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
-              <span className="text-sm text-ink-700">
+              <span className="text-sm text-ink-700 dark:text-ink-200">
                 {product.stock_quantity > 0
                   ? `Ipo — vipande ${product.stock_quantity}`
                   : 'Imeisha'}
@@ -188,12 +186,12 @@ export default async function ProductPage({ params }: Props) {
             {seller && (
               <div className="grid grid-cols-2 gap-2">
                 <a href={waUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 font-semibold hover:bg-emerald-50 transition-colors text-sm">
+                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors text-sm">
                   <MessageCircle className="w-4 h-4" />
                   WhatsApp
                 </a>
                 <Link href={`/messages/${seller.id}`}
-                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-brand-500 text-brand-600 font-semibold hover:bg-brand-50 transition-colors text-sm">
+                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-brand-500 text-brand-600 dark:text-brand-300 font-semibold hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors text-sm">
                   <MessageCircle className="w-4 h-4" />
                   Ongea Hapa
                 </Link>
@@ -202,30 +200,30 @@ export default async function ProductPage({ params }: Props) {
 
             {/* Description */}
             <div>
-              <h3 className="font-semibold text-sm text-ink-700 mb-2">Maelezo</h3>
-              <p className="text-sm text-ink-600 leading-relaxed whitespace-pre-wrap">
+              <h3 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-2">Maelezo</h3>
+              <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed whitespace-pre-wrap">
                 {product.description || 'Hakuna maelezo.'}
               </p>
             </div>
 
             {/* Seller card */}
             {seller && (
-              <div className="card p-4">
-                <p className="text-xs text-ink-500 font-semibold mb-3 uppercase tracking-wide">Kuhusu duka</p>
+              <div className="card dark:bg-ink-900 dark:border-ink-800 p-4">
+                <p className="text-xs text-ink-500 dark:text-ink-400 font-semibold mb-3 uppercase tracking-wide">Kuhusu duka</p>
                 <Link href={`/sellers/${seller.store_slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                   {seller.logo_url ? (
                     <img src={seller.logo_url} alt={seller.store_name} className="w-12 h-12 rounded-xl object-cover" />
                   ) : (
-                    <div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-brand-700 font-bold text-xl">{seller.store_name.charAt(0)}</span>
+                    <div className="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-brand-700 dark:text-brand-300 font-bold text-xl">{seller.store_name.charAt(0)}</span>
                     </div>
                   )}
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <p className="font-bold text-ink-900">{seller.store_name}</p>
+                      <p className="font-bold text-ink-900 dark:text-white">{seller.store_name}</p>
                       {isVerifiedSeller && <BadgeCheck className="w-4 h-4 text-brand-500" />}
                     </div>
-                    <p className="text-xs text-ink-500">
+                    <p className="text-xs text-ink-500 dark:text-ink-400">
                       ⭐ {seller.average_rating.toFixed(1)} · {seller.review_count} maoni · Mauzo {seller.total_sales}
                     </p>
                   </div>
@@ -237,42 +235,42 @@ export default async function ProductPage({ params }: Props) {
 
         {/* Reviews */}
         <section className="mt-10">
-          <h2 className="font-display font-bold text-xl text-ink-900 mb-4">
+          <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-4">
             Maoni ya wateja ({product.review_count})
           </h2>
           {reviews.length === 0 ? (
-            <div className="card p-8 text-center">
-              <p className="text-ink-500 text-sm">Hakuna maoni bado. Kuwa wa kwanza kuandika maoni!</p>
+            <div className="card dark:bg-ink-900 dark:border-ink-800 p-8 text-center">
+              <p className="text-ink-500 dark:text-ink-400 text-sm">Hakuna maoni bado. Kuwa wa kwanza kuandika maoni!</p>
             </div>
           ) : (
             <div className="space-y-4">
               {reviews.map((review: any) => (
-                <div key={review.id} className="card p-4">
+                <div key={review.id} className="card dark:bg-ink-900 dark:border-ink-800 p-4">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
                       {review.buyer?.avatar_url ? (
                         <img src={review.buyer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-ink-100 flex items-center justify-center text-sm font-bold text-ink-600">
+                        <div className="w-8 h-8 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center text-sm font-bold text-ink-600 dark:text-ink-300">
                           {review.buyer?.full_name?.charAt(0) ?? 'M'}
                         </div>
                       )}
                       <div>
-                        <p className="text-sm font-semibold text-ink-800">{review.buyer?.full_name ?? 'Mteja'}</p>
-                        <p className="text-xs text-ink-400">{formatDate(review.created_at)}</p>
+                        <p className="text-sm font-semibold text-ink-800 dark:text-ink-100">{review.buyer?.full_name ?? 'Mteja'}</p>
+                        <p className="text-xs text-ink-400 dark:text-ink-500">{formatDate(review.created_at)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-0.5">
-                      {[1,2,3,4,5].map((n) => (
-                        <Star key={n} className={`w-3.5 h-3.5 ${n <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-ink-200'}`} />
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Star key={n} className={`w-3.5 h-3.5 ${n <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-ink-200 dark:text-ink-700'}`} />
                       ))}
                     </div>
                   </div>
-                  {review.comment && <p className="text-sm text-ink-700">{review.comment}</p>}
+                  {review.comment && <p className="text-sm text-ink-700 dark:text-ink-200">{review.comment}</p>}
                   {review.seller_reply && (
-                    <div className="mt-3 p-3 bg-brand-50 rounded-xl border border-brand-100">
-                      <p className="text-xs text-brand-700 font-semibold mb-1">Jibu la muuzaji:</p>
-                      <p className="text-sm text-ink-700">{review.seller_reply}</p>
+                    <div className="mt-3 p-3 bg-brand-50 dark:bg-brand-500/10 rounded-xl border border-brand-100 dark:border-brand-800">
+                      <p className="text-xs text-brand-700 dark:text-brand-300 font-semibold mb-1">Jibu la muuzaji:</p>
+                      <p className="text-sm text-ink-700 dark:text-ink-200">{review.seller_reply}</p>
                     </div>
                   )}
                 </div>
@@ -284,7 +282,7 @@ export default async function ProductPage({ params }: Props) {
         {/* Related products */}
         {related.length > 0 && (
           <section className="mt-10">
-            <h2 className="font-display font-bold text-xl text-ink-900 mb-4">Unaweza pia kupenda</h2>
+            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-4">Unaweza pia kupenda</h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {related.map((p: any) => <ProductCard key={p.id} product={p} />)}
             </div>
