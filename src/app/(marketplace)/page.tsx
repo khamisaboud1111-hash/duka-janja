@@ -8,6 +8,7 @@ import MarketplaceMapSection from '@/components/home/MarketplaceMapSection'
 import DeliveryProcess from '@/components/home/DeliveryProcess'
 import TrustBadges from '@/components/home/TrustBadges'
 import ReviewsSection from '@/components/home/ReviewsSection'
+import ZanzibarDiscovery from '@/components/home/ZanzibarDiscovery'
 import type { Category } from '@/types'
 
 export const revalidate = 60 // ISR: revalidate every 60s
@@ -148,10 +149,11 @@ export default async function HomePage() {
         <MarketplaceMapSection pins={mapPins} />
       </div>
 
-      <DeliveryProcess />
+     <DeliveryProcess />
+
+      <ZanzibarDiscovery />
 
       <TrustBadges />
-
       <ReviewsSection reviews={reviews} />
 
       {/* CTA: become a seller */}
