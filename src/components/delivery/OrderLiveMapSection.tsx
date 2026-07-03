@@ -57,7 +57,7 @@ export default function OrderLiveMapSection({ orderId }: { orderId: string }) {
 
   return (
     <div className="mt-4">
-      <h2 className="font-semibold text-sm text-ink-800 mb-2">Fuatilia Dereva Wako</h2>
+     <h2 className="font-semibold text-sm text-ink-800 dark:text-ink-100 mb-2">Fuatilia Dereva Wako</h2>
       <LiveDeliveryMap
         deliveryId={delivery.delivery_id}
         pickupLocation={{ lat: delivery.pickup_lat, lng: delivery.pickup_lng }}
