@@ -104,5 +104,5 @@ export default function RiderNavigationMap({ riderLocation, pickupLocation, deli
     leafletMapRef.current.panTo([riderLocation.lat, riderLocation.lng], { animate: true })
   }, [riderLocation?.lat, riderLocation?.lng])
 
-  return <div ref={mapRef} className="w-full h-[320px] sm:h-[420px] rounded-2xl overflow-hidden border border-ink-100 z-0" />
+ return <div ref={mapRef} className="w-full h-[320px] sm:h-[420px] rounded-2xl overflow-hidden border border-ink-100 dark:border-ink-800 z-0" />
 }
