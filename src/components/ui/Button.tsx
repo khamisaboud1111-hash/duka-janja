@@ -3,7 +3,7 @@ import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost'
+  variant?: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost' | 'glass'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
   fullWidth?: boolean
@@ -11,14 +11,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = 'primary', size = 'md', loading, fullWidth, children, className, disabled, ...props }, ref) => {
-    const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+    const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-950 disabled:opacity-50 disabled:cursor-not-allowed'
 
     const variants = {
-      primary:   'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 focus-visible:ring-brand-500',
-      secondary: 'bg-ink-100 text-ink-700 hover:bg-ink-200 active:bg-ink-300 focus-visible:ring-ink-400',
-      outline:   'border-2 border-brand-500 text-brand-600 hover:bg-brand-50 focus-visible:ring-brand-500',
+      primary:   'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 hover:shadow-glow-brand focus-visible:ring-brand-500',
+      secondary: 'bg-ink-100 text-ink-700 hover:bg-ink-200 active:bg-ink-300 dark:bg-ink-800 dark:text-ink-100 dark:hover:bg-ink-700 focus-visible:ring-ink-400',
+      outline:   'border-2 border-brand-500 text-brand-600 dark:text-brand-300 dark:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-500/10 focus-visible:ring-brand-500',
       danger:    'bg-red-500 text-white hover:bg-red-600 active:bg-red-700 focus-visible:ring-red-500',
-      ghost:     'text-ink-600 hover:bg-ink-100 focus-visible:ring-ink-400',
+      ghost:     'text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-800/60 focus-visible:ring-ink-400',
+      glass:     'bg-white/10 text-white border border-white/20 backdrop-blur-md hover:bg-white/20 focus-visible:ring-white/50',
     }
 
     const sizes = {
