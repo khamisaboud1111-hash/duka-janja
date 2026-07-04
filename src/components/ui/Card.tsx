@@ -20,7 +20,7 @@ export function Card({ variant = 'solid', hover, className, children, ...props }
     </div>
   )
 }
-} //
+
 interface QuickAction {
   icon: React.ReactNode
   label: string
