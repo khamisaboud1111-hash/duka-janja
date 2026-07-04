@@ -36,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <ThemeScript />
       </head>
-      <body className={`${inter.variable} font-sans antialiased bg-white text-ink-900 dark:bg-ink-950 dark:text-ink-50`}>        {children}
+     <body className={`${inter.variable} font-sans antialiased bg-white text-ink-900 dark:bg-ink-950 dark:text-ink-50`}>
+        <PullToRefreshIndicator />
+        {children}
         <Toaster
           position="top-center"
           toastOptions={{
