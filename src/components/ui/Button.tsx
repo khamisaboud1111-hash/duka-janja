@@ -1,4 +1,4 @@
-import { forwardRef } from 'react'
+import { forwardRef, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/utils'
 
@@ -10,8 +10,10 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'primary', size = 'md', loading, fullWidth, children, className, disabled, ...props }, ref) => {
-    const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-950 disabled:opacity-50 disabled:cursor-not-allowed'
+  ({ variant = 'primary', size = 'md', loading, fullWidth, children, className, disabled, onPointerDown, ...props }, ref) => {
+    const [rippling, setRippling] = useState(false)
+
+    const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-950 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97]'
 
     const variants = {
       primary:   'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 hover:shadow-glow-brand focus-visible:ring-brand-500',
@@ -28,11 +30,26 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: 'text-base px-6 py-3',
     }
 
+    function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+      setRippling(true)
+      setTimeout(() => setRippling(false), 500)
+      onPointerDown?.(e)
+    }
+
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={cn(base, variants[variant], sizes[size], fullWidth && 'w-full', className)}
+        onPointerDown={handlePointerDown}
+        className={cn(
+          base,
+          variants[variant],
+          sizes[size],
+          fullWidth && 'w-full',
+          'ripple-surface',
+          rippling && 'ripple-active',
+          className
+        )}
         {...props}
       >
         {loading && <Loader2 className="w-4 h-4 animate-spin" />}
