@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner'; // Ensure this matches your toast library
-import { createClient } from '@/utils/supabase/client';
+import { createClient } from '@/lib/supabase/client';
 import { useUser } from '@/hooks/useUser';
 // Import your components and types here
 // import { PageLoader } from '@/components/PageLoader';
