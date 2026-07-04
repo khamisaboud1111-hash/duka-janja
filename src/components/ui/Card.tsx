@@ -28,13 +28,20 @@ interface QuickAction {
   href?: string
 }
 
-export function QuickActionGrid({ actions }: { actions: QuickAction[] }) {
+export function QuickActionGrid({ actions, light }: { actions: QuickAction[]; light?: boolean }) {
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-4 gap-2 sm:gap-3">
       {actions.map((a) => (
-        <a key={a.label} href={a.href} onClick={a.onClick} className="icon-tile">
-          <span className="icon-tile-icon">{a.icon}</span>
-          <span className="text-xs font-medium text-ink-700 dark:text-ink-200">{a.label}</span>
+        
+          key={a.label}
+          href={a.href}
+          onClick={a.onClick}
+          className={light ? 'quick-action-tile' : 'icon-tile'}
+        >
+          <span className={light ? 'quick-action-tile-icon' : 'icon-tile-icon'}>{a.icon}</span>
+          <span className={light ? 'text-[11px] font-medium text-ink-700 whitespace-nowrap' : 'text-xs font-medium text-ink-700 dark:text-ink-200'}>
+            {a.label}
+          </span>
         </a>
       ))}
     </div>
