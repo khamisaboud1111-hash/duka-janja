@@ -47,11 +47,15 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
     setWishlistLoading(false)
   }
 
+ const [burst, setBurst] = useState(false)
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (isAvailable) {
       addItem(product)
+      setBurst(true)
+      setTimeout(() => setBurst(false), 500)
       toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`)
     } else {
       toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`)
