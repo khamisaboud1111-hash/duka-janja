@@ -18,11 +18,11 @@ function formatStat(n: number | undefined | null): string {
 }
 
 export default function HeroSection({ stats }: { stats: HomeStats }) {
-  const quickActions = [
-    { icon: <Grid3x3 className="w-5 h-5" />, label: 'Kategoria', href: '/search' },
-    { icon: <MapPin className="w-5 h-5" />, label: 'Ramani', href: '#marketplace-map' },
-    { icon: <Package className="w-5 h-5" />, label: 'Fuatilia Agizo', href: '/orders' },
-    { icon: <Tag className="w-5 h-5" />, label: 'Ofa', href: '/search?sort=discount' },
+ const quickActions = [
+    { icon: <Grid3x3 className="w-4 h-4" />, label: 'Kategoria', href: '/search' },
+    { icon: <MapPin className="w-4 h-4" />, label: 'Ramani', href: '#marketplace-map' },
+    { icon: <Package className="w-4 h-4" />, label: 'Agizo', href: '/orders' },
+    { icon: <Tag className="w-4 h-4" />, label: 'Ofa', href: '/search?sort=discount' },
   ]
 
   return (
@@ -77,10 +77,10 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             </Link>
           </div>
 
-          {/* Quick action grid — floating white card, matches mockup */}
-          <div className="max-w-md bg-white dark:bg-ink-900 rounded-2xl shadow-modal p-4 sm:p-5">
-            <QuickActionGrid actions={quickActions} />
-          </div>
+        {/* Quick action grid — floating white card, always light regardless of theme, matches mockup */}
+          <div className="max-w-md bg-white rounded-2xl shadow-modal p-3 sm:p-4">
+            <QuickActionGrid actions={quickActions} light />
+          </div> 
         </div>
 
         {/* Live stats strip — pulled from get_homepage_stats() RPC, never hardcoded */}
