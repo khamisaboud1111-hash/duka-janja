@@ -12,18 +12,10 @@ interface RiderNavigationMapProps {
   riderLocation: NavPoint | null
   pickupLocation: NavPoint
   deliveryLocation: NavPoint | null
-  /** 'to_pickup' shows rider -> pickup. 'to_delivery' shows pickup -> delivery (post pickup). */
   leg: 'to_pickup' | 'to_delivery'
 }
 
-/**
- * Uses leaflet-routing-machine with the free public OSRM demo router
- * (router.project-osrm.org) — no paid map/directions API involved, per the
- * zero-budget requirement. For production scale beyond the demo server's
- * fair-use limits, you'd self-host an OSRM instance, but that's a future
- * concern, not a blocker today.
- */
-export default function RiderNavigationMap({ riderLocation, pickupLocation, deliveryLocation, leg }: RiderNavigationMapProps) {
+export function RiderNavigationMap({ riderLocation, pickupLocation, deliveryLocation, leg }: RiderNavigationMapProps) {
   const mapRef = useRef<HTMLDivElement | null>(null)
   const leafletMapRef = useRef<any>(null)
   const routingControlRef = useRef<any>(null)
@@ -33,12 +25,8 @@ export default function RiderNavigationMap({ riderLocation, pickupLocation, deli
 
   useEffect(() => {
     let map: any
-
     async function init() {
       const L = (await import('leaflet')).default
-      // leaflet-routing-machine has no official types; loaded for its side effect
-      // of attaching L.Routing to the leaflet namespace.
-      // @ts-expect-error - no types published for this package
       await import('leaflet-routing-machine')
 
       if (!mapRef.current || leafletMapRef.current) return
@@ -67,15 +55,14 @@ export default function RiderNavigationMap({ riderLocation, pickupLocation, deli
           addWaypoints: false,
           draggableWaypoints: false,
           fitSelectedRoutes: true,
-          show: false, // hide the verbose turn-by-turn text panel, keep just the map line
-          createMarker: () => null as any, // we draw our own markers below for consistent styling
+          show: false,
+          createMarker: () => null as any,
         }).addTo(map)
       }
 
       if (riderLocation) {
         const riderIcon = L.divIcon({
-          html: '<div style="background:#1da8ab;width:18px;height:18px;border-radius:50%;border:3px solid white;box-shadow:0 0 0 2px rgba(29,168,171,0.4)"></div>',
-          className: '',
+          className: 'bg-blue-500 rounded-full border-2 border-white',
           iconSize: [18, 18],
         })
         L.marker([riderLocation.lat, riderLocation.lng], { icon: riderIcon }).addTo(map).bindPopup('Wewe (Dereva)')
@@ -98,10 +85,12 @@ export default function RiderNavigationMap({ riderLocation, pickupLocation, deli
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leg])
 
-  // Update rider marker position live without re-initializing the whole map/route.
   useEffect(() => {
     if (!leafletMapRef.current || !riderLocation) return
     leafletMapRef.current.panTo([riderLocation.lat, riderLocation.lng], { animate: true })
   }, [riderLocation?.lat, riderLocation?.lng])
 
- return <div ref={mapRef} className="w-full h-[320px] sm:h-[420px] rounded-2xl overflow-hidden border border-ink-100 dark:border-ink-800 z-0" />
+  return (
+    <div ref={mapRef} className="w-full h-[320px] sm:h-[420px] rounded-2xl overflow-hidden" />
+  )
+}
