@@ -103,7 +103,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
                 : 'bg-white/90 dark:bg-ink-900/80 text-ink-600 dark:text-ink-300 hover:bg-white dark:hover:bg-ink-800 opacity-0 group-hover:opacity-100'
             )}
           >
-            <Heart className={cn('w-4 h-4', wishlisted && 'fill-current')} />
+          <Heart className={cn('w-4 h-4 transition-transform', wishlisted && 'fill-current scale-125')} />
           </button>
 
           {/* Fast delivery hint, bottom-left */}
@@ -143,10 +143,11 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
                 </span>
               )}
             </div>
-            <button
+           <button
               onClick={handleAddToCart}
               className={cn(
-                'w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 flex-shrink-0',
+                'w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 flex-shrink-0 success-burst',
+                burst && 'burst-active',
                 isAvailable
                   ? 'bg-brand-500 text-white hover:bg-brand-600 hover:shadow-glow-brand'
                   : 'bg-ink-100 dark:bg-ink-800 text-ink-400 dark:text-ink-600 cursor-not-allowed'
