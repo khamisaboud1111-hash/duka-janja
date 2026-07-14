@@ -1,29 +1,29 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { Search, Store, Grid3x3, MapPin, Package, Tag } from 'lucide-react'
-import { QuickActionGrid } from '@/components/ui/Card'
+import Link from 'next/link';
+import Image from 'next/image';
+import { Search, Store, Grid3x3, MapPin, Package, Tag } from 'lucide-react';
+import { QuickActionGrid } from '@/components/ui/Card';
 
 interface HomeStats {
-  active_sellers: number
-  verified_stores: number
-  products_available: number
-  orders_delivered: number
-  active_riders: number
+  active_sellers: number;
+  verified_stores: number;
+  products_available: number;
+  orders_delivered: number;
+  active_riders: number;
 }
 
 function formatStat(n: number | undefined | null): string {
-  if (!n) return '0'
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`
-  return `${n}`
+  if (!n) return '0';
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
+  return `${n}`;
 }
 
 export default function HeroSection({ stats }: { stats: HomeStats }) {
- const quickActions = [
-    { icon: <Grid3x3 className="w-4 h-4" />, label: 'Kategoria', href: '/search' },
-    { icon: <MapPin className="w-4 h-4" />, label: 'Ramani', href: '#marketplace-map' },
-    { icon: <Package className="w-4 h-4" />, label: 'Agizo', href: '/orders' },
-    { icon: <Tag className="w-4 h-4" />, label: 'Ofa', href: '/search?sort=discount' },
-  ]
+  const quickActions = [
+    { id: 'cat', icon: <Grid3x3 className="w-4 h-4" />, label: 'Kategoria', href: '/search' },
+    { id: 'map', icon: <MapPin className="w-4 h-4" />, label: 'Ramani', href: '#marketplace-map' },
+    { id: 'ord', icon: <Package className="w-4 h-4" />, label: 'Agizo', href: '/orders' },
+    { id: 'off', icon: <Tag className="w-4 h-4" />, label: 'Ofa', href: '/search?sort=discount' },
+  ];
 
   return (
     <section className="relative isolate overflow-hidden bg-ink-900">
@@ -77,23 +77,23 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             </Link>
           </div>
 
-        {/* Quick action grid — floating white card, always light regardless of theme, matches mockup */}
+          {/* Quick action grid */}
           <div className="max-w-md bg-white rounded-2xl shadow-modal p-3 sm:p-4">
             <QuickActionGrid actions={quickActions} light />
-          </div> 
+          </div>
         </div>
 
-        {/* Live stats strip — pulled from get_homepage_stats() RPC, never hardcoded */}
+        {/* Live stats strip */}
         <div className="mt-8 sm:mt-12 grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 max-w-3xl">
-          <StatPill value={formatStat(stats.active_sellers)} label="Wauzaji Hai" />
-          <StatPill value={formatStat(stats.products_available)} label="Bidhaa Zilizopo" />
-          <StatPill value={formatStat(stats.orders_delivered)} label="Maagizo Yaliyofikishwa" />
-          <StatPill value={formatStat(stats.verified_stores)} label="Maduka Yaliyothibitishwa" />
-          <StatPill value={formatStat(stats.active_riders)} label="Madereva Hai" />
+          <StatPill value={formatStat(stats?.active_sellers)} label="Wauzaji Hai" />
+          <StatPill value={formatStat(stats?.products_available)} label="Bidhaa Zilizopo" />
+          <StatPill value={formatStat(stats?.orders_delivered)} label="Maagizo Yaliyofikishwa" />
+          <StatPill value={formatStat(stats?.verified_stores)} label="Maduka Yaliyothibitishwa" />
+          <StatPill value={formatStat(stats?.active_riders)} label="Madereva Hai" />
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 function StatPill({ value, label }: { value: string; label: string }) {
@@ -102,5 +102,5 @@ function StatPill({ value, label }: { value: string; label: string }) {
       <p className="font-display font-black text-white text-lg sm:text-2xl">{value}</p>
       <p className="text-white/70 text-[10px] sm:text-xs leading-tight mt-0.5">{label}</p>
     </div>
-  )
+  );
 }
