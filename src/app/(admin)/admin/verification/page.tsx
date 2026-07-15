@@ -20,6 +20,8 @@ export default function AdminVerificationQueuePage() {
   const [rejectingId, setRejectingId] = useState<string | null>(null)
   const [rejectNote, setRejectNote] = useState('')
   const [processing, setProcessing] = useState(false)
+  const [docUrls, setDocUrls] = useState<Record<string, string>>({})
+  const [openingId, setOpeningId] = useState<string | null>(null)
 
   async function load() {
     setLoading(true)
@@ -35,8 +37,29 @@ export default function AdminVerificationQueuePage() {
 
   useEffect(() => { load() }, [filter])
 
-  function fileUrl(path: string) {
-    return supabase.storage.from('seller-verification').getPublicUrl(path).data.publicUrl
+  // seller-verification is a PRIVATE bucket (see migration 003) — getPublicUrl()
+  // returns a URL that 400s because there's no anonymous read policy on it.
+  // Generate a short-lived signed URL on demand instead, same pattern used
+  // for rider documents.
+  async function openDoc(doc: DocRow) {
+    setOpeningId(doc.id)
+    try {
+      if (docUrls[doc.file_url]) {
+        window.open(docUrls[doc.file_url], '_blank')
+        return
+      }
+      const { data, error } = await supabase.storage
+        .from('seller-verification')
+        .createSignedUrl(doc.file_url, 300)
+      if (error || !data) {
+        toast.error('Imeshindikana kufungua hati')
+        return
+      }
+      setDocUrls((prev) => ({ ...prev, [doc.file_url]: data.signedUrl }))
+      window.open(data.signedUrl, '_blank')
+    } finally {
+      setOpeningId(null)
+    }
   }
 
   async function approve(doc: DocRow) {
@@ -83,7 +106,7 @@ export default function AdminVerificationQueuePage() {
       </div>
 
       {docs.length === 0 ? (
-        <EmptyState icon={FileText as any} title="Hakuna hati" description="Hakuna hati za uthibitisho katika kundi hili" />
+        <EmptyState icon={<FileText className="w-10 h-10" />} title="Hakuna hati" description="Hakuna hati za uthibitisho katika kundi hili" />
       ) : (
         <div className="space-y-3">
           {docs.map((doc) => (
@@ -92,10 +115,13 @@ export default function AdminVerificationQueuePage() {
                 <p className="font-semibold text-sm text-ink-900">{doc.seller?.store_name ?? 'Muuzaji'}</p>
                 <p className="text-xs text-ink-500">{doc.doc_type.replace('_', ' ')} · {formatDate(doc.created_at)}</p>
               </div>
-              <a href={fileUrl(doc.file_url)} target="_blank" rel="noreferrer"
-                className="flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline">
-                Ona hati <ExternalLink className="w-3 h-3" />
-              </a>
+              <button
+                onClick={() => openDoc(doc)}
+                disabled={openingId === doc.id}
+                className="flex items-center gap-1 text-xs font-medium text-brand-600 hover:underline disabled:opacity-50"
+              >
+                {openingId === doc.id ? 'Inafungua...' : 'Ona hati'} <ExternalLink className="w-3 h-3" />
+              </button>
               {doc.status === 'pending' && (
                 <div className="flex gap-2">
                   <button disabled={processing} onClick={() => approve(doc)}
