@@ -28,24 +28,9 @@ const PLACES: Place[] = [
     desc: 'Ngome ya kihistoria ya Kiarabu iliyojengwa karne ya 17.',
   },
   {
-    name: 'Nakupenda Beach',
-    src: 'https://images.unsplash.com/photo-1518509562904-e7ef99cdcc86?q=80&w=1200&auto=format&fit=crop',
-    desc: 'Ukingo wa mchanga mweupe unaojitokeza wakati wa maji kupwa.',
-  },
-  {
-    name: 'Paje Beach',
-    src: 'https://images.unsplash.com/photo-1505881502353-a1986add3762?q=80&w=1200&auto=format&fit=crop',
-    desc: 'Ufukwe maarufu kwa kitesurfing na maji ya turkwoise.',
-  },
-  {
     name: 'Msitu wa Jozani',
     src: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?q=80&w=1200&auto=format&fit=crop',
     desc: 'Nyumbani kwa Red Colobus, tumbili wa kipekee wa Zanzibar.',
-  },
-  {
-    name: 'Kisiwa cha Mnemba',
-    src: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?q=80&w=1200&auto=format&fit=crop',
-    desc: 'Maji ya bluu ya kioo bora kwa kuogelea na samaki wa rangi.',
   },
 ]
 
