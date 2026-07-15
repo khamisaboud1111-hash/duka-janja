@@ -22,7 +22,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
   const [wishlistLoading, setWishlistLoading] = useState(false)
   const primaryImage = product.images?.find((img) => img.is_primary) ?? product.images?.[0]
 
-  const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'sold'
+  const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'out_of_stock'
   const isVerifiedSeller = (product as any).seller?.national_id_verified ?? false
   const sellerName = (product as any).seller?.store_name
   const hasDiscount = (product as any).compare_at_price && (product as any).compare_at_price > product.price
