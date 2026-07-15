@@ -12,7 +12,7 @@ export default function AddToCartSection({ product }: { product: Product }) {
   const [qty, setQty] = useState(1)
   const { addItem } = useCartStore()
   const { lang } = useLangStore()
-  const isSold = product.status === 'sold'
+  const isSold = product.status === 'out_of_stock'
   const inStock = product.stock_quantity > 0 && !isSold
 
   function handleAdd() {
