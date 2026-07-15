@@ -88,24 +88,44 @@ export type Theme = 'light' | 'dark'
 
 interface ThemeStore {
   theme: Theme
+  hasHydrated: boolean
   toggleTheme: () => void
   setTheme: (theme: Theme) => void
 }
 
+// The server always renders `theme: 'light'` (it has no access to
+// localStorage). If the persisted value on the client is 'dark', zustand's
+// persist middleware rehydrates it right after the store is created —
+// before Navbar's first paint — so the icon React renders on the client
+// no longer matches what the server sent down. React then throws a
+// hydration-mismatch error the moment that component re-renders (e.g. on
+// the dark-mode click itself). `hasHydrated` lets consumers hold off on
+// theme-dependent UI for one tick until client and server agree.
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
       theme: 'light',
+      hasHydrated: false,
       toggleTheme: () => {
         const next: Theme = get().theme === 'light' ? 'dark' : 'light'
-        document.documentElement.classList.toggle('dark', next === 'dark')
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.toggle('dark', next === 'dark')
+        }
         set({ theme: next })
       },
       setTheme: (theme) => {
-        document.documentElement.classList.toggle('dark', theme === 'dark')
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.toggle('dark', theme === 'dark')
+        }
         set({ theme })
       },
     }),
-    { name: 'duka-janja-theme' }
+    {
+      name: 'duka-janja-theme',
+      onRehydrateStorage: () => (state) => {
+        state?.setTheme(state.theme)
+        useThemeStore.setState({ hasHydrated: true })
+      },
+    }
   )
 )
