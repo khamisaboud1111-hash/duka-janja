@@ -4,7 +4,7 @@ export type UserRole = 'buyer' | 'seller' | 'admin' | 'rider'
 
 export type SellerStatus = 'pending' | 'approved' | 'suspended'
 
-export type ProductStatus = 'draft' | 'active' | 'out_of_stock' | 'sold' | 'rejected'
+export type ProductStatus = 'draft' | 'active' | 'out_of_stock' | 'rejected'
 
 export type OrderStatus =
   | 'pending'
@@ -59,6 +59,9 @@ export interface Seller {
   is_featured: boolean
   verified_at: string | null
   location_area: string | null
+  latitude: number | null
+  longitude: number | null
+  location_label: string | null
   national_id_verified: boolean
   business_license_verified: boolean
   created_at: string
