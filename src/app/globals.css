@@ -78,13 +78,11 @@
     @apply bg-white rounded-2xl border border-ink-100 shadow-card;
   }
 
-  /* Always-white icon tiles for the homepage quick-actions card. Deliberately
-     has NO dark: variant — these sit on their own white/glass card regardless
-     of site theme, so giving them dark overrides is what previously made
-     them render as dark pills instead of compact white squares. */
+  /* Fixed: Removed 'group' from @apply */
   .quick-action-tile {
-    @apply flex flex-col items-center gap-2 group;
+    @apply flex flex-col items-center gap-2;
   }
+
   .quick-action-tile-icon {
     @apply w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-ink-50 flex items-center justify-center
            group-hover:bg-brand-50 group-active:scale-95 transition-all duration-150;
@@ -94,37 +92,20 @@
     @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold;
   }
 
-  .badge-green {
-    @apply badge bg-emerald-100 text-emerald-700;
-  }
+  .badge-green { @apply badge bg-emerald-100 text-emerald-700; }
+  .badge-orange { @apply badge bg-spice-100 text-spice-700; }
+  .badge-blue { @apply badge bg-brand-100 text-brand-700; }
+  .badge-red { @apply badge bg-red-100 text-red-700; }
+  .badge-gray { @apply badge bg-ink-100 text-ink-600; }
 
-  .badge-orange {
-    @apply badge bg-spice-100 text-spice-700;
-  }
-
-  .badge-blue {
-    @apply badge bg-brand-100 text-brand-700;
-  }
-
-  .badge-red {
-    @apply badge bg-red-100 text-red-700;
-  }
-
-  .badge-gray {
-    @apply badge bg-ink-100 text-ink-600;
-  }
-
-  /* Product image container with aspect ratio */
   .product-image-container {
     @apply relative aspect-square w-full overflow-hidden bg-ink-50 rounded-xl;
   }
 
-  /* Page container */
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
-  /* Section spacing */
   .section {
     @apply py-8 sm:py-12;
   }
@@ -134,19 +115,16 @@
   .safe-top    { padding-top: env(safe-area-inset-top); }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
 
-  /* Hide scrollbar but keep scrollable */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar { display: none; }
 
-  /* Line clamp utilities */
   .line-clamp-1 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; }
   .line-clamp-2 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
   .line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 
-  /* Micro-interactions: quick bounce feedback on add-to-cart / like taps */
   @keyframes pop-bounce {
     0%   { transform: scale(1); }
     35%  { transform: scale(1.35); }
