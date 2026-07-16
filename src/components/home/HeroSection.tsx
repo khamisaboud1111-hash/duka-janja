@@ -1,32 +1,18 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { Search, Store, Grid3x3, MapPin, Package, Tag } from 'lucide-react';
-import { QuickActionGrid } from '@/components/ui/Card';
+import Link from 'next/link'
+import Image from 'next/image'
+import { Store } from 'lucide-react'
 
 interface HomeStats {
-  active_sellers: number;
-  verified_stores: number;
-  products_available: number;
-  orders_delivered: number;
-  active_riders: number;
-}
-
-function formatStat(n: number | undefined | null): string {
-  if (!n) return '0';
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k+`;
-  return `${n}`;
+  active_sellers: number
+  verified_stores: number
+  products_available: number
+  orders_delivered: number
+  active_riders: number
 }
 
 export default function HeroSection({ stats }: { stats: HomeStats }) {
-  const quickActions = [
-    { id: 'cat', icon: <Grid3x3 className="w-4 h-4" />, label: 'Kategoria', href: '/search' },
-    { id: 'map', icon: <MapPin className="w-4 h-4" />, label: 'Ramani', href: '#marketplace-map' },
-    { id: 'ord', icon: <Package className="w-4 h-4" />, label: 'Agizo', href: '/orders' },
-    { id: 'off', icon: <Tag className="w-4 h-4" />, label: 'Ofa', href: '/search?sort=discount' },
-  ];
-
   return (
-    <section className="relative isolate overflow-hidden bg-ink-900">
+    <section className="relative isolate overflow-hidden bg-ink-900 rounded-b-[2rem] sm:rounded-b-[2.5rem]">
       {/* Aerial Stone Town / Zanzibar coastline backdrop */}
       <div className="absolute inset-0">
         <Image
@@ -37,70 +23,31 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
           sizes="100vw"
           className="object-cover"
         />
-        <div className="absolute inset-0 hero-overlay" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink-950/80 via-ink-950/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/60 to-ink-950/20" />
       </div>
 
-      <div className="page-container relative z-10 pt-12 pb-8 sm:pt-20 sm:pb-14 lg:pt-28 lg:pb-20">
-        <div className="max-w-2xl">
-          <p className="inline-flex items-center gap-2 text-brand-200 text-xs sm:text-sm font-semibold uppercase tracking-widest mb-4 bg-white/10 px-3 py-1.5 rounded-full backdrop-blur-sm">
-            🌴 Soko Namba 1 la Zanzibar
-          </p>
-          <h1 className="font-display font-black text-white text-3xl sm:text-5xl lg:text-6xl leading-[1.08] mb-5 [text-shadow:0_2px_24px_rgba(0,0,0,0.35)]">
-            Nunua Bidhaa Bora<br />Kutoka Zanzibar
-          </h1>
-          <p className="text-white/85 text-base sm:text-lg mb-8 max-w-lg">
-            Gundua maelfu ya bidhaa kutoka kwa wauzaji halisi wa Zanzibar zikiwa na malipo salama na usafirishaji wa haraka.
-          </p>
+      <div className="page-container relative z-10 pt-10 pb-20 sm:pt-16 sm:pb-24">
+        <span className="inline-block px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] font-bold tracking-wide uppercase mb-4">
+          Soko Namba 1 la Zanzibar
+        </span>
+        <h1 className="font-display font-black text-white text-3xl sm:text-5xl leading-[1.08] mb-3 max-w-xl [text-shadow:0_2px_24px_rgba(0,0,0,0.35)]">
+          Nunua Bidhaa Bora Kutoka Zanzibar
+        </h1>
+        <p className="text-white/85 text-sm sm:text-lg mb-7 max-w-md">
+          Gundua maelfu ya bidhaa kutoka kwa wauzaji halisi, zikiwa na malipo salama na usafirishaji wa haraka.
+        </p>
 
-          {/* In-hero search */}
-          <form action="/search" className="mb-6 max-w-xl">
-            <div className="relative flex items-center bg-white rounded-2xl shadow-modal p-1.5">
-              <Search className="w-5 h-5 text-ink-400 ml-3 flex-shrink-0" />
-              <input
-                name="q"
-                placeholder="Tafuta bidhaa, maduka, kategoria..."
-                className="flex-1 bg-transparent px-3 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 focus:outline-none min-w-0"
-              />
-              <button type="submit" className="btn-primary py-2.5 px-5 flex-shrink-0">
-                Tafuta
-              </button>
-            </div>
-          </form>
-
-          <div className="flex flex-wrap gap-3 mb-8">
-            <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-ink-900 font-bold rounded-xl hover:bg-brand-50 transition-colors shadow-lg">
-              Anza Kununua →
-            </Link>
-            <Link href="/register?type=seller" className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/30 backdrop-blur-sm">
-              <Store className="w-4 h-4" /> Fungua Duka
-            </Link>
-          </div>
-
-          {/* Quick action grid */}
-          <div className="max-w-md bg-white rounded-2xl shadow-modal p-3 sm:p-4">
-            <QuickActionGrid actions={quickActions} light />
-          </div>
-        </div>
-
-        {/* Live stats strip */}
-        <div className="mt-8 sm:mt-12 grid grid-cols-3 sm:grid-cols-5 gap-3 sm:gap-4 max-w-3xl">
-          <StatPill value={formatStat(stats?.active_sellers)} label="Wauzaji Hai" />
-          <StatPill value={formatStat(stats?.products_available)} label="Bidhaa Zilizopo" />
-          <StatPill value={formatStat(stats?.orders_delivered)} label="Maagizo Yaliyofikishwa" />
-          <StatPill value={formatStat(stats?.verified_stores)} label="Maduka Yaliyothibitishwa" />
-          <StatPill value={formatStat(stats?.active_riders)} label="Madereva Hai" />
+        <div className="flex flex-wrap gap-3">
+          <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-500 text-white font-bold rounded-xl hover:bg-brand-600 transition-colors shadow-lg">
+            Anza Kununua →
+          </Link>
+          <Link href="/register?type=seller" className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/30 backdrop-blur-sm">
+            <Store className="w-4 h-4" /> Fungua Duka
+          </Link>
         </div>
       </div>
     </section>
-  );
+  )
 }
 
-function StatPill({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="glass-card px-3 py-3 text-center">
-      <p className="font-display font-black text-white text-lg sm:text-2xl">{value}</p>
-      <p className="text-white/70 text-[10px] sm:text-xs leading-tight mt-0.5">{label}</p>
-    </div>
-  );
-}
+export type { HomeStats }
