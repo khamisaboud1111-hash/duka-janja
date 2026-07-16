@@ -1,11 +1,13 @@
 'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
-import { Heart, ShoppingCart, Star, BadgeCheck, Zap } from 'lucide-react'
+import { Heart, ShoppingCart, Star, BadgeCheck, Eye, PlayCircle, Truck, Check } from 'lucide-react'
 import { useState } from 'react'
 import { useCartStore, useLangStore } from '@/store'
 import { createClient } from '@/lib/supabase/client'
 import { formatTZS, cn } from '@/utils'
+import { t } from '@/i18n/translations'
 import type { Product } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -20,52 +22,48 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
   const supabase = createClient()
   const [wishlisted, setWishlisted] = useState(initialWishlisted)
   const [wishlistLoading, setWishlistLoading] = useState(false)
-  const primaryImage = product.images?.find((img) => img.is_primary) ?? product.images?.[0]
+  const [justAdded, setJustAdded] = useState(false)
+  const [justLiked, setJustLiked] = useState(false)
 
-  const isAvailable = Number(product.stock_quantity) > 0 && product.status !== 'out_of_stock'
-  const isVerifiedSeller = (product as any).seller?.national_id_verified ?? false
-  const sellerName = (product as any).seller?.store_name
-  const hasDiscount = (product as any).compare_at_price && (product as any).compare_at_price > product.price
-  const discountPct = hasDiscount
-    ? Math.round((1 - product.price / (product as any).compare_at_price) * 100)
-    : 0
-  const rating = (product as any).average_rating
-  const reviewCount = (product as any).review_count
+  const primaryImage = product.images?.find((img) => img.is_primary) ?? product.images?.[0]
+  const discount = product.compare_at_price
+    ? Math.round((1 - product.price / product.compare_at_price) * 100)
+    : null
 
   async function toggleWishlist(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { toast.error(lang === 'sw' ? 'Ingia kwanza' : 'Please log in first'); return }
 
-    if (!user) {
-      toast.error(lang === 'sw' ? 'Ingia kwanza' : 'Please log in first')
-      return
-    }
     setWishlistLoading(true)
-    // TODO: wire up to wishlist table
-    setWishlisted((w) => !w)
+    if (wishlisted) {
+      await supabase.from('wishlists').delete().eq('user_id', user.id).eq('product_id', product.id)
+      setWishlisted(false)
+    } else {
+      await supabase.from('wishlists').insert({ user_id: user.id, product_id: product.id })
+      setWishlisted(true)
+      setJustLiked(true)
+      setTimeout(() => setJustLiked(false), 450)
+    }
     setWishlistLoading(false)
   }
 
- const [burst, setBurst] = useState(false)
-
-  const handleAddToCart = (e: React.MouseEvent) => {
+  function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
-    if (isAvailable) {
-      addItem(product)
-      setBurst(true)
-      setTimeout(() => setBurst(false), 500)
-      toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`)
-    } else {
-      toast.error(lang === 'sw' ? `${product.name} imeishiwa stok` : `${product.name} is out of stock`)
-    }
+    if (product.stock_quantity === 0) return
+    addItem(product)
+    setJustAdded(true)
+    setTimeout(() => setJustAdded(false), 900)
+    toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`)
   }
 
   return (
     <Link href={`/products/${product.slug}`} className="group block">
-      <div className="card overflow-hidden hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 dark:bg-ink-900 dark:border-ink-800">
-        <div className="product-image-container relative h-64 w-full">
+      <div className="card dark:bg-ink-900 dark:border-ink-800 overflow-hidden hover:shadow-card-hover transition-shadow duration-200">
+        {/* Image */}
+        <div className="product-image-container">
           {primaryImage ? (
             <Image
               src={primaryImage.url}
@@ -75,85 +73,125 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-ink-100 dark:bg-ink-800">
-              <span className="text-ink-300 dark:text-ink-600 text-4xl">📦</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-ink-100">
+              <span className="text-ink-300 text-4xl">📦</span>
             </div>
           )}
 
-          {/* Top-left badges */}
+          {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
-            {hasDiscount && (
-              <span className="badge bg-spice-500 text-white shadow-sm">-{discountPct}%</span>
+            {discount && (
+              <span className="badge bg-spice-500 text-white text-xs">-{discount}%</span>
             )}
-            {!isAvailable && (
-              <span className="badge bg-ink-900/80 text-white shadow-sm">
-                {lang === 'sw' ? 'Imeisha' : 'Out of stock'}
+            {product.is_made_in_zanzibar && (
+              <span className="badge bg-amber-100 text-amber-700 text-xs">
+                <span className="text-xs">🏅</span>
+                {lang === 'sw' ? 'Zanzibar' : 'Made in ZNZ'}
               </span>
             )}
           </div>
 
-          {/* Wishlist */}
+          {/* Wishlist button */}
           <button
             onClick={toggleWishlist}
             disabled={wishlistLoading}
             className={cn(
-              'absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all active:scale-90',
-              wishlisted
-                ? 'bg-red-500 text-white'
-                : 'bg-white/90 dark:bg-ink-900/80 text-ink-600 dark:text-ink-300 hover:bg-white dark:hover:bg-ink-800 opacity-0 group-hover:opacity-100'
+              'absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all',
+              wishlisted ? 'bg-red-500 text-white' : 'bg-white/90 text-ink-600 hover:bg-white opacity-0 group-hover:opacity-100',
+              justLiked && 'animate-pop'
             )}
           >
-          <Heart className={cn('w-4 h-4 transition-transform', wishlisted && 'fill-current scale-125')} />
+            <Heart className={cn('w-4 h-4', wishlisted && 'fill-current')} />
           </button>
 
-          {/* Fast delivery hint, bottom-left */}
-          <div className="absolute bottom-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <span className="inline-flex items-center gap-1 bg-white/90 dark:bg-ink-900/85 backdrop-blur-sm text-ink-700 dark:text-ink-200 text-[10px] font-semibold px-2 py-1 rounded-full shadow-sm">
-              <Zap className="w-3 h-3 text-brand-500" /> {lang === 'sw' ? 'Haraka' : 'Fast'}
-            </span>
+          {/* Quick view */}
+          <Link
+            href={`/products/${product.slug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-ink-800 text-xs font-semibold shadow-sm"
+          >
+            <Eye className="w-3.5 h-3.5" /> Tazama
+          </Link>
+
+          {/* Video / gallery indicators */}
+          <div className="absolute bottom-2 right-2 flex items-center gap-1">
+            {(product as any).videos?.length > 0 && (
+              <span className="w-6 h-6 rounded-full bg-black/55 flex items-center justify-center" aria-label="Video ipo">
+                <PlayCircle className="w-3.5 h-3.5 text-white" />
+              </span>
+            )}
+            {product.images && product.images.length > 1 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-black/55 text-white text-[10px] font-semibold">
+                1/{product.images.length}
+              </span>
+            )}
           </div>
+
+          {/* Out of stock overlay */}
+          {product.stock_quantity === 0 && (
+            <div className="absolute inset-0 bg-white/70 dark:bg-ink-900/75 flex items-center justify-center">
+              <span className="badge-gray text-xs font-bold">{t('outOfStock', lang)}</span>
+            </div>
+          )}
         </div>
 
+        {/* Info */}
         <div className="p-3">
-          {sellerName && (
-            <p className="flex items-center gap-1 text-[11px] text-ink-400 dark:text-ink-500 font-medium mb-1 truncate">
-              {sellerName}
-              {isVerifiedSeller && <BadgeCheck className="w-3 h-3 text-brand-500 flex-shrink-0" />}
-            </p>
-          )}
-
-          <h3 className="font-semibold text-sm text-ink-900 dark:text-white line-clamp-2 leading-tight mb-1.5">
+          <p className="text-xs text-ink-500 dark:text-ink-400 mb-0.5 truncate">
+            {product.seller?.store_name}
+            {(product.seller as any)?.national_id_verified && (
+              <BadgeCheck className="w-3 h-3 inline ml-1 text-brand-500" />
+            )}
+          </p>
+          <h3 className="font-semibold text-sm text-ink-900 dark:text-white line-clamp-2 leading-tight mb-2">
             {product.name}
           </h3>
 
-          {typeof rating === 'number' && reviewCount > 0 && (
-            <div className="flex items-center gap-1 mb-2">
+          {/* Rating */}
+          {product.review_count > 0 && (
+            <div className="flex items-center gap-1 mb-1.5">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-              <span className="text-xs font-medium text-ink-600 dark:text-ink-300">{rating.toFixed(1)}</span>
-              <span className="text-xs text-ink-400 dark:text-ink-500">({reviewCount})</span>
+              <span className="text-xs text-ink-600 dark:text-ink-300 font-medium">{product.average_rating.toFixed(1)}</span>
+              <span className="text-xs text-ink-400">({product.review_count})</span>
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-2 mt-1">
-            <div className="flex items-baseline gap-1.5 min-w-0">
-              <span className="font-bold text-sm text-ink-900 dark:text-white truncate">{formatTZS(product.price)}</span>
-              {hasDiscount && (
-                <span className="text-[11px] text-ink-400 dark:text-ink-500 line-through truncate">
-                  {formatTZS((product as any).compare_at_price)}
+          {/* Stock + delivery availability */}
+          <div className="flex items-center gap-1.5 mb-2">
+            {product.stock_quantity > 0 ? (
+              <span className={cn('text-xs font-medium', product.stock_quantity <= 5 ? 'text-spice-600' : 'text-brand-600 dark:text-brand-300')}>
+                {product.stock_quantity <= 5 ? `Vipo ${product.stock_quantity} tu` : t('inStock', lang)}
+              </span>
+            ) : (
+              <span className="text-xs font-medium text-ink-400">{t('outOfStock', lang)}</span>
+            )}
+            <span className="flex items-center gap-0.5 text-xs text-ink-400">
+              <Truck className="w-3 h-3" /> Inafikishwa
+            </span>
+          </div>
+
+          {/* Price & cart */}
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <span className="font-bold text-sm text-ink-900 dark:text-white">{formatTZS(product.price)}</span>
+              {product.compare_at_price && (
+                <span className="text-xs text-ink-400 line-through ml-1.5">
+                  {formatTZS(product.compare_at_price)}
                 </span>
               )}
             </div>
-           <button
+            <button
               onClick={handleAddToCart}
+              disabled={product.stock_quantity === 0}
               className={cn(
-                'w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 flex-shrink-0 success-burst',
-                burst && 'burst-active',
-                isAvailable
-                  ? 'bg-brand-500 text-white hover:bg-brand-600 hover:shadow-glow-brand'
-                  : 'bg-ink-100 dark:bg-ink-800 text-ink-400 dark:text-ink-600 cursor-not-allowed'
+                'w-8 h-8 rounded-xl flex items-center justify-center transition-colors flex-shrink-0',
+                product.stock_quantity > 0
+                  ? justAdded ? 'bg-emerald-500 text-white' : 'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700'
+                  : 'bg-ink-100 text-ink-400 cursor-not-allowed',
+                justAdded && 'animate-pop'
               )}
             >
-              <ShoppingCart className="w-4 h-4" />
+              {justAdded ? <Check className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
             </button>
           </div>
         </div>
