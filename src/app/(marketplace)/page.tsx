@@ -16,7 +16,6 @@ export const revalidate = 60 // ISR: revalidate every 60s
 
 async function getHomeData() {
   const supabase = createServerClient()
-
   const [
     productsRes,
     categoriesRes,
@@ -78,14 +77,15 @@ async function getHomeData() {
 
 export default async function HomePage() {
   const { products, categories, featuredSellers, reviews, stats, mapPins } = await getHomeData()
-
   const madeInZanzibar = products.filter((p: any) => p.is_made_in_zanzibar).slice(0, 6)
   const newArrivals = products.slice(0, 8)
 
   return (
     <main className="pb-20 sm:pb-0 dark:bg-ink-950">
       <HeroSection stats={stats} />
-      <QuickActionsCard />
+      
+      {/* Fixed: Passing the mapPins data to the component */}
+      <QuickActionsCard pins={mapPins} />
 
       {/* Payments strip */}
       <div className="bg-ink-50 dark:bg-ink-900 border-b border-ink-100 dark:border-ink-800 mt-6">
