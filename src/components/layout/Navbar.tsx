@@ -247,11 +247,11 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
       {/* Mobile bottom nav */}
       <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-ink-100 safe-bottom">
         <div className="flex items-center justify-around h-14">
-          <BottomNavLink href="/" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} label="Home" active={pathname === '/'} />
+          <BottomNavLink href="/" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} label={t('home', lang)} active={pathname === '/'} />
           <BottomNavLink href="/search" icon={<Search className="w-5 h-5" />} label={t('shop', lang)} active={pathname.startsWith('/search') || pathname.startsWith('/products')} />
           <BottomNavLink href="/checkout" icon={<ShoppingCart className="w-5 h-5" />} label={t('cart', lang)} active={pathname === '/checkout'} badge={itemCount} />
           <BottomNavLink href="/orders" icon={<Package className="w-5 h-5" />} label={t('orders', lang)} active={pathname.startsWith('/orders')} />
-          <BottomNavLink href={profile ? '/notifications' : '/login'} icon={<Bell className="w-5 h-5" />} label="You" active={pathname === '/notifications'} badge={unreadCount} />
+          <BottomNavLink href={profile ? '/seller/settings' : '/login'} icon={<User className="w-5 h-5" />} label={t('profile', lang)} active={pathname === '/seller/settings'} />
         </div>
       </nav>
     </>
