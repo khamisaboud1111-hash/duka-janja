@@ -5,7 +5,6 @@ import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
 import CategoryShowcase from '@/components/home/CategoryShowcase'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
-import MarketplaceMapSection from '@/components/home/MarketplaceMapSection'
 import DeliveryProcess from '@/components/home/DeliveryProcess'
 import ZanzibarDiscovery from '@/components/home/ZanzibarDiscovery'
 import TrustBadges from '@/components/home/TrustBadges'
@@ -16,6 +15,7 @@ export const revalidate = 60 // ISR: revalidate every 60s
 
 async function getHomeData() {
   const supabase = createServerClient()
+
   const [
     productsRes,
     categoriesRes,
@@ -77,14 +77,13 @@ async function getHomeData() {
 
 export default async function HomePage() {
   const { products, categories, featuredSellers, reviews, stats, mapPins } = await getHomeData()
+
   const madeInZanzibar = products.filter((p: any) => p.is_made_in_zanzibar).slice(0, 6)
   const newArrivals = products.slice(0, 8)
 
   return (
     <main className="pb-20 sm:pb-0 dark:bg-ink-950">
       <HeroSection stats={stats} />
-      
-      {/* Fixed: Passing the mapPins data to the component */}
       <QuickActionsCard pins={mapPins} />
 
       {/* Payments strip */}
@@ -147,10 +146,6 @@ export default async function HomePage() {
       )}
 
       <FeaturedSellersShowcase sellers={featuredSellers} />
-
-      <div id="marketplace-map">
-        <MarketplaceMapSection pins={mapPins} />
-      </div>
 
       <DeliveryProcess />
 
