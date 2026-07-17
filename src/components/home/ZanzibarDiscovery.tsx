@@ -9,17 +9,17 @@ interface Place {
 const PLACES: Place[] = [
   {
     name: 'Mji Mkongwe (Stone Town)',
-    src: 'https://images.unsplash.com/photo-1626202375905-eee9f5d6f30e?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1688904524620-527b42849240?q=80&w=1200&auto=format&fit=crop',
     desc: 'Urithi wa Dunia wa UNESCO, mitaa ya kale na milango ya kihistoria.',
   },
   {
     name: 'Nyumba ya Maajabu',
-    src: 'https://images.unsplash.com/photo-1601581875309-fafbf2d3ed3a?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1678042956696-e072ff82cff5?q=80&w=1200&auto=format&fit=crop',
     desc: 'Jengo maarufu lililokuwa la kwanza kuwa na umeme Afrika Mashariki.',
   },
   {
     name: 'Bustani ya Forodhani',
-    src: 'https://images.unsplash.com/photo-1572331165267-854da2b00ed8?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1676480162770-ef5a83baba3b?q=80&w=1200&auto=format&fit=crop',
     desc: 'Soko la jioni la chakula maarufu kando ya bahari Mji Mkongwe.',
   },
   {
@@ -29,7 +29,7 @@ const PLACES: Place[] = [
   },
   {
     name: 'Msitu wa Jozani',
-    src: 'https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?q=80&w=1200&auto=format&fit=crop',
+    src: 'https://images.unsplash.com/photo-1679079998628-5f4677f474a1?q=80&w=1200&auto=format&fit=crop',
     desc: 'Nyumbani kwa Red Colobus, tumbili wa kipekee wa Zanzibar.',
   },
 ]
