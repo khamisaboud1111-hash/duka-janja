@@ -1,13 +1,16 @@
 import { z } from 'zod'
 
 // East African phone format: optional +255/0 country prefix, then 9 digits.
-// Accepts: +255712345678, 255712345678, 0712345678
+// Accepts: +255712345678, 255712345678, 0712345678 — and tolerates spaces or
+// dashes a person might type (0712 345 678, 0712-345-678), stripping them
+// before the digits-only check instead of rejecting the input outright.
 const eastAfricanPhone = z
   .string()
   .trim()
-  .regex(
-    /^(\+?255|0)[67]\d{8}$/,
-    'Tafadhali weka namba sahihi ya simu (mfano: 0712345678 au +255712345678)'
+  .transform((v) => v.replace(/[\s-]/g, ''))
+  .refine(
+    (v) => /^(\+?255|0)[67]\d{8}$/.test(v),
+    { message: 'Tafadhali weka namba sahihi ya simu (mfano: 0712345678 au +255712345678)' }
   )
 
 export const riderApplicationSchema = z.object({
