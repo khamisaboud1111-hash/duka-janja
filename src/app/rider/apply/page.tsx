@@ -64,11 +64,25 @@ export default function RiderApplyPage() {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
+  // The 3 phone-style fields below are validated against a strict digits-only
+  // pattern, but their own placeholder ("0712 345 678") shows a spaced
+  // format — so typing it exactly as shown used to fail validation with no
+  // clear reason why. Strip spaces/dashes as the user types instead of
+  // rejecting them after the fact.
+  function updatePhone(key: 'phone_number' | 'emergency_contact' | 'payout_account_number', value: string) {
+    update(key, value.replace(/[\s-]/g, '') as FormState[typeof key])
+  }
+
+  const phonePattern = /^(\+?255|0)[67]\d{8}$/
+  function cleanPhone(v: string) {
+    return v.trim().replace(/[\s-]/g, '')
+  }
+
   function validateStep(): string | null {
     if (step === 0) {
       if (form.full_name.trim().length < 3) return 'Jina kamili linahitajika'
-      if (!/^(\+?255|0)[67]\d{8}$/.test(form.phone_number.trim())) return 'Namba ya simu si sahihi'
-      if (!/^(\+?255|0)[67]\d{8}$/.test(form.emergency_contact.trim())) return 'Namba ya dharura si sahihi'
+      if (!phonePattern.test(cleanPhone(form.phone_number))) return 'Namba ya simu si sahihi'
+      if (!phonePattern.test(cleanPhone(form.emergency_contact))) return 'Namba ya dharura si sahihi'
     }
     if (step === 1) {
       if (form.national_id.trim().length < 5) return 'Namba ya kitambulisho inahitajika'
@@ -78,7 +92,7 @@ export default function RiderApplyPage() {
       if (!form.license_scan_url) return 'Picha ya leseni inahitajika'
     }
     if (step === 2) {
-      if (!/^(\+?255|0)[67]\d{8}$/.test(form.payout_account_number.trim())) return 'Namba ya akaunti ya malipo si sahihi'
+      if (!phonePattern.test(cleanPhone(form.payout_account_number))) return 'Namba ya akaunti ya malipo si sahihi'
     }
     return null
   }
@@ -170,8 +184,8 @@ export default function RiderApplyPage() {
         {step === 0 && (
           <>
             <Input label="Jina Kamili" value={form.full_name} onChange={(e) => update('full_name', e.target.value)} placeholder="Mfano: Juma Hassan Ali" />
-            <Input label="Namba ya Simu" value={form.phone_number} onChange={(e) => update('phone_number', e.target.value)} placeholder="0712 345 678" />
-            <Input label="Namba ya Dharura" value={form.emergency_contact} onChange={(e) => update('emergency_contact', e.target.value)} placeholder="Namba ya jamaa/rafiki" hint="Tutawasiliana naye tu wakati wa dharura" />
+            <Input label="Namba ya Simu" value={form.phone_number} onChange={(e) => updatePhone('phone_number', e.target.value)} placeholder="0712 345 678" />
+            <Input label="Namba ya Dharura" value={form.emergency_contact} onChange={(e) => updatePhone('emergency_contact', e.target.value)} placeholder="Namba ya jamaa/rafiki" hint="Tutawasiliana naye tu wakati wa dharura" />
           </>
         )}
 
@@ -207,7 +221,7 @@ export default function RiderApplyPage() {
               <option value="airtel_money">Airtel Money</option>
               <option value="halopesa">Halopesa</option>
             </Select>
-            <Input label="Namba ya Akaunti ya Malipo" value={form.payout_account_number} onChange={(e) => update('payout_account_number', e.target.value)} placeholder="0712 345 678" hint="Mapato yako yatatumwa hapa" />
+            <Input label="Namba ya Akaunti ya Malipo" value={form.payout_account_number} onChange={(e) => updatePhone('payout_account_number', e.target.value)} placeholder="0712 345 678" hint="Mapato yako yatatumwa hapa" />
           </>
         )}
 
@@ -253,4 +267,4 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
       <span className="font-medium text-ink-800 text-right">{value || '—'}</span>
     </div>
   )
-}
+}         look that code and find what to improve then imrove and give me aclean code to copy and paste 
