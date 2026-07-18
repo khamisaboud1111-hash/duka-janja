@@ -64,16 +64,15 @@ export default function RiderApplyPage() {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
-  // The 3 phone-style fields below are validated against a strict digits-only
-  // pattern, but their own placeholder ("0712 345 678") shows a spaced
-  // format — so typing it exactly as shown used to fail validation with no
-  // clear reason why. Strip spaces/dashes as the user types instead of
-  // rejecting them after the fact.
-  function updatePhone(key: 'phone_number' | 'emergency_contact' | 'payout_account_number', value: string) {
+  function updatePhone(
+    key: 'phone_number' | 'emergency_contact' | 'payout_account_number',
+    value: string
+  ) {
     update(key, value.replace(/[\s-]/g, '') as FormState[typeof key])
   }
 
   const phonePattern = /^(\+?255|0)[67]\d{8}$/
+
   function cleanPhone(v: string) {
     return v.trim().replace(/[\s-]/g, '')
   }
@@ -84,6 +83,7 @@ export default function RiderApplyPage() {
       if (!phonePattern.test(cleanPhone(form.phone_number))) return 'Namba ya simu si sahihi'
       if (!phonePattern.test(cleanPhone(form.emergency_contact))) return 'Namba ya dharura si sahihi'
     }
+
     if (step === 1) {
       if (form.national_id.trim().length < 5) return 'Namba ya kitambulisho inahitajika'
       if (form.driving_license.trim().length < 3) return 'Namba ya leseni inahitajika'
@@ -91,15 +91,22 @@ export default function RiderApplyPage() {
       if (!form.selfie_url) return 'Picha ya selfie inahitajika'
       if (!form.license_scan_url) return 'Picha ya leseni inahitajika'
     }
+
     if (step === 2) {
-      if (!phonePattern.test(cleanPhone(form.payout_account_number))) return 'Namba ya akaunti ya malipo si sahihi'
+      if (!phonePattern.test(cleanPhone(form.payout_account_number))) {
+        return 'Namba ya akaunti ya malipo si sahihi'
+      }
     }
+
     return null
   }
 
   function next() {
     const err = validateStep()
-    if (err) { toast.error(err); return }
+    if (err) {
+      toast.error(err)
+      return
+    }
     setStep((s) => Math.min(s + 1, STEPS.length - 1))
   }
 
@@ -115,13 +122,16 @@ export default function RiderApplyPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
+
       const json = await res.json()
+
       if (!res.ok) {
         toast.error(json.error ?? 'Imeshindikana kutuma maombi')
         if (json.details?.length) console.error(json.details)
         setSubmitting(false)
         return
       }
+
       setSubmitted(true)
     } catch {
       toast.error('Hitilafu ya mtandao')
@@ -159,13 +169,16 @@ export default function RiderApplyPage() {
         </div>
       </div>
 
-      {/* Step indicator */}
       <div className="flex items-center gap-2 my-6">
         {STEPS.map((s, i) => (
           <div key={s.key} className="flex items-center flex-1">
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                i < step ? 'bg-emerald-500 text-white' : i === step ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-400'
+                i < step
+                  ? 'bg-emerald-500 text-white'
+                  : i === step
+                  ? 'bg-brand-500 text-white'
+                  : 'bg-ink-100 text-ink-400'
               }`}
             >
               {i < step ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
@@ -176,6 +189,7 @@ export default function RiderApplyPage() {
           </div>
         ))}
       </div>
+
       <p className="text-xs text-ink-500 font-semibold uppercase tracking-wide mb-4 flex items-center gap-1.5">
         <StepIcon className="w-3.5 h-3.5" /> {STEPS[step].label}
       </p>
@@ -183,17 +197,46 @@ export default function RiderApplyPage() {
       <div className="card p-5 sm:p-6 space-y-4">
         {step === 0 && (
           <>
-            <Input label="Jina Kamili" value={form.full_name} onChange={(e) => update('full_name', e.target.value)} placeholder="Mfano: Juma Hassan Ali" />
-            <Input label="Namba ya Simu" value={form.phone_number} onChange={(e) => updatePhone('phone_number', e.target.value)} placeholder="0712 345 678" />
-            <Input label="Namba ya Dharura" value={form.emergency_contact} onChange={(e) => updatePhone('emergency_contact', e.target.value)} placeholder="Namba ya jamaa/rafiki" hint="Tutawasiliana naye tu wakati wa dharura" />
+            <Input
+              label="Jina Kamili"
+              value={form.full_name}
+              onChange={(e) => update('full_name', e.target.value)}
+              placeholder="Mfano: Juma Hassan Ali"
+            />
+            <Input
+              label="Namba ya Simu"
+              value={form.phone_number}
+              onChange={(e) => updatePhone('phone_number', e.target.value)}
+              placeholder="0712 345 678"
+            />
+            <Input
+              label="Namba ya Dharura"
+              value={form.emergency_contact}
+              onChange={(e) => updatePhone('emergency_contact', e.target.value)}
+              placeholder="Namba ya jamaa/rafiki"
+              hint="Tutawasiliana naye tu wakati wa dharura"
+            />
           </>
         )}
 
         {step === 1 && (
           <>
-            <Input label="Namba ya Kitambulisho cha Taifa/Zanzibar" value={form.national_id} onChange={(e) => update('national_id', e.target.value)} />
-            <Input label="Namba ya Leseni ya Udereva" value={form.driving_license} onChange={(e) => update('driving_license', e.target.value)} />
-            <Input label="Namba ya Usajili wa Pikipiki" value={form.motorcycle_registration} onChange={(e) => update('motorcycle_registration', e.target.value)} placeholder="Mfano: T123 ABC" />
+            <Input
+              label="Namba ya Kitambulisho cha Taifa/Zanzibar"
+              value={form.national_id}
+              onChange={(e) => update('national_id', e.target.value)}
+            />
+            <Input
+              label="Namba ya Leseni ya Udereva"
+              value={form.driving_license}
+              onChange={(e) => update('driving_license', e.target.value)}
+            />
+            <Input
+              label="Namba ya Usajili wa Pikipiki"
+              value={form.motorcycle_registration}
+              onChange={(e) => update('motorcycle_registration', e.target.value)}
+              placeholder="Mfano: T123 ABC"
+            />
             <div className="grid grid-cols-2 gap-3 pt-2">
               <RiderDocumentUploader
                 userId={profile.id}
@@ -215,13 +258,23 @@ export default function RiderApplyPage() {
 
         {step === 2 && (
           <>
-            <Select label="Njia ya Malipo" value={form.payout_method} onChange={(e) => update('payout_method', e.target.value as FormState['payout_method'])}>
+            <Select
+              label="Njia ya Malipo"
+              value={form.payout_method}
+              onChange={(e) => update('payout_method', e.target.value as FormState['payout_method'])}
+            >
               <option value="mpesa">M-Pesa</option>
               <option value="tigo_pesa">Tigo Pesa</option>
               <option value="airtel_money">Airtel Money</option>
               <option value="halopesa">Halopesa</option>
             </Select>
-            <Input label="Namba ya Akaunti ya Malipo" value={form.payout_account_number} onChange={(e) => updatePhone('payout_account_number', e.target.value)} placeholder="0712 345 678" hint="Mapato yako yatatumwa hapa" />
+            <Input
+              label="Namba ya Akaunti ya Malipo"
+              value={form.payout_account_number}
+              onChange={(e) => updatePhone('payout_account_number', e.target.value)}
+              placeholder="0712 345 678"
+              hint="Mapato yako yatatumwa hapa"
+            />
           </>
         )}
 
@@ -232,7 +285,10 @@ export default function RiderApplyPage() {
             <ReviewRow label="Kitambulisho" value={form.national_id} />
             <ReviewRow label="Leseni" value={form.driving_license} />
             <ReviewRow label="Pikipiki" value={form.motorcycle_registration} />
-            <ReviewRow label="Malipo" value={`${form.payout_method.replace('_', ' ')} — ${form.payout_account_number}`} />
+            <ReviewRow
+              label="Malipo"
+              value={`${form.payout_method.replace('_', ' ')} — ${form.payout_account_number}`}
+            />
             <p className="text-xs text-ink-500 pt-2">
               Kwa kutuma, unakubali vyeti vyako vitahakikiwa na msimamizi kabla ya kuanza kupokea safari.
             </p>
@@ -246,6 +302,7 @@ export default function RiderApplyPage() {
             <ChevronLeft className="w-4 h-4" /> Rudi
           </Button>
         )}
+
         {step < STEPS.length - 1 ? (
           <Button onClick={next} fullWidth>
             Endelea <ChevronRight className="w-4 h-4" />
@@ -267,4 +324,4 @@ function ReviewRow({ label, value }: { label: string; value: string }) {
       <span className="font-medium text-ink-800 text-right">{value || '—'}</span>
     </div>
   )
-}         look that code and find what to improve then imrove and give me aclean code to copy and paste 
+}
