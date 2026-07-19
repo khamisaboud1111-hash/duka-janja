@@ -28,7 +28,7 @@ export default function LoginPage() {
 
   async function onSubmit({ email, password }: FormData) {
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       const message =
         error.message === 'Invalid login credentials' ? 'Barua pepe au nywila si sahihi'
@@ -38,8 +38,23 @@ export default function LoginPage() {
       setLoading(false)
       return
     }
+
+    // Each role lands on its own home: buyers on the marketplace, sellers
+    // and riders on their own dashboards (which already handle "not
+    // verified yet" / "application pending" states on their own).
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.user.id)
+      .single()
+
     toast.success('Karibu!')
-    router.push('/')
+    const destination =
+      profile?.role === 'seller' ? '/seller/dashboard'
+      : profile?.role === 'rider' ? '/rider/dashboard'
+      : profile?.role === 'admin' ? '/admin/dashboard'
+      : '/'
+    router.push(destination)
     router.refresh()
   }
 
