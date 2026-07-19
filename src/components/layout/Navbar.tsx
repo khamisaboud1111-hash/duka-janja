@@ -9,6 +9,7 @@ import { useCartStore, useLangStore, useThemeStore } from '@/store'
 import { t } from '@/i18n/translations'
 import type { Profile, Category } from '@/types'
 import { cn } from '@/utils'
+import MobileDrawer from './MobileDrawer'
 
 export default function Navbar({ categories = [] }: { categories?: Category[] }) {
   const router = useRouter()
@@ -19,6 +20,7 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
   const itemCount = useCartStore((s) => s.itemCount())
   const [profile, setProfile] = useState<Profile | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   const [categoriesOpen, setCategoriesOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [unreadCount, setUnreadCount] = useState(0)
@@ -67,6 +69,15 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
       <header className="sticky top-0 z-50 bg-white dark:bg-ink-900 border-b border-ink-100 dark:border-ink-800 shadow-sm">
         <div className="page-container">
           <div className="flex items-center h-14 gap-3">
+            {/* Hamburger — mobile only; the desktop Sidebar covers this on lg+ */}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              aria-label="Fungua menyu"
+              className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors flex-shrink-0"
+            >
+              <Menu className="w-5 h-5 text-ink-700 dark:text-ink-200" />
+            </button>
+
             {/* Logo */}
             <Link href="/" className="flex items-center gap-2 flex-shrink-0 mr-2">
               <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
@@ -245,7 +256,7 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-ink-100 safe-bottom">
+      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-ink-900 border-t border-ink-100 dark:border-ink-800 safe-bottom">
         <div className="flex items-center justify-around h-14">
           <BottomNavLink href="/" icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>} label={t('home', lang)} active={pathname === '/'} />
           <BottomNavLink href="/search" icon={<Search className="w-5 h-5" />} label={t('shop', lang)} active={pathname.startsWith('/search') || pathname.startsWith('/products')} />
@@ -254,6 +265,8 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
           <BottomNavLink href={profile ? '/seller/settings' : '/login'} icon={<User className="w-5 h-5" />} label={t('profile', lang)} active={pathname === '/seller/settings'} />
         </div>
       </nav>
+
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} profile={profile} />
     </>
   )
 }
