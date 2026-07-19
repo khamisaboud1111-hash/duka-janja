@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { ShoppingCart, Heart, Bell, User, Search, Menu, X, Globe, LogOut, Package, Store, LayoutDashboard, Grid3x3, MapPin, Tag, Sun, Moon } from 'lucide-react'
+import { ShoppingCart, Heart, Bell, User, Search, Menu, X, Globe, LogOut, Package, Store, LayoutDashboard, Grid3x3, MapPin, Tag, Sun, Moon, Bike } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useCartStore, useLangStore, useThemeStore } from '@/store'
 import { t } from '@/i18n/translations'
@@ -222,6 +222,9 @@ export default function Navbar({ categories = [] }: { categories?: Category[] })
                           <MenuLink href="/wishlist" icon={<Heart className="w-4 h-4" />} label={t('wishlist', lang)} onClick={() => setMenuOpen(false)} />
                           {(profile.role === 'seller' || profile.role === 'admin') && (
                             <MenuLink href="/seller/dashboard" icon={<Store className="w-4 h-4" />} label={t('sellerDashboard', lang)} onClick={() => setMenuOpen(false)} />
+                          )}
+                          {(profile.role === 'rider' || profile.role === 'admin') && (
+                            <MenuLink href="/rider/dashboard" icon={<Bike className="w-4 h-4" />} label="Dashibodi ya Dereva" onClick={() => setMenuOpen(false)} />
                           )}
                           {profile.role === 'admin' && (
                             <MenuLink href="/admin/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label={t('adminDashboard', lang)} onClick={() => setMenuOpen(false)} />
