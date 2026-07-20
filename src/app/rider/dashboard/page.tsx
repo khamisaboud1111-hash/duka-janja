@@ -9,7 +9,7 @@ import { useRiderTracking } from '@/hooks/useRiderTracking'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
-import RiderNavigationMap from '@/components/rider/RiderNavigationMap'
+import { RiderNavigationMap } from '@/components/rider/RiderNavigationMap'
 
 interface RiderProfileRow {
   id: string
