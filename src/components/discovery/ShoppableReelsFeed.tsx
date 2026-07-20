@@ -79,7 +79,9 @@ export default function ShoppableReelsFeed({ reels = [], onAddToCart }: Shoppabl
             >
               {/* Video Element */}
               <video
-                ref={(el) => (videoRefs.current[idx] = el)}
+                ref={(el) => {
+                  videoRefs.current[idx] = el;
+                }}
                 src={reel.videoUrl}
                 className="absolute inset-0 w-full h-full object-cover"
                 loop
