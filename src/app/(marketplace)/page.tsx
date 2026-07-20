@@ -1,11 +1,9 @@
 import React from "react";
 import ShoppableReelsFeed, { ReelItem } from "@/components/discovery/ShoppableReelsFeed";
 
-// Force dynamic server rendering to prevent Vercel static build timeouts
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// Sample mock data for instant verification and rendering stability
 const sampleReels: ReelItem[] = [
   {
     id: 1,
@@ -26,31 +24,40 @@ const sampleReels: ReelItem[] = [
 ];
 
 export default async function MarketplaceHomePage() {
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Hero Intro */}
-      <div className="text-center sm:text-left space-y-2">
-        <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent">
-          Welcome to Duka Janja Marketplace
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          East Africa’s premier social commerce destination. Discover trending video reels and shop directly.
-        </p>
-      </div>
-
-      {/* Shoppable Reels Section */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold tracking-tight">Trending Shoppable Reels</h2>
+  try {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+        <div className="text-center sm:text-left space-y-2">
+          <h1 className="text-3xl font-black tracking-tight bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent">
+            Welcome to Duka Janja Marketplace
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            East Africa’s premier social commerce destination. Discover trending video reels and shop directly.
+          </p>
         </div>
 
-        <ShoppableReelsFeed 
-          reels={sampleReels} 
-          onAddToCart={(product) => {
-            console.log("Added to cart:", product);
-          }}
-        />
-      </section>
-    </div>
-  );
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold tracking-tight">Trending Shoppable Reels</h2>
+          </div>
+
+          <ShoppableReelsFeed 
+            reels={sampleReels} 
+            onAddToCart={(product) => {
+              console.log("Added to cart:", product);
+            }}
+          />
+        </section>
+      </div>
+    );
+  } catch (err: any) {
+    return (
+      <div className="p-8 text-center space-y-4">
+        <h2 className="text-lg font-bold text-destructive">Runtime Rendering Exception</h2>
+        <pre className="bg-muted p-4 rounded-xl text-xs text-left overflow-auto max-w-lg mx-auto font-mono">
+          {err?.message || JSON.stringify(err)}
+        </pre>
+      </div>
+    );
+  }
 }
