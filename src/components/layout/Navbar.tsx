@@ -3,9 +3,22 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, ShoppingCart, Heart, Bell, User, Menu, X, Globe, Sparkles } from "lucide-react";
+import { Search, ShoppingCart, Heart, Bell, User, Menu, X, Sparkles } from "lucide-react";
 
-export default function Navbar() {
+// Define the shape of individual category items
+export interface Category {
+  id: string | number;
+  name: string;
+  slug?: string;
+  [key: string]: any;
+}
+
+// Define the TypeScript props interface including categories
+interface NavbarProps {
+  categories?: Category[];
+}
+
+export default function Navbar({ categories = [] }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
@@ -18,7 +31,7 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 glass-card border-b transition-all duration-300">
+    <header className="sticky top-0 z-50 glass-card border-b transition-all duration-300 bg-background/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
@@ -83,6 +96,22 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      {/* Optional: Render category pills if provided */}
+      {categories.length > 0 && (
+        <div className="hidden lg:flex items-center gap-4 px-8 py-2 border-t border-border/40 bg-muted/20 text-xs overflow-x-auto">
+          <span className="font-semibold text-muted-foreground uppercase tracking-wider">Categories:</span>
+          {categories.map((cat) => (
+            <Link 
+              key={cat.id} 
+              href={`/category/${cat.slug || cat.id}`}
+              className="hover:text-primary transition-colors whitespace-nowrap"
+            >
+              {cat.name}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
