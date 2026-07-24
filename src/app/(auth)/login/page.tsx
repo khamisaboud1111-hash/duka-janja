@@ -9,7 +9,7 @@ import { Mail, Lock, Eye, EyeOff, Store, Bike, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import type { Database } from '@/lib/supabase/types'
+import type { Database } from '@/types/supabase'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
