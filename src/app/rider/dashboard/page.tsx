@@ -1,16 +1,22 @@
 'use client'
 
-import { useEffect, useState, useCallback, memo } from 'react'
+import { useEffect, useState, useCallback, memo, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Power, Wallet, Package, Star, TrendingUp, ShieldAlert } from 'lucide-react'
+import { Power, Wallet, Package, Star, TrendingUp, ShieldAlert, RefreshCw } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { useRiderTracking } from '@/hooks/useRiderTracking'
 import { createClient } from '@/lib/supabase/client'
-import { PageLoader } from '@/components/ui'
 import { Button } from '@/components/ui/Button'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
-import RiderNavigationMap from '@/components/rider/RiderNavigationMap'
+import { RiderNavigationMap } from '@/components/rider/RiderNavigationMap'
+
+// --- 11. Delivery Status Enum ---
+export enum DeliveryStatus {
+  Accepted = 'accepted',
+  PickedUp = 'picked_up',
+  Delivered = 'delivered',
+}
 
 interface RiderProfileRow {
   id: string
@@ -31,22 +37,27 @@ interface Metrics {
 
 interface ActiveDelivery {
   delivery_id: string
-  status: 'accepted' | 'picked_up'
+  status: DeliveryStatus
   pickup_lat: number
   pickup_lng: number
   delivery_lat: number | null
   delivery_lng: number | null
   pickup_address: string
   delivery_address: string
+  customer_name?: string
+  customer_phone?: string
 }
 
 export default function RiderDashboardPage() {
   const router = useRouter()
   const supabase = createClient()
   const { profile, loading: userLoading } = useUser()
+
+  // --- 1. Consolidated Local State / Architecture Setup ---
   const [riderProfile, setRiderProfile] = useState<RiderProfileRow | null>(null)
   const [metrics, setMetrics] = useState<Metrics>({ todayEarnings: 0, weekEarnings: 0, completedToday: 0 })
   const [loadingData, setLoadingData] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [togglingOnline, setTogglingOnline] = useState(false)
   const [activeDelivery, setActiveDelivery] = useState<ActiveDelivery | null>(null)
   const [riderLatLng, setRiderLatLng] = useState<{ lat: number; lng: number } | null>(null)
@@ -54,29 +65,24 @@ export default function RiderDashboardPage() {
 
   const { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer, activeDeliveryId } = useRiderTracking(profile?.id)
 
+  // --- 3. Optimized RPC & 8. Abort / Mounted Flag ---
   const loadRiderData = useCallback(async () => {
     if (!profile) return
     setLoadingData(true)
+    setLoadError(null)
+    let isMounted = true
 
     try {
-      const startOfDay = new Date()
-      startOfDay.setHours(0, 0, 0, 0)
-      const startOfWeek = new Date()
-      startOfWeek.setDate(startOfWeek.getDate() - 7)
-
-      // Parallel data fetching for improved performance and structure
-      const [profileResult, deliveriesResult] = await Promise.all([
+      // Fetch profile & optimized server metrics via RPC or parallel request
+      const [profileResult, metricsResult] = await Promise.all([
         supabase.from('rider_profiles').select('*').eq('id', profile.id).single(),
-        supabase
-          .from('deliveries')
-          .select('delivery_fee, delivered_at, status')
-          .eq('rider_id', profile.id)
-          .eq('status', 'delivered')
-          .gte('delivered_at', startOfWeek.toISOString())
+        supabase.rpc('get_rider_metrics', { p_rider_id: profile.id }).catch(() => ({ data: null, error: null }))
       ])
 
+      if (!isMounted) return
+
       if (profileResult.error && profileResult.error.code !== 'PGRST116') {
-        toast.error(profileResult.error.message)
+        throw new Error(profileResult.error.message)
       }
 
       if (profileResult.data) {
@@ -84,28 +90,24 @@ export default function RiderDashboardPage() {
         setIsOnline(profileResult.data.is_online)
       }
 
-      if (deliveriesResult.error) {
-        toast.error(deliveriesResult.error.message)
+      if (metricsResult.data) {
+        setMetrics({
+          todayEarnings: metricsResult.data.todayEarnings || 0,
+          weekEarnings: metricsResult.data.weekEarnings || 0,
+          completedToday: metricsResult.data.completedToday || 0,
+        })
       }
-
-      let todayEarnings = 0
-      let weekEarnings = 0
-      let completedToday = 0
-
-      for (const d of deliveriesResult.data ?? []) {
-        if (!d.delivered_at) continue
-        weekEarnings += d.delivery_fee
-        if (new Date(d.delivered_at) >= startOfDay) {
-          todayEarnings += d.delivery_fee
-          completedToday += 1
-        }
+    } catch (err: any) {
+      if (isMounted) {
+        setLoadError(err.message || 'Imeshindikana kupakia taarifa za dereva.')
+        toast.error('Hitilafu ya mtandao au mfumo imetokea.')
       }
-
-      setMetrics({ todayEarnings, weekEarnings, completedToday })
-    } catch (err) {
-      toast.error('Imeshindikana kupakia taarifa za dereva.')
     } finally {
-      setLoadingData(false)
+      if (isMounted) setLoadingData(false)
+    }
+
+    return () => {
+      isMounted = false
     }
   }, [profile, supabase, setIsOnline])
 
@@ -114,13 +116,41 @@ export default function RiderDashboardPage() {
     loadRiderData()
   }, [profile, loadRiderData])
 
-  // Redirect unapplied riders safely using router.replace
+  // --- 4. Realtime Profile Subscription ---
+  useEffect(() => {
+    if (!profile) return
+    const channel = supabase
+      .channel(`rider-profile-changes-${profile.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'rider_profiles', filter: `id=eq.${profile.id}` },
+        (payload) => {
+          setRiderProfile(payload.new as RiderProfileRow)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [profile, supabase])
+
+  // --- 16. Refresh Metrics Automatically Every Minute ---
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (profile) loadRiderData()
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [profile, loadRiderData])
+
+  // Redirect unapplied riders safely
   useEffect(() => {
     if (!loadingData && profile?.role === 'rider' && !riderProfile) {
       router.replace('/rider/apply')
     }
   }, [loadingData, profile, riderProfile, router])
 
+  // Fetch active delivery data
   useEffect(() => {
     if (!activeDeliveryId || !profile) {
       setActiveDelivery(null)
@@ -128,7 +158,7 @@ export default function RiderDashboardPage() {
     }
     supabase.rpc('get_active_delivery_for_rider', { p_rider_id: profile.id }).then(({ data, error }: { data: ActiveDelivery[] | null; error: any }) => {
       if (error) {
-        toast.error(error.message)
+        toast.error('Imeshindikana kupata safari inayoendelea')
         return
       }
       const row = Array.isArray(data) ? data[0] : null
@@ -136,67 +166,116 @@ export default function RiderDashboardPage() {
     })
   }, [activeDeliveryId, profile, supabase])
 
-  // Battery optimization: Only watch position if online AND has an active delivery
+  // --- 6 & 7. Geolocation Accuracy Filtering & Permission Handling ---
   useEffect(() => {
     if (!activeDelivery || !isOnline || !('geolocation' in navigator)) {
       setRiderLatLng(null)
       return
     }
+
     const id = navigator.geolocation.watchPosition(
-      (pos) => setRiderLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => {},
-      { enableHighAccuracy: true, maximumAge: 5000 }
+      (pos) => {
+        // Only accept high-precision GPS coordinates (< 25 meters accuracy)
+        if (pos.coords.accuracy <= 25) {
+          setRiderLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        }
+      },
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          toast.error('Ruhusa ya GPS imekataliwa. Tafadhali ruhusu kupata eneo lako.')
+        }
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     )
+
     return () => navigator.geolocation.clearWatch(id)
   }, [activeDelivery, isOnline])
 
+  // --- 5. Optimistic UI Toggle ---
   async function handleToggle() {
     if (!riderProfile) return
     if (!riderProfile.is_verified) {
       toast.error('Akaunti yako bado inasubiri uthibitisho wa msimamizi')
       return
     }
+
+    const previousState = isOnline
     setTogglingOnline(true)
-    const ok = await toggleOnline(!isOnline)
+
+    // Optimistic state change
+    setIsOnline(!previousState)
+    setRiderProfile((prev) => (prev ? { ...prev, is_online: !previousState } : null))
+
+    const ok = await toggleOnline(!previousState)
     if (!ok) {
-      toast.error('Imeshindikana kubadilisha hali')
-    } else {
-      setRiderProfile((prev) => (prev ? { ...prev, is_online: !isOnline } : null))
+      // Rollback on failure
+      setIsOnline(previousState)
+      setRiderProfile((prev) => (prev ? { ...prev, is_online: previousState } : null))
+      toast.error('Imeshindikana kubadilisha hali mtandaoni')
     }
     setTogglingOnline(false)
   }
 
+  // --- 10. API Validation & Safe Parsing ---
   async function handleUpdateStatus() {
     if (!activeDelivery || updatingDeliveryStatus) return
     setUpdatingDeliveryStatus(true)
 
     try {
-      const nextStatus = activeDelivery.status === 'accepted' ? 'picked_up' : 'delivered'
+      const nextStatus = activeDelivery.status === DeliveryStatus.Accepted ? DeliveryStatus.PickedUp : DeliveryStatus.Delivered
       const res = await fetch('/api/delivery/update-status', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ delivery_id: activeDelivery.delivery_id, status: nextStatus }),
       })
 
+      const json = await res.json()
+
       if (res.ok) {
-        if (nextStatus === 'delivered') {
+        if (nextStatus === DeliveryStatus.Delivered) {
           setActiveDelivery(null)
-          toast.success('Safari imekamilika!')
+          toast.success('Safari imekamilika kikamilifu!')
           loadRiderData()
         } else {
-          setActiveDelivery({ ...activeDelivery, status: 'picked_up' })
+          setActiveDelivery({ ...activeDelivery, status: DeliveryStatus.PickedUp })
+          toast.success('Bidhaa zimechukuliwa mafanikio.')
         }
       } else {
-        toast.error('Imeshindikana kusasisha')
+        toast.error(json.message || 'Imeshindikana kusasisha hali ya safari.')
       }
-    } catch (err) {
-      toast.error('Hitilafu imetokea wakati wa kusasisha safari.')
+    } catch {
+      toast.error('Hitilafu ya kimtandao imetokea.')
     } finally {
       setUpdatingDeliveryStatus(false)
     }
   }
 
-  if (userLoading || loadingData) return <PageLoader />
+  // --- 14. Skeleton Loading UI ---
+  if (userLoading || loadingData) {
+    return (
+      <div className="page-container py-8 max-w-3xl mx-auto space-y-6 animate-pulse">
+        <div className="h-20 bg-ink-100 dark:bg-ink-800 rounded-2xl" />
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-24 bg-ink-100 dark:bg-ink-800 rounded-2xl" />
+          ))}
+        </div>
+        <div className="h-48 bg-ink-100 dark:bg-ink-800 rounded-2xl" />
+      </div>
+    )
+  }
+
+  // --- 15. Retry UI on Load Failure ---
+  if (loadError) {
+    return (
+      <div className="page-container py-16 text-center max-w-md mx-auto space-y-4">
+        <p className="text-red-500 font-medium">Imeshindikana kupakia dashibodi.</p>
+        <Button onClick={loadRiderData} className="flex items-center gap-2 mx-auto">
+          <RefreshCw className="w-4 h-4" /> Jaribu Tena
+        </Button>
+      </div>
+    )
+  }
 
   if (!profile || profile.role !== 'rider') {
     return (
@@ -207,7 +286,7 @@ export default function RiderDashboardPage() {
     )
   }
 
-  if (!riderProfile) return <PageLoader />
+  if (!riderProfile) return null
 
   if (riderProfile.account_status === 'suspended') {
     return (
@@ -236,9 +315,12 @@ export default function RiderDashboardPage() {
   }
 
   return (
-    <div className="page-container py-6 sm:py-8 max-w-3xl mx-auto">
-      {/* Online toggle header with accessibility attributes */}
-      <div className="flex items-center justify-between bg-white dark:bg-ink-900 border border-transparent dark:border-ink-800 rounded-2xl shadow-card p-4 sm:p-5 mb-6">
+    <div className="page-container py-6 sm:py-8 max-w-3xl mx-auto space-y-6">
+      {/* --- 13. Accessibility aria-live status header --- */}
+      <div
+        aria-live="polite"
+        className="flex items-center justify-between bg-white dark:bg-ink-900 border border-transparent dark:border-ink-800 rounded-2xl shadow-card p-4 sm:p-5"
+      >
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-ink-300 dark:bg-ink-600'}`} />
           <div>
@@ -251,8 +333,8 @@ export default function RiderDashboardPage() {
           disabled={togglingOnline}
           role="switch"
           aria-checked={isOnline}
-          aria-label="Toggle online status"
-          className={`w-16 h-9 rounded-full relative transition-colors flex-shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-ink-200 dark:bg-ink-700'} disabled:opacity-60`}
+          aria-label="Badilisha hali ya mtandaoni"
+          className={`w-16 h-9 rounded-full relative transition-colors flex-shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-ink-200 dark:bg-ink-700'} disabled:opacity-60 cursor-pointer`}
         >
           <span
             className={`absolute top-1 left-1 w-7 h-7 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform ${isOnline ? 'translate-x-7' : ''}`}
@@ -262,8 +344,8 @@ export default function RiderDashboardPage() {
         </button>
       </div>
 
-      {/* Metrics grid using memoized cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      {/* Metrics grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <MetricCard icon={<Wallet className="w-4 h-4" />} label="Mapato ya Leo" value={`TZS ${metrics.todayEarnings.toLocaleString()}`} accent="brand" />
         <MetricCard icon={<TrendingUp className="w-4 h-4" />} label="Mapato ya Wiki" value={`TZS ${metrics.weekEarnings.toLocaleString()}`} accent="green" />
         <MetricCard icon={<Wallet className="w-4 h-4" />} label="Salio la Pochi" value={`TZS ${riderProfile.wallet_balance.toLocaleString()}`} accent="gold" />
@@ -277,12 +359,13 @@ export default function RiderDashboardPage() {
         </p>
       </div>
 
+      {/* Active delivery section */}
       {activeDelivery && (
-        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-4 sm:p-5 mt-6 space-y-4">
+        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold text-ink-900 dark:text-white">Safari Inayoendelea</h2>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300">
-              {activeDelivery.status === 'accepted' ? 'Unakwenda kuchukua' : 'Bidhaa Zimechukuliwa'}
+              {activeDelivery.status === DeliveryStatus.Accepted ? 'Unakwenda kuchukua' : 'Bidhaa Zimechukuliwa'}
             </span>
           </div>
 
@@ -294,7 +377,9 @@ export default function RiderDashboardPage() {
                 ? { lat: activeDelivery.delivery_lat, lng: activeDelivery.delivery_lng }
                 : null
             }
-            leg={activeDelivery.status === 'accepted' ? 'to_pickup' : 'to_delivery'}
+            leg={activeDelivery.status === DeliveryStatus.Accepted ? 'to_pickup' : 'to_delivery'}
+            customerName={activeDelivery.customer_name}
+            customerPhone={activeDelivery.customer_phone}
           />
 
           <Button
@@ -304,7 +389,7 @@ export default function RiderDashboardPage() {
           >
             {updatingDeliveryStatus
               ? 'Inasasisha...'
-              : activeDelivery.status === 'accepted'
+              : activeDelivery.status === DeliveryStatus.Accepted
               ? 'Nimechukua Bidhaa'
               : 'Nimefikisha Bidhaa'}
           </Button>
