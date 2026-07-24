@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, memo } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
 import { Power, Wallet, Package, Star, TrendingUp, ShieldAlert, RefreshCw } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
@@ -9,7 +10,15 @@ import { useRiderTracking } from '@/hooks/useRiderTracking'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
-import { RiderNavigationMap } from '@/components/rider/RiderNavigationMap'
+
+// Dynamically import the map to prevent Leaflet window-is-not-defined errors during SSR builds
+const RiderNavigationMap = dynamic(
+  () => import('@/components/rider/RiderNavigationMap').then((mod) => mod.RiderNavigationMap),
+  { 
+    ssr: false,
+    loading: () => <div className="w-full h-80 sm:h-96 bg-ink-100 dark:bg-ink-800 rounded-2xl animate-pulse flex items-center justify-center text-ink-500 text-xs">Inapakia ramani...</div>
+  }
+)
 
 enum DeliveryStatus {
   Accepted = 'accepted',
@@ -70,7 +79,6 @@ export default function RiderDashboardPage() {
     let isMounted = true
 
     try {
-      // Safely fetch profile and metrics using isolated async calls to prevent typing mismatches
       const profilePromise = supabase.from('rider_profiles').select('*').eq('id', profile.id).single()
       
       const metricsPromise = (async () => {
@@ -369,6 +377,7 @@ export default function RiderDashboardPage() {
             leg={activeDelivery.status === DeliveryStatus.Accepted ? 'to_pickup' : 'to_delivery'}
             customerName={activeDelivery.customer_name}
             customerPhone={activeDelivery.customer_phone}
+            customerAddress={activeDelivery.delivery_address}
           />
 
           <Button
