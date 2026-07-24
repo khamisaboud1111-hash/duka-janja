@@ -9,7 +9,21 @@ import { Mail, Lock, Eye, EyeOff, Store, Bike, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import type { Database } from '@/types/supabase'
+
+export type Database = {
+  public: {
+    Tables: {
+      profiles: {
+        Row: {
+          id: string
+          role: string
+          full_name: string | null
+          avatar_url: string | null
+        }
+      }
+    }
+  }
+}
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -29,7 +43,7 @@ const ROUTES = {
 
 const schema = z.object({
   email: z.string().trim().email('Barua pepe si sahihi'),
-  password: z.string().min(6, 'Nywila inahitaji angalau herufi 6'), // Note: passwords are never trimmed to allow intentional spaces
+  password: z.string().min(6, 'Nywila inahitaji angalau herufi 6'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -55,7 +69,6 @@ export default function LoginPage() {
     shouldFocusError: true,
   })
 
-  // Handle Rate Limiting Countdown
   useEffect(() => {
     if (lockoutTimer <= 0) return
     const interval = setInterval(() => {
@@ -77,7 +90,6 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // Security delay to prevent timing attacks
       await new Promise((r) => setTimeout(r, 800))
 
       const normalizedEmail = email.trim().toLowerCase()
@@ -99,7 +111,6 @@ export default function LoginPage() {
         return
       }
 
-      // Get authenticated user securely via getUser()
       const { data: userData, error: userError } = await supabase.auth.getUser()
       if (userError || !userData?.user) {
         toast.error('Hitilafu imetokea wakati wa kuthibitisha mtumiaji.')
@@ -107,7 +118,6 @@ export default function LoginPage() {
         return
       }
 
-      // Fetch only required columns for performance optimization
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role, full_name, avatar_url')
@@ -121,7 +131,6 @@ export default function LoginPage() {
         return
       }
 
-      // Validate role existence against safe routes map
       if (!(profile.role in ROUTES)) {
         toast.error('Akaunti ina jukumu lisilofahamika.')
         await supabase.auth.signOut()
