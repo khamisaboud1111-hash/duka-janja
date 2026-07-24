@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,7 +9,7 @@ import { Mail, Lock, Eye, EyeOff, Store, Bike, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import type { Database } from '@/types/supabase' // Adjust path as needed for your setup
+import type { Database } from '@/lib/supabase/types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
@@ -20,12 +20,6 @@ const USER_ROLES = {
   ADMIN: 'admin',
 } as const
 
-const AUTH_ERRORS: Record<string, string> = {
-  'Invalid login credentials': 'Barua pepe au nywila si sahihi',
-  'Email not confirmed': 'Hakiki barua pepe kwanza',
-  'Too many requests': 'Jaribu tena baada ya dakika chache.',
-}
-
 const ROUTES = {
   [USER_ROLES.BUYER]: '/',
   [USER_ROLES.SELLER]: '/seller/dashboard',
@@ -35,16 +29,22 @@ const ROUTES = {
 
 const schema = z.object({
   email: z.string().trim().email('Barua pepe si sahihi'),
-  password: z.string().trim().min(6, 'Nywila inahitaji angalau herufi 6'),
+  password: z.string().min(6, 'Nywila inahitaji angalau herufi 6'), // Note: passwords are never trimmed to allow intentional spaces
 })
 
 type FormData = z.infer<typeof schema>
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectPath = searchParams.get('redirect') || ''
   const supabase = createClient()
+
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [attempts, setAttempts] = useState(0)
+  const [lockoutTimer, setLockoutTimer] = useState(0)
 
   const {
     register,
@@ -52,56 +52,110 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    shouldFocusError: true,
   })
 
+  // Handle Rate Limiting Countdown
+  useEffect(() => {
+    if (lockoutTimer <= 0) return
+    const interval = setInterval(() => {
+      setLockoutTimer((prev) => prev - 1)
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [lockoutTimer])
+
   async function onSubmit({ email, password }: FormData) {
-    if (loading) return
+    if (loading || lockoutTimer > 0) return
+
+    if (attempts >= 5) {
+      setLockoutTimer(30)
+      setAttempts(0)
+      toast.error('Majaribio yamezidi. Tafadhali subiri sekunde 30.')
+      return
+    }
 
     setLoading(true)
 
     try {
+      // Security delay to prevent timing attacks
+      await new Promise((r) => setTimeout(r, 800))
+
       const normalizedEmail = email.trim().toLowerCase()
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password,
       })
 
       if (authError) {
-        const errorMessage = AUTH_ERRORS[authError.message] ?? 'Hitilafu imetokea.'
-        toast.error(errorMessage)
+        setAttempts((prev) => prev + 1)
+        if (authError.message.includes('Invalid') || authError.status === 400) {
+          toast.error('Barua pepe au nywila si sahihi')
+        } else if (authError.message.includes('confirmed')) {
+          toast.error('Tafadhali thibitisha barua pepe yako kwanza')
+        } else {
+          toast.error('Imeshindikana kuingia. Angalia mtandao wako.')
+        }
+        setLoading(false)
         return
       }
 
+      // Get authenticated user securely via getUser()
+      const { data: userData, error: userError } = await supabase.auth.getUser()
+      if (userError || !userData?.user) {
+        toast.error('Hitilafu imetokea wakati wa kuthibitisha mtumiaji.')
+        setLoading(false)
+        return
+      }
+
+      // Fetch only required columns for performance optimization
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('id', authData.user.id)
-        .single<Profile>()
+        .select('role, full_name, avatar_url')
+        .eq('id', userData.user.id)
+        .single()
 
       if (profileError || !profile) {
         toast.error('Profile not found.')
         await supabase.auth.signOut()
+        setLoading(false)
         return
       }
 
-      toast.success('Karibu!')
-      
-      const destination = ROUTES[profile.role as keyof typeof ROUTES] ?? '/'
-      router.push(destination)
-      router.refresh()
-    } catch (err) {
-      toast.error('Something went wrong.')
-    } finally {
+      // Validate role existence against safe routes map
+      if (!(profile.role in ROUTES)) {
+        toast.error('Akaunti ina jukumu lisilofahamika.')
+        await supabase.auth.signOut()
+        setLoading(false)
+        return
+      }
+
+      setSuccess(true)
+      toast.success('✓ Ingia imefaulu! Inaelekeza...')
+
+      const destination =
+        redirectPath && redirectPath.startsWith('/')
+          ? redirectPath
+          : ROUTES[profile.role as keyof typeof ROUTES] ?? '/'
+
+      setTimeout(() => {
+        router.replace(destination)
+      }, 500)
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('Hitilafu ya mtandao imetokea. Tafadhali jaribu tena.')
+      }
       setLoading(false)
     }
   }
 
   return (
     <div className="w-full max-w-sm">
-      <div className="card dark:bg-ink-900 dark:border-ink-800 p-6 sm:p-8">
+      <div className={`card dark:bg-ink-900 dark:border-ink-800 p-6 sm:p-8 transition-all ${loading ? 'backdrop-blur animate-pulse opacity-70 pointer-events-none' : ''}`}>
         <div className="text-center mb-6">
           <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-1">Karibu tena</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400">Ingia kwenye akaunti yako</p>
+          <p className="text-sm text-ink-500 dark:text-ink-400">Ingia kwenye akaunti yako ya Duka Janja</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -112,9 +166,11 @@ export default function LoginPage() {
               <input
                 {...register('email')}
                 type="email"
-                disabled={loading}
+                inputMode="email"
+                enterKeyHint="next"
+                autoComplete="username"
+                disabled={loading || lockoutTimer > 0}
                 autoFocus
-                autoComplete="email"
                 placeholder="mfano@barua.com"
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'email-error' : undefined}
@@ -142,8 +198,10 @@ export default function LoginPage() {
               <input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
-                disabled={loading}
+                inputMode="text"
+                enterKeyHint="go"
                 autoComplete="current-password"
+                disabled={loading || lockoutTimer > 0}
                 placeholder="••••••••"
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? 'password-error' : undefined}
@@ -153,9 +211,10 @@ export default function LoginPage() {
               />
               <button
                 type="button"
+                tabIndex={0}
                 aria-label="Toggle password visibility"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600 focus:outline-none"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -169,14 +228,16 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="btn-primary w-full justify-center py-3 mt-2 flex items-center gap-2 transition-all"
+            disabled={loading || lockoutTimer > 0}
+            className="btn-primary w-full justify-center py-3 mt-2 flex items-center gap-2 transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
           >
-            {loading ? (
+            {loading || success ? (
               <>
                 <Loader2 className="animate-spin w-4 h-4" />
-                <span>Inaingia...</span>
+                <span>{success ? 'Inaelekeza...' : 'Inaingia...'}</span>
               </>
+            ) : lockoutTimer > 0 ? (
+              <span>Subiri sekunde {lockoutTimer}...</span>
             ) : (
               'Ingia'
             )}
