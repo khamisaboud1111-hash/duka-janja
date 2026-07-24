@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
 import { RiderNavigationMap } from '@/components/rider/RiderNavigationMap'
 
-// --- Internal Enum (Removed 'export' to fix Next.js page build error) ---
+// --- Internal Enum ---
 enum DeliveryStatus {
   Accepted = 'accepted',
   PickedUp = 'picked_up',
@@ -71,9 +71,13 @@ export default function RiderDashboardPage() {
     let isMounted = true
 
     try {
+      // Fetch profile & safely handle metrics RPC with error isolation
+      const profilePromise = supabase.from('rider_profiles').select('*').eq('id', profile.id).single()
+      const metricsPromise = supabase.rpc('get_rider_metrics', { p_rider_id: profile.id })
+
       const [profileResult, metricsResult] = await Promise.all([
-        supabase.from('rider_profiles').select('*').eq('id', profile.id).single(),
-        supabase.rpc('get_rider_metrics', { p_rider_id: profile.id }).catch(() => ({ data: null, error: null }))
+        profilePromise,
+        metricsPromise.then(res => ({ data: res.data, error: res.error })).catch(() => ({ data: null, error: null }))
       ])
 
       if (!isMounted) return
