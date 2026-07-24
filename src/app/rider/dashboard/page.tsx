@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/Button'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
 import { RiderNavigationMap } from '@/components/rider/RiderNavigationMap'
 
-// --- Internal Enum ---
 enum DeliveryStatus {
   Accepted = 'accepted',
   PickedUp = 'picked_up',
@@ -71,14 +70,18 @@ export default function RiderDashboardPage() {
     let isMounted = true
 
     try {
-      // Fetch profile & safely handle metrics RPC with error isolation
+      // Safely fetch profile and metrics using isolated async calls to prevent typing mismatches
       const profilePromise = supabase.from('rider_profiles').select('*').eq('id', profile.id).single()
-      const metricsPromise = supabase.rpc('get_rider_metrics', { p_rider_id: profile.id })
+      
+      const metricsPromise = (async () => {
+        try {
+          return await supabase.rpc('get_rider_metrics', { p_rider_id: profile.id })
+        } catch {
+          return { data: null, error: null }
+        }
+      })()
 
-      const [profileResult, metricsResult] = await Promise.all([
-        profilePromise,
-        metricsPromise.then(res => ({ data: res.data, error: res.error })).catch(() => ({ data: null, error: null }))
-      ])
+      const [profileResult, metricsResult] = await Promise.all([profilePromise, metricsPromise])
 
       if (!isMounted) return
 
