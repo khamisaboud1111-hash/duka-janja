@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, memo, useMemo } from 'react'
+import { useEffect, useState, useCallback, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Power, Wallet, Package, Star, TrendingUp, ShieldAlert, RefreshCw } from 'lucide-react'
@@ -11,8 +11,8 @@ import { Button } from '@/components/ui/Button'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
 import { RiderNavigationMap } from '@/components/rider/RiderNavigationMap'
 
-// --- 11. Delivery Status Enum ---
-export enum DeliveryStatus {
+// --- Internal Enum (Removed 'export' to fix Next.js page build error) ---
+enum DeliveryStatus {
   Accepted = 'accepted',
   PickedUp = 'picked_up',
   Delivered = 'delivered',
@@ -53,7 +53,6 @@ export default function RiderDashboardPage() {
   const supabase = createClient()
   const { profile, loading: userLoading } = useUser()
 
-  // --- 1. Consolidated Local State / Architecture Setup ---
   const [riderProfile, setRiderProfile] = useState<RiderProfileRow | null>(null)
   const [metrics, setMetrics] = useState<Metrics>({ todayEarnings: 0, weekEarnings: 0, completedToday: 0 })
   const [loadingData, setLoadingData] = useState(true)
@@ -65,7 +64,6 @@ export default function RiderDashboardPage() {
 
   const { isOnline, setIsOnline, toggleOnline, offer, acceptOffer, declineOffer, activeDeliveryId } = useRiderTracking(profile?.id)
 
-  // --- 3. Optimized RPC & 8. Abort / Mounted Flag ---
   const loadRiderData = useCallback(async () => {
     if (!profile) return
     setLoadingData(true)
@@ -73,7 +71,6 @@ export default function RiderDashboardPage() {
     let isMounted = true
 
     try {
-      // Fetch profile & optimized server metrics via RPC or parallel request
       const [profileResult, metricsResult] = await Promise.all([
         supabase.from('rider_profiles').select('*').eq('id', profile.id).single(),
         supabase.rpc('get_rider_metrics', { p_rider_id: profile.id }).catch(() => ({ data: null, error: null }))
@@ -116,7 +113,6 @@ export default function RiderDashboardPage() {
     loadRiderData()
   }, [profile, loadRiderData])
 
-  // --- 4. Realtime Profile Subscription ---
   useEffect(() => {
     if (!profile) return
     const channel = supabase
@@ -135,7 +131,6 @@ export default function RiderDashboardPage() {
     }
   }, [profile, supabase])
 
-  // --- 16. Refresh Metrics Automatically Every Minute ---
   useEffect(() => {
     const interval = setInterval(() => {
       if (profile) loadRiderData()
@@ -143,14 +138,12 @@ export default function RiderDashboardPage() {
     return () => clearInterval(interval)
   }, [profile, loadRiderData])
 
-  // Redirect unapplied riders safely
   useEffect(() => {
     if (!loadingData && profile?.role === 'rider' && !riderProfile) {
       router.replace('/rider/apply')
     }
   }, [loadingData, profile, riderProfile, router])
 
-  // Fetch active delivery data
   useEffect(() => {
     if (!activeDeliveryId || !profile) {
       setActiveDelivery(null)
@@ -166,7 +159,6 @@ export default function RiderDashboardPage() {
     })
   }, [activeDeliveryId, profile, supabase])
 
-  // --- 6 & 7. Geolocation Accuracy Filtering & Permission Handling ---
   useEffect(() => {
     if (!activeDelivery || !isOnline || !('geolocation' in navigator)) {
       setRiderLatLng(null)
@@ -175,7 +167,6 @@ export default function RiderDashboardPage() {
 
     const id = navigator.geolocation.watchPosition(
       (pos) => {
-        // Only accept high-precision GPS coordinates (< 25 meters accuracy)
         if (pos.coords.accuracy <= 25) {
           setRiderLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude })
         }
@@ -191,7 +182,6 @@ export default function RiderDashboardPage() {
     return () => navigator.geolocation.clearWatch(id)
   }, [activeDelivery, isOnline])
 
-  // --- 5. Optimistic UI Toggle ---
   async function handleToggle() {
     if (!riderProfile) return
     if (!riderProfile.is_verified) {
@@ -202,13 +192,11 @@ export default function RiderDashboardPage() {
     const previousState = isOnline
     setTogglingOnline(true)
 
-    // Optimistic state change
     setIsOnline(!previousState)
     setRiderProfile((prev) => (prev ? { ...prev, is_online: !previousState } : null))
 
     const ok = await toggleOnline(!previousState)
     if (!ok) {
-      // Rollback on failure
       setIsOnline(previousState)
       setRiderProfile((prev) => (prev ? { ...prev, is_online: previousState } : null))
       toast.error('Imeshindikana kubadilisha hali mtandaoni')
@@ -216,7 +204,6 @@ export default function RiderDashboardPage() {
     setTogglingOnline(false)
   }
 
-  // --- 10. API Validation & Safe Parsing ---
   async function handleUpdateStatus() {
     if (!activeDelivery || updatingDeliveryStatus) return
     setUpdatingDeliveryStatus(true)
@@ -250,7 +237,6 @@ export default function RiderDashboardPage() {
     }
   }
 
-  // --- 14. Skeleton Loading UI ---
   if (userLoading || loadingData) {
     return (
       <div className="page-container py-8 max-w-3xl mx-auto space-y-6 animate-pulse">
@@ -265,7 +251,6 @@ export default function RiderDashboardPage() {
     )
   }
 
-  // --- 15. Retry UI on Load Failure ---
   if (loadError) {
     return (
       <div className="page-container py-16 text-center max-w-md mx-auto space-y-4">
@@ -316,7 +301,6 @@ export default function RiderDashboardPage() {
 
   return (
     <div className="page-container py-6 sm:py-8 max-w-3xl mx-auto space-y-6">
-      {/* --- 13. Accessibility aria-live status header --- */}
       <div
         aria-live="polite"
         className="flex items-center justify-between bg-white dark:bg-ink-900 border border-transparent dark:border-ink-800 rounded-2xl shadow-card p-4 sm:p-5"
@@ -344,7 +328,6 @@ export default function RiderDashboardPage() {
         </button>
       </div>
 
-      {/* Metrics grid */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <MetricCard icon={<Wallet className="w-4 h-4" />} label="Mapato ya Leo" value={`TZS ${metrics.todayEarnings.toLocaleString()}`} accent="brand" />
         <MetricCard icon={<TrendingUp className="w-4 h-4" />} label="Mapato ya Wiki" value={`TZS ${metrics.weekEarnings.toLocaleString()}`} accent="green" />
@@ -359,7 +342,6 @@ export default function RiderDashboardPage() {
         </p>
       </div>
 
-      {/* Active delivery section */}
       {activeDelivery && (
         <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-4 sm:p-5 space-y-4">
           <div className="flex items-center justify-between">
