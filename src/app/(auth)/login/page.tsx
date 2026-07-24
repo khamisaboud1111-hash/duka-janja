@@ -5,15 +5,39 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Mail, Lock, Eye, EyeOff, Store, Bike } from 'lucide-react'
+import { Mail, Lock, Eye, EyeOff, Store, Bike, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import type { Database } from '@/types/supabase' // Adjust path as needed for your setup
+
+type Profile = Database['public']['Tables']['profiles']['Row']
+
+const USER_ROLES = {
+  BUYER: 'buyer',
+  SELLER: 'seller',
+  RIDER: 'rider',
+  ADMIN: 'admin',
+} as const
+
+const AUTH_ERRORS: Record<string, string> = {
+  'Invalid login credentials': 'Barua pepe au nywila si sahihi',
+  'Email not confirmed': 'Hakiki barua pepe kwanza',
+  'Too many requests': 'Jaribu tena baada ya dakika chache.',
+}
+
+const ROUTES = {
+  [USER_ROLES.BUYER]: '/',
+  [USER_ROLES.SELLER]: '/seller/dashboard',
+  [USER_ROLES.RIDER]: '/rider/dashboard',
+  [USER_ROLES.ADMIN]: '/admin/dashboard',
+} as const
 
 const schema = z.object({
-  email:    z.string().email('Barua pepe si sahihi'),
-  password: z.string().min(6, 'Nywila inahitaji angalau herufi 6'),
+  email: z.string().trim().email('Barua pepe si sahihi'),
+  password: z.string().trim().min(6, 'Nywila inahitaji angalau herufi 6'),
 })
+
 type FormData = z.infer<typeof schema>
 
 export default function LoginPage() {
@@ -22,40 +46,54 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
   async function onSubmit({ email, password }: FormData) {
+    if (loading) return
+
     setLoading(true)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
-      const message =
-        error.message === 'Invalid login credentials' ? 'Barua pepe au nywila si sahihi'
-        : error.message === 'Email not confirmed' ? 'Tafadhali thibitisha barua pepe yako kwanza'
-        : error.message
-      toast.error(message)
+
+    try {
+      const normalizedEmail = email.trim().toLowerCase()
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password,
+      })
+
+      if (authError) {
+        const errorMessage = AUTH_ERRORS[authError.message] ?? 'Hitilafu imetokea.'
+        toast.error(errorMessage)
+        return
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authData.user.id)
+        .single<Profile>()
+
+      if (profileError || !profile) {
+        toast.error('Profile not found.')
+        await supabase.auth.signOut()
+        return
+      }
+
+      toast.success('Karibu!')
+      
+      const destination = ROUTES[profile.role as keyof typeof ROUTES] ?? '/'
+      router.push(destination)
+      router.refresh()
+    } catch (err) {
+      toast.error('Something went wrong.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    // Each role lands on its own home: buyers on the marketplace, sellers
-    // and riders on their own dashboards (which already handle "not
-    // verified yet" / "application pending" states on their own).
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', data.user.id)
-      .single()
-
-    toast.success('Karibu!')
-    const destination =
-      profile?.role === 'seller' ? '/seller/dashboard'
-      : profile?.role === 'rider' ? '/rider/dashboard'
-      : profile?.role === 'admin' ? '/admin/dashboard'
-      : '/'
-    router.push(destination)
-    router.refresh()
   }
 
   return (
@@ -74,12 +112,22 @@ export default function LoginPage() {
               <input
                 {...register('email')}
                 type="email"
+                disabled={loading}
+                autoFocus
                 autoComplete="email"
                 placeholder="mfano@barua.com"
-                className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white pl-9 ${errors.email ? 'border-red-400' : ''}`}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? 'email-error' : undefined}
+                className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white pl-9 ${
+                  errors.email ? 'border-red-400' : ''
+                }`}
               />
             </div>
-            {errors.email && <p className="mt-1 text-xs text-red-500">{errors.email.message}</p>}
+            {errors.email && (
+              <p id="email-error" role="alert" className="mt-1 text-xs text-red-500">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -94,19 +142,44 @@ export default function LoginPage() {
               <input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
+                disabled={loading}
                 autoComplete="current-password"
                 placeholder="••••••••"
-                className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white pl-9 pr-10 ${errors.password ? 'border-red-400' : ''}`}
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? 'password-error' : undefined}
+                className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white pl-9 pr-10 ${
+                  errors.password ? 'border-red-400' : ''
+                }`}
               />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600">
+              <button
+                type="button"
+                aria-label="Toggle password visibility"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-400 hover:text-ink-600"
+              >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
+            {errors.password && (
+              <p id="password-error" role="alert" className="mt-1 text-xs text-red-500">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
-          <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3 mt-2">
-            {loading ? 'Inaingia...' : 'Ingia'}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full justify-center py-3 mt-2 flex items-center gap-2 transition-all"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin w-4 h-4" />
+                <span>Inaingia...</span>
+              </>
+            ) : (
+              'Ingia'
+            )}
           </button>
         </form>
 
@@ -124,11 +197,17 @@ export default function LoginPage() {
         </div>
 
         <div className="flex gap-2">
-          <Link href="/register?type=seller" className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors">
+          <Link
+            href="/register?type=seller"
+            className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
+          >
             <Store className="w-4 h-4 text-brand-600 dark:text-brand-300" />
             <span className="text-[11px] font-semibold text-ink-600 dark:text-ink-300">Fungua duka</span>
           </Link>
-          <Link href="/register?type=rider" className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors">
+          <Link
+            href="/register?type=rider"
+            className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
+          >
             <Bike className="w-4 h-4 text-brand-600 dark:text-brand-300" />
             <span className="text-[11px] font-semibold text-ink-600 dark:text-ink-300">Jiunge kama dereva</span>
           </Link>
