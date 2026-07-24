@@ -2,8 +2,9 @@
 
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import L from 'leaflet'
-import 'leaflet/unplugin-leaflet-css'
+import 'leaflet/dist/leaflet.css'
 import 'leaflet-routing-machine'
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css'
 import toast from 'react-hot-toast'
 import { Navigation, Compass, Phone, MessageSquare, MapPin, AlertCircle, RefreshCw } from 'lucide-react'
 
@@ -51,7 +52,6 @@ export function RiderNavigationMap({
 
   const activeDestination = leg === 'to_pickup' ? pickupLocation : deliveryLocation || pickupLocation
 
-  // Memoized custom icons to prevent re-creation on every tick
   const riderIcon = useMemo(
     () =>
       L.divIcon({
@@ -82,7 +82,6 @@ export function RiderNavigationMap({
     []
   )
 
-  // 1. Map Initialization (Runs strictly once on mount)
   useEffect(() => {
     if (!mapRef.current || leafletMapRef.current) return
 
@@ -98,7 +97,6 @@ export function RiderNavigationMap({
 
     L.control.zoom({ position: 'topright' }).addTo(map)
 
-    // Create & store static markers
     pickupMarkerRef.current = L.marker([pickupLocation.lat, pickupLocation.lng], { icon: pickupIcon })
       .addTo(map)
       .bindPopup('Eneo la Kuchukulia Bidhaa')
@@ -121,7 +119,6 @@ export function RiderNavigationMap({
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Handle dynamic updates to pickup or delivery coordinates post-mount
   useEffect(() => {
     const map = leafletMapRef.current
     if (!map) return
@@ -135,7 +132,6 @@ export function RiderNavigationMap({
     }
   }, [pickupLocation, deliveryLocation])
 
-  // Track GPS Accuracy natively if geolocation watch is active in browser environment
   useEffect(() => {
     if (!('geolocation' in navigator)) return
     const watchId = navigator.geolocation.watchPosition(
@@ -146,7 +142,6 @@ export function RiderNavigationMap({
     return () => navigator.geolocation.clearWatch(watchId)
   }, [])
 
-  // 2, 3, 10 & 20. Optimized Routing Effect (Only routes on destination change or significant deviation, avoids constant recreation)
   const lastRoutedDestRef = useRef<{ lat: number; lng: number } | null>(null)
   const lastRiderPosRef = useRef<{ lat: number; lng: number } | null>(null)
 
@@ -225,7 +220,6 @@ export function RiderNavigationMap({
       lastRoutedDestRef.current.lat !== endPoint.lat ||
       lastRoutedDestRef.current.lng !== endPoint.lng
 
-    // Check significant deviation (> 40 meters roughly) if rider moves
     const hasSignificantDeviation =
       !lastRiderPosRef.current ||
       !routingControlRef.current ||
@@ -237,7 +231,6 @@ export function RiderNavigationMap({
     }
   }, [riderLocation, activeDestination, pickupLocation, calculateRoute])
 
-  // 8 & 13. Update Rider marker & intelligent boundary-aware panning
   useEffect(() => {
     const map = leafletMapRef.current
     if (!map || !riderLocation) return
@@ -272,7 +265,6 @@ export function RiderNavigationMap({
     <div className="relative w-full h-80 sm:h-96 rounded-2xl overflow-hidden shadow-card border border-ink-100 dark:border-ink-800">
       <div ref={mapRef} className="w-full h-full z-10" />
 
-      {/* Top Banner: ETA, Distance, & GPS Accuracy */}
       <div className="absolute top-3 left-3 right-3 z-20 flex flex-col gap-2 pointer-events-none">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 bg-white/95 dark:bg-ink-900/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-md border border-ink-100 dark:border-ink-800 pointer-events-auto">
@@ -285,7 +277,6 @@ export function RiderNavigationMap({
             </div>
           </div>
 
-          {/* GPS Accuracy Indicator */}
           {gpsAccuracy !== null && (
             <div className={`px-2.5 py-1.5 rounded-xl text-[10px] font-semibold backdrop-blur-md shadow-md border pointer-events-auto flex items-center gap-1 ${
               gpsAccuracy <= 15 ? 'bg-emerald-500/90 text-white border-emerald-600' : 'bg-amber-500/90 text-white border-amber-600'
@@ -296,7 +287,6 @@ export function RiderNavigationMap({
           )}
         </div>
 
-        {/* Offline / Route Error Handling Banner */}
         {routeError && (
           <div className="flex items-center justify-between bg-red-500 text-white px-3 py-1.5 rounded-xl text-xs shadow-lg pointer-events-auto">
             <span className="flex items-center gap-1.5">
@@ -311,7 +301,6 @@ export function RiderNavigationMap({
           </div>
         )}
 
-        {/* Turn-by-Turn Instruction Banner */}
         {instructions.length > 0 && !routeError && (
           <div className="bg-white/95 dark:bg-ink-900/95 backdrop-blur-md px-3 py-2 rounded-xl shadow-md border border-ink-100 dark:border-ink-800 pointer-events-auto flex items-center gap-3">
             <Navigation className="w-5 h-5 text-brand-500 flex-shrink-0 animate-pulse" />
@@ -323,7 +312,6 @@ export function RiderNavigationMap({
         )}
       </div>
 
-      {/* Customer Info Overlay Panel */}
       {(customerName || customerPhone || customerAddress || deliveryNotes) && (
         <div className="absolute bottom-16 left-3 right-3 z-20 bg-white/95 dark:bg-ink-900/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-ink-100 dark:border-ink-800 text-xs space-y-2">
           <div className="flex items-center justify-between">
@@ -367,7 +355,6 @@ export function RiderNavigationMap({
         </div>
       )}
 
-      {/* Bottom Map Control Bar (Follow Mode & External Navigation Apps) */}
       <div className="absolute bottom-3 right-3 z-20 flex items-center gap-2">
         <button
           onClick={() => openExternalNav('google')}
