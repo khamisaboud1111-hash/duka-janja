@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Updated from deprecated serverComponentsExternalPackages
-  serverExternalPackages: ['@supabase/supabase-js'],
+  // Fixed: Correct property name for Next.js 14
+  serverComponentsExternalPackages: ['@supabase/supabase-js'],
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
