@@ -6,7 +6,7 @@ import ThemeScript from '@/components/layout/ThemeScript'
 import PWAInitializer from '@/components/layout/PWAInitializer'
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -36,7 +36,6 @@ export const metadata: Metadata = {
     default: 'Duka Janja - Soko Kuu la Mtandaoni Zanzibar na Tanzania',
     template: '%s | Duka Janja',
   },
-  // Upgraded SEO Description with explicit search intent for local commerce
   description: 'Nunua na uuze bidhaa za mtandaoni kama vifaa vya umeme, mitindo, vyakula, samani na bidhaa za urembo kote Zanzibar na Tanzania kwa malipo salama na usafirishaji wa haraka.',
   openGraph: {
     title: 'Duka Janja - Soko Kuu la Mtandaoni Zanzibar na Tanzania',
@@ -67,8 +66,11 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // Structured Data (JSON-LD) for Rich Search Results
+interface RootLayoutProps {
+  children: React.ReactNode
+}
+
+export default function RootLayout({ children }: RootLayoutProps) {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -94,11 +96,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.variable} min-h-screen bg-white text-ink-900 antialiased`}>
+      <body className={`${inter.variable} min-h-screen bg-white text-ink-900 antialiased selection:bg-primary/20 selection:text-primary`}>
         {/* Accessibility Skip Link */}
         <a 
           href="#main-content" 
-          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-primary-foreground focus:font-bold"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:font-semibold focus:rounded-lg focus:shadow-lg"
         >
           Rukia kwenye maudhui makuu (Skip to content)
         </a>
