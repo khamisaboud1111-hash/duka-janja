@@ -16,7 +16,8 @@ import {
   Sliders,
   ChevronDown,
   RefreshCw,
-  HelpCircle
+  HelpCircle,
+  Loader2 // <-- Added Loader2 here to fix the build error
 } from "lucide-react";
 
 export type ToneOption = "professional" | "luxury" | "friendly" | "local" | "youth";
@@ -85,7 +86,7 @@ export default function AIProductStudio() {
     setError(null);
     setGenerating(true);
 
-    // Step 18: Simulated Smart Loading Progress
+    // Simulated Smart Loading Progress
     const steps = [
       "Analyzing product attributes & image...",
       "Generating high-conversion SEO metadata...",
@@ -155,7 +156,7 @@ export default function AIProductStudio() {
       </div>
 
       <form onSubmit={handleGenerate} className="space-y-5">
-        {/* Step 2: Image Analysis Upload Box */}
+        {/* Image Analysis Upload Box */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-muted-foreground">Product Image Analysis (Optional)</label>
           <div 
@@ -206,7 +207,7 @@ export default function AIProductStudio() {
           />
         </div>
 
-        {/* Step 4 & 5: Tone & Language Selectors */}
+        {/* Tone & Language Selectors */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="text-xs font-semibold text-muted-foreground">Writing Tone</label>
