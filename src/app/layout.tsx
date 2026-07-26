@@ -3,7 +3,7 @@ import PullToRefreshIndicator from '@/components/layout/PullToRefreshIndicator'
 import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import ThemeScript from '@/components/layout/ThemeScript'
-import PWAInitializer from '@/components/layout/PWAInitializer'
+import PWAInitializer from '../components/layout/PWAInitializer';
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
