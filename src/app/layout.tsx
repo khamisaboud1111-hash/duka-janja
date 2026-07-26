@@ -3,7 +3,6 @@ import PullToRefreshIndicator from '@/components/layout/PullToRefreshIndicator'
 import { Inter } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import ThemeScript from '@/components/layout/ThemeScript'
-import PWAInitializer from '@/components/layout/PWAInitializer';
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -105,7 +104,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
           Rukia kwenye maudhui makuu (Skip to content)
         </a>
 
-        <PWAInitializer />
         <PullToRefreshIndicator />
 
         {/* Semantic main container wrapper */}
