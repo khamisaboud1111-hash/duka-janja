@@ -1,0 +1,220 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --primary: 24 95% 53%; /* Vibrant East African Marketplace Orange */
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 43 96% 56%; /* Kikoi Gold Accent */
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 24 95% 53%;
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 6.5%;
+    --card-foreground: 210 40% 98%;
+    --primary: 24 95% 53%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 43 96% 56%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 24 95% 53%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@layer components {
+  /* === Layout === */
+  .page-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .section {
+    @apply py-10 sm:py-14;
+  }
+
+  /* === Card === */
+  .card {
+    @apply rounded-2xl border border-ink-200 bg-white shadow-card transition-all duration-200;
+  }
+  .dark .card {
+    @apply border-ink-800 bg-ink-900;
+  }
+
+  /* === Form Elements === */
+  .input {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink-900
+           placeholder:text-ink-400 transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500;
+  }
+  .dark .input {
+    @apply border-ink-700 bg-ink-800 text-white placeholder:text-ink-500
+           focus:ring-brand-400/30 focus:border-brand-400;
+  }
+
+  .label {
+    @apply block text-sm font-semibold text-ink-700 mb-1.5;
+  }
+  .dark .label {
+    @apply text-ink-300;
+  }
+
+  /* === Buttons === */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5
+           text-sm font-semibold text-white shadow-sm transition-all duration-150
+           hover:bg-brand-600 hover:shadow-glow-brand active:scale-[0.97] active:bg-brand-700
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+  .dark .btn-primary {
+    @apply focus-visible:ring-offset-ink-950;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-ink-100 px-5 py-2.5
+           text-sm font-semibold text-ink-700 transition-all duration-150
+           hover:bg-ink-200 active:scale-[0.97] active:bg-ink-300
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-400 focus-visible:ring-offset-2
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+  .dark .btn-secondary {
+    @apply bg-ink-800 text-ink-100 hover:bg-ink-700 active:bg-ink-600;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-5 py-2.5
+           text-sm font-semibold text-white shadow-sm transition-all duration-150
+           hover:bg-red-600 active:scale-[0.97] active:bg-red-700
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2
+           disabled:pointer-events-none disabled:opacity-50;
+  }
+
+  /* === Badges === */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+  .badge-orange {
+    @apply badge bg-spice-100 text-spice-700;
+  }
+  .badge-gray {
+    @apply badge bg-ink-100 text-ink-600;
+  }
+  .dark .badge-gray {
+    @apply bg-ink-800 text-ink-300;
+  }
+
+  /* === Product Image === */
+  .product-image-container {
+    @apply relative aspect-square overflow-hidden bg-ink-50;
+  }
+  .dark .product-image-container {
+    @apply bg-ink-800/50;
+  }
+
+  /* === Quick Action Tiles === */
+  .quick-action-tile {
+    @apply bg-white/90 backdrop-blur-sm border border-white/20;
+  }
+  .quick-action-tile-icon {
+    @apply text-brand-500;
+  }
+  .icon-tile {
+    @apply bg-white;
+  }
+  .dark .icon-tile {
+    @apply bg-ink-900;
+  }
+  .icon-tile-icon {
+    @apply text-ink-500;
+  }
+
+  /* === Safe Area === */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* === Glass Card === */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .dark .glass-card {
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, hsl(var(--border) / 0.3) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border) / 0.3) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}

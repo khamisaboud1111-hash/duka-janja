@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /seller/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout
+Disallow: /orders/
+Disallow: /notifications
+Disallow: /wishlist
+
+Sitemap: /sitemap.xml
