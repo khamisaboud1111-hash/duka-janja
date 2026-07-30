@@ -1,5 +1,6 @@
 import Navbar from '@/components/layout/Navbar'
 import Sidebar from '@/components/layout/Sidebar'
+import MobileBottomNav from '@/components/layout/MobileBottomNav'
 import { createServerClient } from '@/lib/supabase/server'
 
 export default async function MarketplaceLayout({ children }: { children: React.ReactNode }) {
@@ -10,7 +11,8 @@ export default async function MarketplaceLayout({ children }: { children: React.
     <>
       <Navbar categories={categories ?? []} />
       <Sidebar />
-      <div className="min-h-screen lg:pl-16">{children}</div>
+      <MobileBottomNav />
+      <div className="min-h-screen lg:pl-16 pb-16 lg:pb-0">{children}</div>
       <footer className="hidden sm:block bg-ink-900 text-ink-300 py-10 mt-8 lg:pl-16">
         <div className="page-container">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
