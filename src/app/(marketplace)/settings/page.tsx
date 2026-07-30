@@ -1,90 +1,38 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import {
-  User, Phone, MapPin, Lock, Loader2, LogOut,
-  Store, Bike, ShoppingBag, Mail, AlertTriangle, CheckCircle2, Clock,
-} from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
-import { useLangStore } from '@/store'
 import { PageLoader } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
-import ImageUploader from '@/components/shared/ImageUploader'
 import { DELIVERY_ZONES } from '@/utils'
 import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
-
-const profileSchema = z.object({
-  full_name: z.string().min(2, 'Enter your full name'),
-  phone: z.string().min(9, 'Enter a valid phone number').optional().or(z.literal('')),
-  delivery_zone: z.string().optional().or(z.literal('')),
-  delivery_address: z.string().optional().or(z.literal('')),
-})
-type ProfileFormData = z.infer<typeof profileSchema>
-
-const passwordSchema = z
-  .object({
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  })
-type PasswordFormData = z.infer<typeof passwordSchema>
-
-const emailSchema = z.object({
-  email: z.string().email('Enter a valid email address'),
-})
-type EmailFormData = z.infer<typeof emailSchema>
-
-type SellerSummary = { status: 'pending' | 'approved' | 'suspended' } | null
-type RiderSummary = { is_verified: boolean; account_status: 'active' | 'suspended' } | null
 
 export default function SettingsPage() {
   const supabase = createClient()
   const router = useRouter()
   const { profile, loading: authLoading } = useUser()
-  const { lang } = useLangStore()
 
-  const [avatar, setAvatar] = useState<string | undefined>()
   const [saving, setSaving] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [changingEmail, setChangingEmail] = useState(false)
-  const [switchingRole, setSwitchingRole] = useState(false)
 
-  const [seller, setSeller] = useState<SellerSummary>(null)
-  const [rider, setRider] = useState<RiderSummary>(null)
-  const [rolesLoading, setRolesLoading] = useState(true)
+  const [editField, setEditField] = useState<string | null>(null)
+  const [fieldValue, setFieldValue] = useState('')
+
+  const [passwordForm, setPasswordForm] = useState({ current: '', password: '', confirm: '' })
+  const [emailValue, setEmailValue] = useState('')
+
+  const [avatar, setAvatar] = useState<string | undefined>()
+  const [uploading, setUploading] = useState(false)
 
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteText, setDeleteText] = useState('')
   const [deleting, setDeleting] = useState(false)
 
-  const {
-    register: registerProfile,
-    handleSubmit: handleProfileSubmit,
-    reset: resetProfile,
-    formState: { errors: profileErrors },
-  } = useForm<ProfileFormData>({ resolver: zodResolver(profileSchema) })
-
-  const {
-    register: registerPassword,
-    handleSubmit: handlePasswordSubmit,
-    reset: resetPassword,
-    formState: { errors: passwordErrors },
-  } = useForm<PasswordFormData>({ resolver: zodResolver(passwordSchema) })
-
-  const {
-    register: registerEmail,
-    handleSubmit: handleEmailSubmit,
-    formState: { errors: emailErrors },
-  } = useForm<EmailFormData>({ resolver: zodResolver(emailSchema) })
+  const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (!authLoading && !profile) {
@@ -94,95 +42,69 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (profile) {
-      resetProfile({
-        full_name: profile.full_name ?? '',
-        phone: profile.phone ?? '',
-        delivery_zone: profile.delivery_zone ?? '',
-        delivery_address: profile.delivery_address ?? '',
-      })
       setAvatar(profile.avatar_url ?? undefined)
-      loadRoleInfo(profile.id)
     }
   }, [profile])
 
-  async function loadRoleInfo(userId: string) {
-    setRolesLoading(true)
-    const [{ data: sellerRow }, { data: riderRow }] = await Promise.all([
-      supabase.from('sellers').select('status').eq('user_id', userId).maybeSingle(),
-      supabase.from('rider_profiles').select('is_verified, account_status').eq('id', userId).maybeSingle(),
-    ])
-    setSeller(sellerRow ?? null)
-    setRider(riderRow ?? null)
-    setRolesLoading(false)
-  }
-
-  async function onSaveProfile(data: ProfileFormData) {
-    if (!profile) return
-    setSaving(true)
-    const { error } = await supabase
+  async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !profile) return
+    setUploading(true)
+    const ext = file.name.split('.').pop()
+    const path = `${profile.id}/avatar.${ext}`
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true })
+    if (uploadError) { toast.error(uploadError.message); setUploading(false); return }
+    const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+    const url = publicUrl
+    const { error: updateError } = await supabase
       .from('profiles')
-      .update({
-        full_name: data.full_name,
-        phone: data.phone || null,
-        avatar_url: avatar ?? null,
-        delivery_zone: (data.delivery_zone || null) as DeliveryZone | null,
-        delivery_address: data.delivery_address || null,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ avatar_url: url, updated_at: new Date().toISOString() })
       .eq('id', profile.id)
-
-    if (error) {
-      toast.error(error.message)
-    } else {
-      toast.success(lang === 'en' ? 'Profile updated' : 'Wasifu umesasishwa')
-      router.refresh()
-    }
-    setSaving(false)
+    if (updateError) { toast.error(updateError.message) } else { setAvatar(url); toast.success('Photo updated') }
+    setUploading(false)
   }
 
-  async function onChangePassword(data: PasswordFormData) {
+  function startEdit(field: string, current: string) {
+    setEditField(field)
+    setFieldValue(current)
+  }
+
+  function cancelEdit() {
+    setEditField(null)
+    setFieldValue('')
+  }
+
+  async function saveField() {
+    if (!profile || !editField) return
+    setSaving(true)
+    const update: Record<string, string | null> = { updated_at: new Date().toISOString() }
+    if (editField === 'full_name') update.full_name = fieldValue
+    else if (editField === 'phone') update.phone = fieldValue || null
+    else if (editField === 'delivery_zone') update.delivery_zone = (fieldValue || null) as DeliveryZone | null
+    else if (editField === 'delivery_address') update.delivery_address = fieldValue || null
+    const { error } = await supabase.from('profiles').update(update).eq('id', profile.id)
+    if (error) { toast.error(error.message) } else { toast.success('Updated'); router.refresh() }
+    setSaving(false)
+    setEditField(null)
+  }
+
+  async function handleChangePassword() {
+    if (passwordForm.password.length < 6) { toast.error('Password must be at least 6 characters'); return }
+    if (passwordForm.password !== passwordForm.confirm) { toast.error("Passwords don't match"); return }
     setChangingPassword(true)
-    const { error } = await supabase.auth.updateUser({ password: data.password })
-    if (error) {
-      toast.error(error.message)
-    } else {
-      toast.success(lang === 'en' ? 'Password updated' : 'Nywila imesasishwa')
-      resetPassword({ password: '', confirmPassword: '' })
-    }
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.password })
+    if (error) { toast.error(error.message) } else { toast.success('Password updated'); setPasswordForm({ current: '', password: '', confirm: '' }) }
     setChangingPassword(false)
   }
 
-  async function onChangeEmail(data: EmailFormData) {
+  async function handleChangeEmail() {
+    if (!emailValue.includes('@')) { toast.error('Enter a valid email'); return }
     setChangingEmail(true)
-    const { error } = await supabase.auth.updateUser({ email: data.email })
-    if (error) {
-      toast.error(error.message)
-    } else {
-      toast.success(
-        lang === 'en'
-          ? 'Check both your old and new inbox to confirm the change.'
-          : 'Angalia barua pepe yako ya zamani na mpya kuthibitisha mabadiliko.'
-      )
-    }
+    const { error } = await supabase.auth.updateUser({ email: emailValue })
+    if (error) { toast.error(error.message) } else { toast.success('Check your inbox to confirm') }
     setChangingEmail(false)
-  }
-
-  async function switchRole(role: 'buyer' | 'seller' | 'rider') {
-    if (!profile || profile.role === role) return
-    setSwitchingRole(true)
-    const res = await fetch('/api/account/switch-role', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role }),
-    })
-    const json = await res.json()
-    if (!res.ok) {
-      toast.error(json.message || json.error || 'Could not switch account type')
-    } else {
-      toast.success(lang === 'en' ? 'Switched account type' : 'Umebadilisha aina ya akaunti')
-      router.refresh()
-    }
-    setSwitchingRole(false)
   }
 
   async function handleLogout() {
@@ -199,295 +121,199 @@ export default function SettingsPage() {
       body: JSON.stringify({ confirm: deleteText }),
     })
     const json = await res.json()
-    if (!res.ok) {
-      toast.error(json.error || 'Could not delete account')
-      setDeleting(false)
-      return
-    }
+    if (!res.ok) { toast.error(json.error || 'Could not delete account'); setDeleting(false); return }
     await supabase.auth.signOut()
-    toast.success(lang === 'en' ? 'Your account has been deleted' : 'Akaunti yako imefutwa')
+    toast.success('Account deleted')
     router.push('/')
     router.refresh()
   }
 
   if (authLoading || !profile) return <PageLoader />
 
+  const roleBadge = ({
+    buyer: { label: 'Buyer', color: 'bg-brand-500' },
+    seller: { label: 'Seller', color: 'bg-emerald-500' },
+    rider: { label: 'Rider', color: 'bg-amber-500' },
+  } as Record<string, { label: string; color: string }>)[profile.role] ?? { label: 'User', color: 'bg-ink-400' }
+
   return (
-    <div className="page-container max-w-2xl py-6 sm:py-8">
-      <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-1">
-        {lang === 'en' ? 'Account settings' : 'Mipangilio ya Akaunti'}
-      </h1>
-      <p className="text-sm text-ink-500 dark:text-ink-400 mb-6">
-        {lang === 'en' ? 'Manage your profile, account type, and security' : 'Simamia wasifu wako, aina ya akaunti, na usalama'}
-      </p>
-
-      {/* Profile */}
-      <form onSubmit={handleProfileSubmit(onSaveProfile)} className="card p-5 sm:p-6 space-y-5 dark:bg-ink-900 dark:border-ink-800">
-        <h2 className="font-semibold text-ink-800 dark:text-ink-100 flex items-center gap-2">
-          <User className="w-4 h-4" /> {lang === 'en' ? 'Profile' : 'Wasifu'}
-        </h2>
-
-        <div className="flex justify-center">
-          <ImageUploader
-            bucket="avatars"
-            folder={profile.id}
-            value={avatar}
-            onChange={setAvatar}
-            onRemove={() => setAvatar(undefined)}
-            label={lang === 'en' ? 'Profile photo' : 'Picha ya wasifu'}
-            aspectRatio="square"
-          />
-        </div>
-
-        <div>
-          <label className="label dark:text-ink-300">{lang === 'en' ? 'Full name' : 'Jina kamili'}</label>
-          <input
-            {...registerProfile('full_name')}
-            className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white ${profileErrors.full_name ? 'border-red-400' : ''}`}
-          />
-          {profileErrors.full_name && <p className="mt-1 text-xs text-red-500">{profileErrors.full_name.message}</p>}
-        </div>
-
-        <div>
-          <label className="label dark:text-ink-300 flex items-center gap-1.5">
-            <Phone className="w-3.5 h-3.5" /> {lang === 'en' ? 'Phone number' : 'Nambari ya simu'}
-          </label>
-          <input
-            {...registerProfile('phone')}
-            placeholder="255…"
-            className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white ${profileErrors.phone ? 'border-red-400' : ''}`}
-          />
-          {profileErrors.phone && <p className="mt-1 text-xs text-red-500">{profileErrors.phone.message}</p>}
-        </div>
-
-        <div className="pt-2 border-t border-ink-100 dark:border-ink-800 space-y-4">
-          <h3 className="text-sm font-semibold text-ink-700 dark:text-ink-200 flex items-center gap-1.5">
-            <MapPin className="w-4 h-4" /> {lang === 'en' ? 'Default delivery details' : 'Maelezo ya utoaji chaguo-msingi'}
-          </h3>
-          <div>
-            <label className="label dark:text-ink-300">{lang === 'en' ? 'Delivery zone' : 'Eneo la utoaji'}</label>
-            <select {...registerProfile('delivery_zone')} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white">
-              <option value="">{lang === 'en' ? '-- Select a zone --' : '-- Chagua eneo --'}</option>
-              {Object.entries(DELIVERY_ZONES).map(([key, zone]) => (
-                <option key={key} value={key}>
-                  {lang === 'en' ? zone.nameEn : zone.nameSw}
-                </option>
-              ))}
-            </select>
+    <div className="max-w-lg mx-auto py-0">
+      {/* Profile Header — WhatsApp Style */}
+      <div className="bg-white dark:bg-ink-900">
+        <div className="relative pt-12 pb-6 flex flex-col items-center">
+          <div className="relative group mb-4">
+            <div className="w-28 h-28 rounded-full overflow-hidden bg-ink-100 dark:bg-ink-800 ring-4 ring-white dark:ring-ink-900 shadow-lg">
+              {avatar ? (
+                <img src={avatar} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-400 to-brand-600">
+                  <span className="text-4xl font-bold text-white">{profile.full_name?.charAt(0)?.toUpperCase() ?? '?'}</span>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              className="absolute -bottom-1 -right-1 w-9 h-9 rounded-full bg-brand-500 hover:bg-brand-600 flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95 border-2 border-white dark:border-ink-900"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={uploadAvatar} />
           </div>
-          <div>
-            <label className="label dark:text-ink-300">{lang === 'en' ? 'Delivery address' : 'Anwani ya utoaji'}</label>
-            <textarea
-              {...registerProfile('delivery_address')}
-              rows={2}
-              className="input resize-none dark:bg-ink-800 dark:border-ink-700 dark:text-white"
-              placeholder={lang === 'en' ? 'Street, nearby landmark…' : 'Mtaa, karibu na alama gani...'}
-            />
+          {uploading && <p className="text-xs text-brand-500 mb-1">Uploading...</p>}
+          <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white">{profile.full_name}</h1>
+          <div className="flex items-center gap-2 mt-1">
+            <span className={`text-[10px] font-bold uppercase tracking-wider text-white px-2 py-0.5 rounded-full ${roleBadge.color}`}>
+              {profile.email}
+            </span>
           </div>
         </div>
-
-        <button type="submit" disabled={saving} className="btn-primary w-full justify-center py-3">
-          {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-          {saving ? (lang === 'en' ? 'Saving…' : 'Inahifadhi...') : (lang === 'en' ? 'Save changes' : 'Hifadhi mabadiliko')}
-        </button>
-      </form>
-
-      {/* Account type switcher */}
-      <div className="card p-5 sm:p-6 space-y-4 mt-6 dark:bg-ink-900 dark:border-ink-800">
-        <div>
-          <h2 className="font-semibold text-ink-800 dark:text-ink-100 flex items-center gap-2">
-            <ShoppingBag className="w-4 h-4" /> {lang === 'en' ? 'Account type' : 'Aina ya Akaunti'}
-          </h2>
-          <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">
-            {lang === 'en'
-              ? 'Switch how you use Duka Janja. Your buyer history, store, and rider profile are all kept — this just changes which dashboard you see.'
-              : 'Badilisha jinsi unavyotumia Duka Janja. Historia yako ya ununuzi, duka, na wasifu wa dereva vinabaki salama — hii inabadilisha tu dashibodi unayoona.'}
-          </p>
-        </div>
-
-        {rolesLoading ? (
-          <div className="flex justify-center py-4"><Loader2 className="w-5 h-5 animate-spin text-ink-400" /></div>
-        ) : (
-          <div className="grid gap-3">
-            {/* Buyer */}
-            <RoleCard
-              icon={<ShoppingBag className="w-5 h-5" />}
-              title={lang === 'en' ? 'Buyer' : 'Mnunuzi'}
-              status="active"
-              statusLabel={lang === 'en' ? 'Always available' : 'Inapatikana kila wakati'}
-              isCurrent={profile.role === 'buyer'}
-              actionLabel={lang === 'en' ? 'Switch to buyer' : 'Badilisha kuwa mnunuzi'}
-              onAction={() => switchRole('buyer')}
-              loading={switchingRole}
-            />
-
-            {/* Seller */}
-            <RoleCard
-              icon={<Store className="w-5 h-5" />}
-              title={lang === 'en' ? 'Seller' : 'Muuzaji'}
-              status={seller ? seller.status : 'none'}
-              statusLabel={
-                !seller
-                  ? (lang === 'en' ? 'Not set up yet' : 'Bado hujafungua')
-                  : seller.status === 'approved'
-                    ? (lang === 'en' ? 'Approved' : 'Imeidhinishwa')
-                    : seller.status === 'pending'
-                      ? (lang === 'en' ? 'Awaiting approval' : 'Inasubiri idhini')
-                      : (lang === 'en' ? 'Suspended' : 'Imesimamishwa')
-              }
-              isCurrent={profile.role === 'seller'}
-              actionLabel={
-                seller
-                  ? (lang === 'en' ? 'Switch to seller' : 'Badilisha kuwa muuzaji')
-                  : (lang === 'en' ? 'Open a store' : 'Fungua Duka')
-              }
-              onAction={() => (seller ? switchRole('seller') : router.push('/seller/settings?onboarding=true'))}
-              loading={switchingRole}
-              disabled={seller?.status === 'suspended'}
-            />
-
-            {/* Rider */}
-            <RoleCard
-              icon={<Bike className="w-5 h-5" />}
-              title={lang === 'en' ? 'Rider' : 'Dereva'}
-              status={rider ? (rider.is_verified ? 'approved' : 'pending') : 'none'}
-              statusLabel={
-                !rider
-                  ? (lang === 'en' ? 'Not applied yet' : 'Bado hujaomba')
-                  : rider.account_status === 'suspended'
-                    ? (lang === 'en' ? 'Suspended' : 'Imesimamishwa')
-                    : rider.is_verified
-                      ? (lang === 'en' ? 'Verified' : 'Imethibitishwa')
-                      : (lang === 'en' ? 'Awaiting verification' : 'Inasubiri uthibitisho')
-              }
-              isCurrent={profile.role === 'rider'}
-              actionLabel={
-                rider
-                  ? (lang === 'en' ? 'Switch to rider' : 'Badilisha kuwa dereva')
-                  : (lang === 'en' ? 'Apply as a rider' : 'Omba kuwa Dereva')
-              }
-              onAction={() => (rider ? switchRole('rider') : router.push('/rider/apply'))}
-              loading={switchingRole}
-              disabled={rider?.account_status === 'suspended'}
-            />
-          </div>
-        )}
       </div>
 
-      {/* Change email */}
-      <form onSubmit={handleEmailSubmit(onChangeEmail)} className="card p-5 sm:p-6 space-y-4 mt-6 dark:bg-ink-900 dark:border-ink-800">
-        <h2 className="font-semibold text-ink-800 dark:text-ink-100 flex items-center gap-2">
-          <Mail className="w-4 h-4" /> {lang === 'en' ? 'Change email' : 'Badilisha Barua Pepe'}
-        </h2>
-        <div>
-          <label className="label dark:text-ink-300">{lang === 'en' ? 'Current email' : 'Barua pepe ya sasa'}</label>
-          <input value={profile.email} disabled className="input bg-ink-50 dark:bg-ink-800/50 text-ink-400 cursor-not-allowed" />
-        </div>
-        <div>
-          <label className="label dark:text-ink-300">{lang === 'en' ? 'New email' : 'Barua pepe mpya'}</label>
-          <input
-            {...registerEmail('email')}
-            type="email"
-            placeholder="new@example.com"
-            className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white ${emailErrors.email ? 'border-red-400' : ''}`}
+      {/* Info Section — Clean Rows */}
+      <div className="px-4 -mt-2 space-y-3 pb-4">
+        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden divide-y divide-ink-100 dark:divide-ink-800">
+          <ProfileRow
+            icon={
+              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+              </svg>
+            }
+            label="Name"
+            value={profile.full_name}
+            editing={editField === 'full_name'}
+            editValue={fieldValue}
+            onEditValue={setFieldValue}
+            onStartEdit={() => startEdit('full_name', profile.full_name ?? '')}
+            onSave={saveField}
+            onCancel={cancelEdit}
+            saving={saving}
           />
-          {emailErrors.email && <p className="mt-1 text-xs text-red-500">{emailErrors.email.message}</p>}
-          <p className="mt-1.5 text-xs text-ink-400">
-            {lang === 'en'
-              ? "You'll get a confirmation link at both your old and new email — the change only applies once you confirm."
-              : 'Utapokea kiungo cha kuthibitisha kwenye barua pepe zote mbili — mabadiliko yatatumika baada ya kuthibitisha.'}
-          </p>
-        </div>
-        <button type="submit" disabled={changingEmail} className="btn-secondary w-full justify-center py-3">
-          {changingEmail && <Loader2 className="w-4 h-4 animate-spin" />}
-          {changingEmail ? (lang === 'en' ? 'Sending…' : 'Inatuma...') : (lang === 'en' ? 'Send confirmation' : 'Tuma Uthibitisho')}
-        </button>
-      </form>
-
-      {/* Password */}
-      <form onSubmit={handlePasswordSubmit(onChangePassword)} className="card p-5 sm:p-6 space-y-4 mt-6 dark:bg-ink-900 dark:border-ink-800">
-        <h2 className="font-semibold text-ink-800 dark:text-ink-100 flex items-center gap-2">
-          <Lock className="w-4 h-4" /> {lang === 'en' ? 'Change password' : 'Badilisha Nywila'}
-        </h2>
-        <div>
-          <label className="label dark:text-ink-300">{lang === 'en' ? 'New password' : 'Nywila mpya'}</label>
-          <input
-            {...registerPassword('password')}
-            type="password"
-            className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white ${passwordErrors.password ? 'border-red-400' : ''}`}
-            placeholder="••••••••"
+          <ProfileRow
+            icon={
+              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+              </svg>
+            }
+            label="Phone"
+            value={profile.phone ?? '—'}
+            editing={editField === 'phone'}
+            editValue={fieldValue}
+            onEditValue={setFieldValue}
+            onStartEdit={() => startEdit('phone', profile.phone ?? '')}
+            onSave={saveField}
+            onCancel={cancelEdit}
+            saving={saving}
           />
-          {passwordErrors.password && <p className="mt-1 text-xs text-red-500">{passwordErrors.password.message}</p>}
-        </div>
-        <div>
-          <label className="label dark:text-ink-300">{lang === 'en' ? 'Confirm new password' : 'Thibitisha nywila mpya'}</label>
-          <input
-            {...registerPassword('confirmPassword')}
-            type="password"
-            className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white ${passwordErrors.confirmPassword ? 'border-red-400' : ''}`}
-            placeholder="••••••••"
+          <ProfileRow
+            icon={
+              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+            }
+            label="Zone"
+            value={profile.delivery_zone ? (DELIVERY_ZONES[profile.delivery_zone]?.nameEn ?? profile.delivery_zone) : '—'}
+            editing={editField === 'delivery_zone'}
+            editValue={fieldValue}
+            onEditValue={setFieldValue}
+            onStartEdit={() => startEdit('delivery_zone', profile.delivery_zone ?? '')}
+            onSave={saveField}
+            onCancel={cancelEdit}
+            saving={saving}
+            isSelect
+            selectOptions={Object.entries(DELIVERY_ZONES).map(([k, v]) => ({ value: k, label: v.nameEn }))}
           />
-          {passwordErrors.confirmPassword && <p className="mt-1 text-xs text-red-500">{passwordErrors.confirmPassword.message}</p>}
+          <ProfileRow
+            icon={
+              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+              </svg>
+            }
+            label="Address"
+            value={profile.delivery_address ?? '—'}
+            editing={editField === 'delivery_address'}
+            editValue={fieldValue}
+            onEditValue={setFieldValue}
+            onStartEdit={() => startEdit('delivery_address', profile.delivery_address ?? '')}
+            onSave={saveField}
+            onCancel={cancelEdit}
+            saving={saving}
+          />
         </div>
-        <button type="submit" disabled={changingPassword} className="btn-secondary w-full justify-center py-3">
-          {changingPassword && <Loader2 className="w-4 h-4 animate-spin" />}
-          {changingPassword ? (lang === 'en' ? 'Updating…' : 'Inasasisha...') : (lang === 'en' ? 'Update password' : 'Sasisha Nywila')}
-        </button>
-      </form>
 
-      {/* Logout */}
-      <button
-        onClick={handleLogout}
-        className="w-full flex items-center justify-center gap-2 mt-6 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors"
-      >
-        <LogOut className="w-4 h-4" />
-        {lang === 'en' ? 'Log out' : 'Toka'}
-      </button>
+        {/* Account Type */}
+        <AccountTypeCard profile={profile} router={router} />
 
-      {/* Danger zone */}
-      <div className="mt-8 rounded-2xl border-2 border-red-200 dark:border-red-900/50 p-5 sm:p-6 bg-red-50/50 dark:bg-red-950/10">
-        <h2 className="font-semibold text-red-700 dark:text-red-400 flex items-center gap-2 mb-1.5">
-          <AlertTriangle className="w-4 h-4" /> {lang === 'en' ? 'Danger zone' : 'Eneo la Hatari'}
-        </h2>
-        <p className="text-xs text-red-600/80 dark:text-red-400/70 mb-4">
-          {lang === 'en'
-            ? 'Deleting your account is permanent. Your profile, orders history, and store (if any) will be removed and cannot be recovered.'
-            : 'Kufuta akaunti yako ni la kudumu. Wasifu wako, historia ya maagizo, na duka lako (kama lipo) vitaondolewa na haviwezi kurejeshwa.'}
-        </p>
-        <button
-          onClick={() => setDeleteOpen(true)}
-          className="text-sm font-semibold text-red-600 border-2 border-red-300 dark:border-red-800 rounded-xl px-4 py-2.5 hover:bg-red-100 dark:hover:bg-red-950/30 transition-colors"
-        >
-          {lang === 'en' ? 'Delete my account' : 'Futa Akaunti Yangu'}
-        </button>
-      </div>
-
-      <Modal open={deleteOpen} onClose={() => { setDeleteOpen(false); setDeleteText('') }} title={lang === 'en' ? 'Delete account' : 'Futa Akaunti'} size="sm">
-        <p className="text-sm text-ink-600 dark:text-ink-300 mb-4">
-          {lang === 'en'
-            ? 'This cannot be undone. Type DELETE below to confirm.'
-            : 'Hii haiwezi kutenduliwa. Andika DELETE hapa chini kuthibitisha.'}
-        </p>
-        <input
-          value={deleteText}
-          onChange={(e) => setDeleteText(e.target.value)}
-          placeholder="DELETE"
-          className="input mb-4"
-        />
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={() => { setDeleteOpen(false); setDeleteText('') }}
-            className="btn-secondary text-sm"
+        {/* Security */}
+        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden divide-y divide-ink-100 dark:divide-ink-800">
+          <SectionRow
+            icon={
+              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+              </svg>
+            }
+            label="Change Password"
+            expanded={changingPassword}
+            onToggle={() => setChangingPassword(!changingPassword)}
           >
-            {lang === 'en' ? 'Cancel' : 'Ghairi'}
+            <div className="px-4 pb-4 space-y-3">
+              <input value={passwordForm.password} onChange={(e) => setPasswordForm(p => ({ ...p, password: e.target.value }))} type="password" placeholder="New password" className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
+              <input value={passwordForm.confirm} onChange={(e) => setPasswordForm(p => ({ ...p, confirm: e.target.value }))} type="password" placeholder="Confirm password" className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
+              <button onClick={handleChangePassword} disabled={changingPassword} className="btn-primary w-full justify-center py-2.5 text-sm">
+                {changingPassword ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </SectionRow>
+          <SectionRow
+            icon={
+              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+              </svg>
+            }
+            label="Change Email"
+            expanded={changingEmail}
+            onToggle={() => setChangingEmail(!changingEmail)}
+          >
+            <div className="px-4 pb-4 space-y-3">
+              <p className="text-xs text-ink-400">Current: {profile.email}</p>
+              <input value={emailValue} onChange={(e) => setEmailValue(e.target.value)} type="email" placeholder="new@example.com" className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
+              <button onClick={handleChangeEmail} disabled={changingEmail} className="btn-secondary w-full justify-center py-2.5 text-sm">
+                {changingEmail ? 'Sending...' : 'Send Confirmation'}
+              </button>
+            </div>
+          </SectionRow>
+        </div>
+
+        {/* Logout */}
+        <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          Log Out
+        </button>
+
+        {/* Danger Zone */}
+        <div className="bg-white dark:bg-ink-900 rounded-2xl border border-red-200 dark:border-red-900/50 overflow-hidden">
+          <button onClick={() => setDeleteOpen(true)} className="w-full flex items-center justify-center gap-2 py-3.5 text-sm font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            Delete Account
           </button>
-          <button
-            onClick={handleDeleteAccount}
-            disabled={deleteText !== 'DELETE' || deleting}
-            className="btn-danger text-sm"
-          >
-            {deleting && <Loader2 className="w-4 h-4 animate-spin" />}
-            {lang === 'en' ? 'Delete permanently' : 'Futa Kabisa'}
+        </div>
+      </div>
+
+      <Modal open={deleteOpen} onClose={() => { setDeleteOpen(false); setDeleteText('') }} title="Delete Account" size="sm">
+        <p className="text-sm text-ink-600 dark:text-ink-300 mb-4">This cannot be undone. Type DELETE below to confirm.</p>
+        <input value={deleteText} onChange={(e) => setDeleteText(e.target.value)} placeholder="DELETE" className="input mb-4 dark:bg-ink-800 dark:border-ink-700 dark:text-white" />
+        <div className="flex gap-3 justify-end">
+          <button onClick={() => { setDeleteOpen(false); setDeleteText('') }} className="btn-secondary text-sm">Cancel</button>
+          <button onClick={handleDeleteAccount} disabled={deleteText !== 'DELETE' || deleting} className="btn-danger text-sm">
+            {deleting ? 'Deleting...' : 'Delete permanently'}
           </button>
         </div>
       </Modal>
@@ -495,54 +321,193 @@ export default function SettingsPage() {
   )
 }
 
-function RoleCard({
-  icon, title, status, statusLabel, isCurrent, actionLabel, onAction, loading, disabled,
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function ProfileRow({
+  icon, label, value, editing, editValue, onEditValue, onStartEdit, onSave, onCancel, saving, isSelect, selectOptions,
 }: {
   icon: React.ReactNode
-  title: string
-  status: 'active' | 'approved' | 'pending' | 'suspended' | 'none'
+  label: string
+  value: string
+  editing: boolean
+  editValue: string
+  onEditValue: (v: string) => void
+  onStartEdit: () => void
+  onSave: () => void
+  onCancel: () => void
+  saving: boolean
+  isSelect?: boolean
+  selectOptions?: { value: string; label: string }[]
+}) {
+  if (editing) {
+    return (
+      <div className="px-4 py-3 bg-brand-50/50 dark:bg-brand-950/20">
+        <p className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">{label}</p>
+        {isSelect && selectOptions ? (
+          <select value={editValue} onChange={(e) => onEditValue(e.target.value)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm">
+            <option value="">-- Select --</option>
+            {selectOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+          </select>
+        ) : (
+          <input value={editValue} onChange={(e) => onEditValue(e.target.value)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" autoFocus />
+        )}
+        <div className="flex gap-2 mt-2">
+          <button onClick={onSave} disabled={saving} className="text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/30 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors">
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+          <button onClick={onCancel} className="text-xs font-semibold text-ink-500 bg-ink-50 dark:bg-ink-800 px-3 py-1.5 rounded-lg hover:bg-ink-100 transition-colors">Cancel</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button onClick={onStartEdit} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors text-left group">
+      <div className="w-8 h-8 rounded-xl bg-ink-50 dark:bg-ink-800 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-50 dark:group-hover:bg-brand-950/30 transition-colors">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider">{label}</p>
+        <p className="text-sm font-medium text-ink-900 dark:text-white truncate">{value}</p>
+      </div>
+      <svg className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+      </svg>
+    </button>
+  )
+}
+
+function SectionRow({
+  icon, label, expanded, onToggle, children,
+}: {
+  icon: React.ReactNode
+  label: string
+  expanded: boolean
+  onToggle: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors text-left">
+        <div className="w-8 h-8 rounded-xl bg-ink-50 dark:bg-ink-800 flex items-center justify-center flex-shrink-0">
+          {icon}
+        </div>
+        <span className="flex-1 text-sm font-semibold text-ink-800 dark:text-ink-100">{label}</span>
+        <svg className={`w-4 h-4 text-ink-300 dark:text-ink-600 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+      {expanded && children}
+    </div>
+  )
+}
+
+function AccountTypeCard({ profile, router }: { profile: any; router: any }) {
+  const supabase = createClient()
+  const [roles, setRoles] = useState<any>({ seller: null, rider: null })
+  const [loading, setLoading] = useState(true)
+  const [switching, setSwitching] = useState<string | null>(null)
+
+  useEffect(() => {
+    ;(async () => {
+      const [sr, rr] = await Promise.all([
+        supabase.from('sellers').select('status').eq('user_id', profile.id).maybeSingle(),
+        supabase.from('rider_profiles').select('is_verified,account_status').eq('id', profile.id).maybeSingle(),
+      ])
+      setRoles({ seller: sr.data ?? null, rider: rr.data ?? null })
+      setLoading(false)
+    })()
+  }, [])
+
+  async function switchRole(role: 'buyer' | 'seller' | 'rider') {
+    if (profile.role === role) return
+    setSwitching(role)
+    const res = await fetch('/api/account/switch-role', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }),
+    })
+    const json = await res.json()
+    if (!res.ok) { toast.error(json.message || json.error || 'Could not switch') }
+    else { toast.success('Switched!'); router.refresh() }
+    setSwitching(null)
+  }
+
+  const roleItems = [
+    {
+      id: 'buyer',
+      icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>,
+      label: 'Buyer',
+      status: 'active',
+      statusLabel: 'Active',
+      active: profile.role === 'buyer',
+      onClick: () => switchRole('buyer'),
+    },
+    {
+      id: 'seller',
+      icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" /></svg>,
+      label: 'Seller',
+      status: roles.seller?.status === 'approved' ? 'approved' : roles.seller?.status === 'pending' ? 'pending' : roles.seller ? 'suspended' : null,
+      statusLabel: roles.seller ? roles.seller.status : 'Not set up',
+      active: profile.role === 'seller',
+      onClick: () => roles.seller ? switchRole('seller') : router.push('/seller/settings?onboarding=true'),
+      disabled: roles.seller?.status === 'suspended',
+    },
+    {
+      id: 'rider',
+      icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>,
+      label: 'Rider',
+      status: roles.rider?.is_verified ? 'approved' : roles.rider && roles.rider.account_status !== 'suspended' ? 'pending' : roles.rider?.account_status === 'suspended' ? 'suspended' : null,
+      statusLabel: roles.rider ? (roles.rider.is_verified ? 'Verified' : 'Pending') : 'Not applied',
+      active: profile.role === 'rider',
+      onClick: () => roles.rider ? switchRole('rider') : router.push('/rider/apply'),
+      disabled: roles.rider?.account_status === 'suspended',
+    },
+  ]
+
+  if (loading) return null
+
+  return (
+    <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden divide-y divide-ink-100 dark:divide-ink-800">
+      {roleItems.map(({ id, ...item }) => (
+        <RoleRow key={id} {...item} loading={switching === id} />
+      ))}
+    </div>
+  )
+}
+
+function RoleRow({ icon, label, status, statusLabel, active, onClick, loading, disabled }: {
+  icon: React.ReactNode
+  label: string
+  status: string | null
   statusLabel: string
-  isCurrent: boolean
-  actionLabel: string
-  onAction: () => void
+  active: boolean
+  onClick: () => void
   loading: boolean
   disabled?: boolean
 }) {
-  const statusColor = {
-    active: 'text-brand-600 bg-brand-50 dark:bg-brand-950/30',
-    approved: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30',
-    pending: 'text-amber-600 bg-amber-50 dark:bg-amber-950/30',
-    suspended: 'text-red-600 bg-red-50 dark:bg-red-950/30',
-    none: 'text-ink-400 bg-ink-50 dark:bg-ink-800',
-  }[status]
-
-  const StatusIcon = status === 'approved' || status === 'active' ? CheckCircle2 : status === 'pending' ? Clock : AlertTriangle
+  const statusColor = status === 'active' || status === 'approved' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
+    : status === 'pending' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
+    : status === 'suspended' ? 'text-red-600 bg-red-50 dark:bg-red-950/30'
+    : 'text-ink-400 bg-ink-50 dark:bg-ink-800'
 
   return (
-    <div className={`flex items-center justify-between gap-3 p-4 rounded-xl border ${isCurrent ? 'border-brand-400 bg-brand-50/50 dark:bg-brand-950/20' : 'border-ink-100 dark:border-ink-800'}`}>
-      <div className="flex items-center gap-3 min-w-0">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${isCurrent ? 'bg-brand-500 text-white' : 'bg-ink-100 dark:bg-ink-800 text-ink-500 dark:text-ink-300'}`}>
-          {icon}
-        </div>
-        <div className="min-w-0">
-          <p className="font-semibold text-sm text-ink-800 dark:text-ink-100 flex items-center gap-1.5">
-            {title}
-            {isCurrent && <span className="text-[10px] font-bold text-brand-600 bg-brand-100 dark:bg-brand-900/50 px-1.5 py-0.5 rounded-full">ACTIVE</span>}
-          </p>
-          <span className={`inline-flex items-center gap-1 text-[11px] font-medium mt-0.5 px-1.5 py-0.5 rounded-md ${statusColor}`}>
-            <StatusIcon className="w-3 h-3" /> {statusLabel}
-          </span>
-        </div>
+    <button onClick={onClick} disabled={disabled || loading} className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors text-left ${active ? 'bg-brand-50/50 dark:bg-brand-950/20' : ''}`}>
+      <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${active ? 'bg-brand-500 text-white' : 'bg-ink-50 dark:bg-ink-800 text-ink-500 dark:text-ink-300'}`}>
+        {icon}
       </div>
-      {!isCurrent && (
-        <button
-          onClick={onAction}
-          disabled={loading || disabled}
-          className="btn-secondary text-xs flex-shrink-0 whitespace-nowrap"
-        >
-          {actionLabel}
-        </button>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-ink-800 dark:text-ink-100">{label}</span>
+          {active && <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/50 px-1.5 py-0.5 rounded-full">ACTIVE</span>}
+        </div>
+        <span className={`inline-flex items-center text-[11px] font-medium mt-0.5 px-1.5 py-0.5 rounded-md ${statusColor}`}>
+          {statusLabel}
+        </span>
+      </div>
+      {!active && (
+        <span className="text-xs text-brand-600 dark:text-brand-400 font-semibold whitespace-nowrap">
+          {loading ? '...' : status ? 'Switch' : 'Set up'}
+        </span>
       )}
-    </div>
+    </button>
   )
 }
