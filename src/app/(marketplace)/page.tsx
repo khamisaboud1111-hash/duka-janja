@@ -1,5 +1,6 @@
+import { Suspense } from 'react'
 import { createServerClient } from '@/lib/supabase/server'
-import HeroSection, { type HomeStats } from '@/components/home/HeroSection'
+import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
 import CategoryShowcase from '@/components/home/CategoryShowcase'
 import TrustBadges from '@/components/home/TrustBadges'
@@ -9,6 +10,8 @@ import { FadeInView } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
 import type { Product, Category } from '@/types'
 import Link from 'next/link'
+import { Skeleton } from '@/components/ui/Card'
+import type { HomeStats } from '@/components/home/HeroSection'
 
 export const dynamic = 'force-dynamic'
 
@@ -92,44 +95,55 @@ export default async function MarketplaceHomePage() {
       <HeroSection stats={stats} />
       <QuickActionsCard pins={[]} />
 
+      {/* Trust badges — moved up for early buyer confidence */}
+      <TrustBadges />
+
       {categories.length > 0 && (
         <FadeInView>
-          <CategoryShowcase categories={categories} />
+          <Suspense fallback={<div className="section"><Skeleton className="h-48 w-full rounded-2xl" /></div>}>
+            <CategoryShowcase categories={categories} />
+          </Suspense>
         </FadeInView>
       )}
 
       {recentProducts.length > 0 && (
         <FadeInView>
-          <section className="section dark:bg-ink-950">
-            <div className="page-container">
-              <div className="flex items-end justify-between mb-4">
-                <div>
-                  <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">
-                    Bidhaa Mpya
-                  </h2>
+          <Suspense fallback={
+            <div className="section"><div className="grid grid-cols-2 sm:grid-cols-4 gap-3"><Skeleton className="aspect-square rounded-2xl" /><Skeleton className="aspect-square rounded-2xl" /><Skeleton className="aspect-square rounded-2xl" /><Skeleton className="aspect-square rounded-2xl" /></div></div>
+          }>
+            <section className="section dark:bg-ink-950">
+              <div className="page-container">
+                <div className="flex items-end justify-between mb-4">
+                  <div>
+                    <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">
+                      Bidhaa Mpya
+                    </h2>
+                  </div>
+                  <Link href="/search?sort=newest" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
+                    Zote →
+                  </Link>
                 </div>
-                <Link href="/search?sort=newest" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
-                  Zote →
-                </Link>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {recentProducts.slice(0, 4).map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                {recentProducts.slice(0, 4).map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            </div>
-          </section>
+            </section>
+          </Suspense>
         </FadeInView>
       )}
 
       <FadeInView>
-        <FeaturedSellersShowcase sellers={featuredSellers} />
+        <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+          <FeaturedSellersShowcase sellers={featuredSellers} />
+        </Suspense>
       </FadeInView>
 
-      <TrustBadges />
-
       <FadeInView>
-        <DeliveryProcess />
+        <Suspense fallback={<Skeleton className="h-48 w-full rounded-2xl" />}>
+          <DeliveryProcess />
+        </Suspense>
       </FadeInView>
 
       {/* Bottom CTA */}
