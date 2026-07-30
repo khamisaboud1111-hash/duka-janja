@@ -4,14 +4,9 @@ import QuickActionsCard from '@/components/home/QuickActionsCard'
 import CategoryShowcase from '@/components/home/CategoryShowcase'
 import TrustBadges from '@/components/home/TrustBadges'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
-import ZanzibarDiscovery from '@/components/home/ZanzibarDiscovery'
 import DeliveryProcess from '@/components/home/DeliveryProcess'
-import ReviewsSection from '@/components/home/ReviewsSection'
-import MarketplaceMapSection from '@/components/home/MarketplaceMapSection'
-import type { SellerPin } from '@/components/home/LeafletMarketplaceMap'
 import { FadeInView } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
-import type { HomeStats } from '@/components/home/HeroSection'
 import type { Product, Category } from '@/types'
 import Link from 'next/link'
 
@@ -82,53 +77,21 @@ async function getRecentProducts() {
   }
 }
 
-async function getRecentReviews() {
-  try {
-    const supabase = createServerClient()
-    const { data } = await supabase
-      .from('reviews')
-      .select(`*, buyer:profiles(full_name, avatar_url), product:products(name, slug)`)
-      .order('created_at', { ascending: false })
-      .limit(3)
-    return (data ?? []) as any[]
-  } catch {
-    return []
-  }
-}
-
-async function getSellerPins(): Promise<SellerPin[]> {
-  try {
-    const supabase = createServerClient()
-    const { data } = await supabase
-      .from('sellers')
-      .select('id, store_name, store_slug, logo_url, average_rating, location_label, latitude, longitude')
-      .eq('status', 'approved')
-      .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
-      .limit(50)
-    return (data ?? []) as SellerPin[]
-  } catch {
-    return []
-  }
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export default async function MarketplaceHomePage() {
-  const [categories, stats, featuredSellers, recentProducts, reviews, pins] = await Promise.all([
+  const [categories, stats, featuredSellers, recentProducts, reviews] = await Promise.all([
     getCategories(),
     getStats(),
     getFeaturedSellers(),
     getRecentProducts(),
     getRecentReviews(),
-    getSellerPins(),
   ])
 
   return (
     <>
       <HeroSection stats={stats} />
-      <QuickActionsCard pins={pins} />
-      <TrustBadges />
+      <QuickActionsCard pins={[]} />
 
       {categories.length > 0 && (
         <FadeInView>
@@ -140,31 +103,20 @@ export default async function MarketplaceHomePage() {
         <FadeInView>
           <section className="section dark:bg-ink-950">
             <div className="page-container">
-              <div className="flex items-end justify-between mb-5">
+              <div className="flex items-end justify-between mb-4">
                 <div>
-                  <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white">
+                  <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">
                     Bidhaa Mpya
                   </h2>
-                  <p className="text-sm text-ink-500 dark:text-ink-300 mt-1">
-                    Bidhaa mpya zilizoongezwa hivi karibuni
-                  </p>
                 </div>
-                <Link
-                  href="/search?sort=newest"
-                  className="hidden sm:inline-flex items-center gap-1 text-sm text-brand-600 dark:text-brand-300 font-semibold hover:gap-2 transition-all"
-                >
-                  Tazama Zote →
+                <Link href="/search?sort=newest" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
+                  Zote →
                 </Link>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                {recentProducts.map((product) => (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                {recentProducts.slice(0, 4).map((product) => (
                   <ProductCard key={product.id} product={product} />
                 ))}
-              </div>
-              <div className="mt-6 text-center sm:hidden">
-                <Link href="/search?sort=newest" className="btn-secondary text-sm">
-                  Tazama Zote →
-                </Link>
               </div>
             </div>
           </section>
@@ -174,51 +126,32 @@ export default async function MarketplaceHomePage() {
       <FadeInView>
         <FeaturedSellersShowcase sellers={featuredSellers} />
       </FadeInView>
-      <FadeInView>
-        <ZanzibarDiscovery />
-      </FadeInView>
+
+      <TrustBadges />
+
       <FadeInView>
         <DeliveryProcess />
       </FadeInView>
 
-      {reviews.length > 0 && (
-        <FadeInView>
-          <ReviewsSection reviews={reviews} />
-        </FadeInView>
-      )}
-      {pins.length > 0 && (
-        <FadeInView>
-          <MarketplaceMapSection pins={pins} />
-        </FadeInView>
-      )}
-
       {/* Bottom CTA */}
-      <FadeInView direction="none">
-        <section className="bg-gradient-to-r from-brand-500 to-brand-600 py-12 sm:py-16">
-          <div className="page-container text-center">
-            <h2 className="font-display font-black text-2xl sm:text-3xl text-white mb-3">
-              Anza Kununua na Kuuza Leo!
-            </h2>
-            <p className="text-white/85 text-sm sm:text-base mb-6 max-w-md mx-auto">
-              Jiunge na maelfu ya Wazanzibari wanaotumia Duka Janja — soko la kuaminika la mtandaoni.
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <Link
-                href="/register"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-600 font-bold rounded-xl hover:bg-brand-50 transition-colors shadow-lg"
-              >
-                Fungua Akaunti Bure
-              </Link>
-              <Link
-                href="/search"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl hover:bg-white/25 transition-colors border border-white/30"
-              >
-                Vinjari Bidhaa
-              </Link>
-            </div>
+      <section className="bg-gradient-to-r from-brand-500 to-brand-600 py-10">
+        <div className="page-container text-center">
+          <h2 className="font-display font-black text-xl sm:text-2xl text-white mb-2">
+            Anza Kununua na Kuuza Leo!
+          </h2>
+          <p className="text-white/85 text-sm mb-5 max-w-sm mx-auto">
+            Jiunge na maelfu ya Wazanzibari wanaotumia Duka Janja.
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Link href="/register" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-colors shadow-lg">
+              Fungua Akaunti Bure
+            </Link>
+            <Link href="/search" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-colors border border-white/30">
+              Vinjari Bidhaa
+            </Link>
           </div>
-        </section>
-      </FadeInView>
+        </div>
+      </section>
     </>
   )
 }
