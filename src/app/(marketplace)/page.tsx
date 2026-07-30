@@ -1,5 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server'
-import HeroSection from '@/components/home/HeroSection'
+import HeroSection, { type HomeStats } from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
 import CategoryShowcase from '@/components/home/CategoryShowcase'
 import TrustBadges from '@/components/home/TrustBadges'
