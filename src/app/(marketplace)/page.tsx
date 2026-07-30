@@ -80,12 +80,11 @@ async function getRecentProducts() {
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export default async function MarketplaceHomePage() {
-  const [categories, stats, featuredSellers, recentProducts, reviews] = await Promise.all([
+  const [categories, stats, featuredSellers, recentProducts] = await Promise.all([
     getCategories(),
     getStats(),
     getFeaturedSellers(),
     getRecentProducts(),
-    getRecentReviews(),
   ])
 
   return (
