@@ -8,13 +8,13 @@
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-    --primary: 24 95% 53%; /* Vibrant East African Marketplace Orange */
+    --primary: 24 95% 53%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 43 96% 56%; /* Kikoi Gold Accent */
+    --accent: 43 96% 56%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -44,25 +44,14 @@
     --ring: 24 95% 53%;
   }
 
-  * {
-    @apply border-border;
-  }
-
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-feature-settings: "rlig" 1, "calt" 1;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     background: hsl(var(--muted-foreground) / 0.3);
     border-radius: 3px;
@@ -75,13 +64,10 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
 }
 
 @layer components {
-  /* === Layout === */
   .page-container {
     @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
   }
@@ -90,108 +76,115 @@
     @apply py-10 sm:py-14;
   }
 
-  /* === Card === */
   .card {
-    @apply rounded-2xl border border-ink-200 bg-white shadow-card transition-all duration-200;
+    @apply rounded-2xl border bg-white shadow-card transition-all duration-200;
+    border-color: #e2e8f0;
   }
   .dark .card {
-    @apply border-ink-800 bg-ink-900;
+    border-color: #1e293b;
+    background-color: #0f172a;
   }
 
-  /* === Form Elements === */
   .input {
-    @apply w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink-900
-           placeholder:text-ink-400 transition-colors duration-150
-           focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500;
+    @apply w-full rounded-xl border px-4 py-2.5 text-sm text-ink-900
+           placeholder:text-slate-400 transition-colors duration-150
+           focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500;
+    border-color: #e2e8f0;
+    background-color: #ffffff;
   }
   .dark .input {
-    @apply border-ink-700 bg-ink-800 text-white placeholder:text-ink-500
-           focus:ring-brand-400/30 focus:border-brand-400;
+    border-color: #334155;
+    background-color: #1e293b;
+    color: #ffffff;
   }
+  .dark .input::placeholder { color: #64748b; }
 
   .label {
-    @apply block text-sm font-semibold text-ink-700 mb-1.5;
+    @apply block text-sm font-semibold mb-1.5;
+    color: #334155;
   }
-  .dark .label {
-    @apply text-ink-300;
-  }
+  .dark .label { color: #cbd5e1; }
 
-  /* === Buttons === */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5
            text-sm font-semibold text-white shadow-sm transition-all duration-150
-           hover:bg-brand-600 hover:shadow-glow-brand active:scale-[0.97] active:bg-brand-700
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2
+           hover:shadow-glow-brand active:scale-[0.97]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2
            disabled:pointer-events-none disabled:opacity-50;
+    background-color: #14b8a6;
   }
-  .dark .btn-primary {
-    @apply focus-visible:ring-offset-ink-950;
-  }
+  .btn-primary:hover { background-color: #0d9488; }
+  .btn-primary:active { background-color: #0f766e; }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-ink-100 px-5 py-2.5
-           text-sm font-semibold text-ink-700 transition-all duration-150
-           hover:bg-ink-200 active:scale-[0.97] active:bg-ink-300
-           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink-400 focus-visible:ring-offset-2
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5
+           text-sm font-semibold transition-all duration-150 active:scale-[0.97]
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2
            disabled:pointer-events-none disabled:opacity-50;
+    background-color: #f1f5f9;
+    color: #334155;
   }
+  .btn-secondary:hover { background-color: #e2e8f0; }
+  .btn-secondary:active { background-color: #cbd5e1; }
   .dark .btn-secondary {
-    @apply bg-ink-800 text-ink-100 hover:bg-ink-700 active:bg-ink-600;
+    background-color: #1e293b;
+    color: #f1f5f9;
   }
+  .dark .btn-secondary:hover { background-color: #334155; }
+  .dark .btn-secondary:active { background-color: #475569; }
 
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-red-500 px-5 py-2.5
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5
            text-sm font-semibold text-white shadow-sm transition-all duration-150
            hover:bg-red-600 active:scale-[0.97] active:bg-red-700
            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2
            disabled:pointer-events-none disabled:opacity-50;
+    background-color: #ef4444;
   }
 
-  /* === Badges === */
   .badge {
     @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
   }
   .badge-orange {
-    @apply badge bg-spice-100 text-spice-700;
+    @apply badge;
+    background-color: #ffedd5;
+    color: #c2410c;
   }
   .badge-gray {
-    @apply badge bg-ink-100 text-ink-600;
+    @apply badge;
+    background-color: #f1f5f9;
+    color: #475569;
   }
   .dark .badge-gray {
-    @apply bg-ink-800 text-ink-300;
+    background-color: #1e293b;
+    color: #cbd5e1;
   }
 
-  /* === Product Image === */
   .product-image-container {
-    @apply relative aspect-square overflow-hidden bg-ink-50;
+    @apply relative aspect-square overflow-hidden;
+    background-color: #f8fafc;
   }
   .dark .product-image-container {
-    @apply bg-ink-800/50;
+    background-color: rgba(30, 41, 59, 0.5);
   }
 
-  /* === Quick Action Tiles === */
   .quick-action-tile {
-    @apply bg-white/90 backdrop-blur-sm border border-white/20;
+    @apply flex flex-col items-center justify-center gap-1 p-3 rounded-xl
+           transition-all duration-200 hover:-translate-y-1 hover:shadow-lg active:scale-95;
+    background-color: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
   }
-  .quick-action-tile-icon {
-    @apply text-brand-500;
-  }
-  .icon-tile {
-    @apply bg-white;
-  }
-  .dark .icon-tile {
-    @apply bg-ink-900;
-  }
-  .icon-tile-icon {
-    @apply text-ink-500;
-  }
+  .quick-action-tile-icon { color: #14b8a6; }
+  .icon-tile { background-color: #ffffff; }
+  .dark .icon-tile { background-color: #0f172a; }
+  .icon-tile-icon { color: #64748b; }
 
-  /* === Safe Area === */
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  /* === Glass Card === */
   .glass-card {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(12px);
@@ -207,14 +200,5 @@
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .bg-grid {
-    background-image:
-      linear-gradient(to right, hsl(var(--border) / 0.3) 1px, transparent 1px),
-      linear-gradient(to bottom, hsl(var(--border) / 0.3) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
+  .text-balance { text-wrap: balance; }
 }

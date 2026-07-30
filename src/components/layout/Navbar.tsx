@@ -32,15 +32,15 @@ export default function Navbar({ categories = [] }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 glass-card border-b transition-all duration-300 bg-background/80 backdrop-blur-md">
+    <header className="sticky top-0 z-50 glass-card border-b transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          
+
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
-            <button 
+            <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-foreground hover:bg-muted"
+              className="lg:hidden p-2 rounded-lg text-ink-900 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800"
               aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -63,12 +63,12 @@ export default function Navbar({ categories = [] }: NavbarProps) {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search millions of products, verified stores & brands..."
-                className="w-full bg-muted/50 border border-input rounded-full py-2.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary shadow-inner transition-all"
+                className="w-full bg-ink-100/50 dark:bg-ink-800/50 border border-ink-200 dark:border-ink-700 rounded-full py-2.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-inner transition-all"
               />
-              <Search className="absolute left-4 top-3 w-4 h-4 text-muted-foreground" />
-              <button 
+              <Search className="absolute left-4 top-3 w-4 h-4 text-ink-400 dark:text-ink-500" />
+              <button
                 type="submit"
-                className="absolute right-1.5 top-1.5 bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-xs font-medium hover:opacity-90 transition-opacity"
+                className="absolute right-1.5 top-1.5 bg-brand-500 text-white px-4 py-1.5 rounded-full text-xs font-medium hover:opacity-90 transition-opacity"
               >
                 Search
               </button>
@@ -77,21 +77,21 @@ export default function Navbar({ categories = [] }: NavbarProps) {
 
           {/* Quick Actions & Navigation Shortcuts */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link href="/wishlist" className="p-2.5 rounded-full hover:bg-muted text-foreground relative" aria-label="Wishlist">
+            <Link href="/wishlist" className="p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label="Wishlist">
               <Heart className="w-5 h-5" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+              <span className="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full"></span>
             </Link>
 
-            <Link href="/checkout" className="p-2.5 rounded-full hover:bg-muted text-foreground relative" aria-label="Cart">
+            <Link href="/checkout" className="p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label="Cart">
               <ShoppingCart className="w-5 h-5" />
             </Link>
 
-            <Link href="/notifications" className="hidden sm:flex p-2.5 rounded-full hover:bg-muted text-foreground relative" aria-label="Notifications">
+            <Link href="/notifications" className="hidden sm:flex p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label="Notifications">
               <Bell className="w-5 h-5" />
             </Link>
 
-            <Link href="/settings" className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-2 rounded-full hover:bg-muted border border-border">
-              <User className="w-5 h-5 text-primary" />
+            <Link href="/settings" className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-2 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 border border-ink-200 dark:border-ink-700">
+              <User className="w-5 h-5 text-brand-500" />
               <span className="hidden lg:inline text-xs font-medium">Account</span>
             </Link>
           </div>
@@ -100,13 +100,13 @@ export default function Navbar({ categories = [] }: NavbarProps) {
 
       {/* Optional: Render category pills if provided */}
       {categories.length > 0 && (
-        <div className="hidden lg:flex items-center gap-4 px-8 py-2 border-t border-border/40 bg-muted/20 text-xs overflow-x-auto">
-          <span className="font-semibold text-muted-foreground uppercase tracking-wider">Categories:</span>
+        <div className="hidden lg:flex items-center gap-4 px-8 py-2 border-t border-ink-200/40 dark:border-ink-700/40 bg-ink-100/20 dark:bg-ink-800/20 text-xs overflow-x-auto">
+          <span className="font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider">Categories:</span>
           {categories.map((cat) => (
-            <Link 
-              key={cat.id} 
+            <Link
+              key={cat.id}
               href={`/category/${cat.slug || cat.id}`}
-              className="hover:text-primary transition-colors whitespace-nowrap"
+              className="hover:text-brand-500 transition-colors whitespace-nowrap"
             >
               {cat.name}
             </Link>
@@ -131,15 +131,15 @@ export default function Navbar({ categories = [] }: NavbarProps) {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full bg-muted border border-input rounded-full py-2.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full bg-ink-100 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-full py-2.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
-                <Search className="absolute left-4 top-3 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-4 top-3 w-4 h-4 text-ink-400 dark:text-ink-500" />
               </form>
               <div className="flex flex-col space-y-2 pt-2">
-                <Link href="/" className="px-3 py-2 rounded-lg hover:bg-muted text-sm font-medium">Home</Link>
-                <Link href="/search" className="px-3 py-2 rounded-lg hover:bg-muted text-sm font-medium">Explore Products</Link>
-                <Link href="/orders" className="px-3 py-2 rounded-lg hover:bg-muted text-sm font-medium">My Orders</Link>
-                <Link href="/notifications" className="px-3 py-2 rounded-lg hover:bg-muted text-sm font-medium">Notifications</Link>
+                <Link href="/" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">Home</Link>
+                <Link href="/search" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">Explore Products</Link>
+                <Link href="/orders" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">My Orders</Link>
+                <Link href="/notifications" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">Notifications</Link>
               </div>
             </div>
           </motion.div>
