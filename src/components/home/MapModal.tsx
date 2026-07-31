@@ -1,12 +1,13 @@
 'use client'
 
 import dynamic from 'next/dynamic'
+import { useEffect, useRef } from 'react'
 import { X, MapPin } from 'lucide-react'
-import type { SellerPin } from './LeafletMarketplaceMap'
+import type { SellerPin, LeafletMapHandle } from './LeafletMarketplaceMap'
 
 const LeafletMarketplaceMap = dynamic(() => import('./LeafletMarketplaceMap'), {
   ssr: false,
-  loading: () => <div className="w-full h-full bg-ink-100 dark:bg-ink-800 animate-pulse" />,
+  loading: () => <div className="w-full h-full bg-sky-100 dark:bg-ink-800 animate-pulse" />,
 })
 
 export default function MapModal({
@@ -18,12 +19,24 @@ export default function MapModal({
   open: boolean
   onClose: () => void
 }) {
-  if (!open) return null
+  const mapApiRef = useRef<LeafletMapHandle | null>(null)
+
+  // The map stays mounted the whole time (only the overlay is hidden), so it
+  // initializes + warms its tiles once. On open we just refresh its size and
+  // fly to Zanzibar — it appears instantly instead of rebuilding from scratch.
+  useEffect(() => {
+    if (!open) return
+    const t = setTimeout(() => mapApiRef.current?.refresh(), 150)
+    return () => clearTimeout(t)
+  }, [open])
 
   return (
     <div
-      className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center"
+      className={`fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm items-end sm:items-center justify-center ${
+        open ? 'flex' : 'hidden'
+      }`}
       onClick={onClose}
+      aria-hidden={!open}
     >
       <div
         className="bg-white dark:bg-ink-900 w-full sm:max-w-2xl sm:rounded-2xl rounded-t-2xl h-[85vh] sm:h-[620px] flex flex-col overflow-hidden shadow-modal"
@@ -42,7 +55,7 @@ export default function MapModal({
           </button>
         </div>
         <div className="flex-1 p-3 min-h-0">
-          <LeafletMarketplaceMap pins={pins} />
+          <LeafletMarketplaceMap ref={mapApiRef} pins={pins} />
         </div>
       </div>
     </div>

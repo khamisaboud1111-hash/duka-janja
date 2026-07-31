@@ -7,7 +7,7 @@ import type { SellerPin } from './LeafletMarketplaceMap'
 const LeafletMarketplaceMap = dynamic(() => import('./LeafletMarketplaceMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[380px] sm:h-[460px] rounded-2xl bg-ink-100 dark:bg-ink-800 animate-pulse" />
+    <div className="w-full h-[380px] sm:h-[460px] rounded-2xl bg-gradient-to-b from-sky-200 to-sky-100 animate-pulse" />
   ),
 })
 

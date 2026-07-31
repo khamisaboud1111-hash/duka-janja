@@ -94,7 +94,7 @@ export default async function MarketplaceHomePage() {
 
       {/* Interactive marketplace map — fully navigable, zoom/pan/scroll */}
       <FadeInView>
-        <Suspense fallback={<Skeleton className="h-[380px] sm:h-[460px] rounded-2xl" />}>
+        <Suspense fallback={<div className="h-[380px] sm:h-[460px] rounded-2xl bg-gradient-to-b from-sky-200 to-sky-100 animate-pulse" />}>
           <MarketplaceMapSection pins={[]} />
         </Suspense>
       </FadeInView>
