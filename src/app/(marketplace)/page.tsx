@@ -4,7 +4,6 @@ import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
 import TrustBadges from '@/components/home/TrustBadges'
 import GetStartedSteps from '@/components/home/GetStartedSteps'
-import MarketplaceMapSection from '@/components/home/MarketplaceMapSection'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
 import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
@@ -91,13 +90,6 @@ export default async function MarketplaceHomePage() {
 
       {/* Get Started — staged onboarding for new visitors */}
       <GetStartedSteps />
-
-      {/* Interactive marketplace map — fully navigable, zoom/pan/scroll */}
-      <FadeInView>
-        <Suspense fallback={<div className="h-[380px] sm:h-[460px] rounded-2xl bg-gradient-to-b from-sky-200 to-sky-100 animate-pulse" />}>
-          <MarketplaceMapSection pins={[]} />
-        </Suspense>
-      </FadeInView>
 
       {recentProducts.length > 0 && (
         <FadeInView>
