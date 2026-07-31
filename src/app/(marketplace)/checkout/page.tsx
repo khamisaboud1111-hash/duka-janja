@@ -10,22 +10,34 @@ import { Trash2, Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
 import { useCartStore, useLangStore } from '@/store'
 import { createClient } from '@/lib/supabase/client'
 import { formatTZS, DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider } from '@/utils'
-import { t } from '@/i18n/translations'
+import { t, type Language } from '@/i18n/translations'
 import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 
 const schema = z.object({
-  delivery_name:    z.string().min(2, 'Jina linahitajika'),
-  delivery_phone:   z.string().min(10, 'Nambari ya simu inahitajika'),
-  delivery_zone:    z.string().min(1, 'Chagua eneo'),
-  delivery_address: z.string().min(5, 'Anwani inahitajika'),
-  payment_method:   z.string().min(1, 'Chagua njia ya malipo'),
+  delivery_name:    z.string(),
+  delivery_phone:   z.string(),
+  delivery_zone:    z.string(),
+  delivery_address: z.string(),
+  payment_method:   z.string(),
   payment_reference: z.string().optional(),
   notes:            z.string().optional(),
 })
 
 type FormData = z.infer<typeof schema>
+
+function makeSchema(lang: Language) {
+  return z.object({
+    delivery_name:    z.string().min(2, t('nameRequired', lang)),
+    delivery_phone:   z.string().min(10, t('phoneRequired', lang)),
+    delivery_zone:    z.string().min(1, t('selectZoneRequired', lang)),
+    delivery_address: z.string().min(5, t('addressRequired', lang)),
+    payment_method:   z.string().min(1, t('paymentMethodRequired', lang)),
+    payment_reference: z.string().optional(),
+    notes:            z.string().optional(),
+  })
+}
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -35,7 +47,7 @@ export default function CheckoutPage() {
   const [success, setSuccess] = useState<string | null>(null)
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(makeSchema(lang)),
     defaultValues: { payment_method: 'mpesa' }
   })
 
@@ -78,7 +90,7 @@ export default function CheckoutPage() {
       .single()
 
     if (orderError || !order) {
-      toast.error('Hitilafu: ' + (orderError?.message ?? 'Unknown'))
+      toast.error(`${t('error', lang)}: ${orderError?.message ?? 'Unknown'}`)
       setSubmitting(false)
       return
     }
@@ -175,9 +187,9 @@ export default function CheckoutPage() {
         return // page is navigating away, nothing else to do
       }
 
-      toast.error(json.error ?? 'Imeshindikana kuanzisha malipo. Agizo limewekwa — unaweza kulipa baadaye kwenye ukurasa wa agizo.')
+      toast.error(t('paymentInitError', lang))
     } catch {
-      toast.error('Hitilafu ya mtandao. Agizo limewekwa — unaweza kulipa baadaye kwenye ukurasa wa agizo.')
+      toast.error(t('networkError', lang))
     }
 
     setSuccess(order.id)
@@ -189,14 +201,14 @@ export default function CheckoutPage() {
       <div className="page-container py-16 text-center">
         <div className="max-w-sm mx-auto">
           <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-          <h1 className="font-display font-black text-2xl text-ink-900 mb-2">Agizo limewekwa! 🎉</h1>
-          <p className="text-ink-500 text-sm mb-6">Tutakupigia simu hivi karibuni ili kuthibitisha agizo lako.</p>
+          <h1 className="font-display font-black text-2xl text-ink-900 mb-2">{t('orderPlaced', lang)} 🎉</h1>
+          <p className="text-ink-500 text-sm mb-6">{t('willCallToConfirm', lang)}</p>
           <div className="flex flex-col gap-3">
             <Link href={`/orders/${success}`} className="btn-primary justify-center">
-              Fuatilia agizo lako
+              {t('trackOrder', lang)}
             </Link>
             <Link href="/" className="btn-secondary justify-center">
-              Endelea kununua
+              {t('continueShopping', lang)}
             </Link>
           </div>
         </div>
@@ -208,8 +220,8 @@ export default function CheckoutPage() {
     return (
       <div className="page-container py-16 text-center">
         <Package className="w-12 h-12 text-ink-300 mx-auto mb-4" />
-        <h2 className="font-semibold text-ink-700 mb-2">Kikapu chako kiko wazi</h2>
-        <Link href="/" className="btn-primary mt-4 inline-flex">Anza kununua</Link>
+        <h2 className="font-semibold text-ink-700 mb-2">{t('emptyCart', lang)}</h2>
+        <Link href="/" className="btn-primary mt-4 inline-flex">{t('startShopping', lang)}</Link>
       </div>
     )
   }
@@ -217,7 +229,7 @@ export default function CheckoutPage() {
   return (
     <main className="pb-20 sm:pb-8">
       <div className="page-container py-4 sm:py-8">
-        <h1 className="font-display font-black text-2xl text-ink-900 mb-6">Checkout</h1>
+        <h1 className="font-display font-black text-2xl text-ink-900 mb-6">{t('checkout', lang)}</h1>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
           {/* Cart items (left) */}
@@ -227,7 +239,7 @@ export default function CheckoutPage() {
             <div className="card p-4">
               <h2 className="font-semibold text-ink-800 mb-4 flex items-center gap-2">
                 <Package className="w-4 h-4" />
-                Bidhaa ({items.length})
+                {t('products', lang)} ({items.length})
               </h2>
               <div className="space-y-4 divide-y divide-ink-100">
                 {items.map(({ product, quantity }) => {
@@ -262,36 +274,36 @@ export default function CheckoutPage() {
             <div className="card p-4">
               <h2 className="font-semibold text-ink-800 mb-4 flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Maelezo ya utoaji
+                {t('deliveryDetails', lang)}
               </h2>
               <div className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label">Jina kamili</label>
-                    <input {...register('delivery_name')} className="input" placeholder="Jina lako" />
+                    <label className="label">{t('fullName', lang)}</label>
+                    <input {...register('delivery_name')} className="input" placeholder={t('yourName', lang)} />
                     {errors.delivery_name && <p className="text-xs text-red-500 mt-1">{errors.delivery_name.message}</p>}
                   </div>
                   <div>
-                    <label className="label">Nambari ya simu</label>
+                    <label className="label">{t('phone', lang)}</label>
                     <input {...register('delivery_phone')} className="input" placeholder="255..." />
                     {errors.delivery_phone && <p className="text-xs text-red-500 mt-1">{errors.delivery_phone.message}</p>}
                   </div>
                 </div>
                 <div>
-                  <label className="label">Eneo la utoaji</label>
+                  <label className="label">{t('selectZone', lang)}</label>
                   <select {...register('delivery_zone')} className="input">
-                    <option value="">-- Chagua eneo --</option>
+                    <option value="">{t('chooseZone', lang)}</option>
                     {Object.entries(DELIVERY_ZONES).map(([key, zone]) => (
                       <option key={key} value={key}>
-                        {zone.nameSw} — {formatTZS(zone.fee)} ({zone.days} siku)
+                        {lang === 'sw' ? zone.nameSw : zone.nameEn} — {formatTZS(zone.fee)} ({zone.days} {t('days', lang)})
                       </option>
                     ))}
                   </select>
                   {errors.delivery_zone && <p className="text-xs text-red-500 mt-1">{errors.delivery_zone.message}</p>}
                 </div>
                 <div>
-                  <label className="label">Anwani kamili ya utoaji</label>
-                  <textarea {...register('delivery_address')} rows={2} className="input resize-none" placeholder="Mtaa, karibu na alama gani..." />
+                  <label className="label">{t('deliveryAddress', lang)}</label>
+                  <textarea {...register('delivery_address')} rows={2} className="input resize-none" placeholder={t('addressPlaceholder', lang)} />
                   {errors.delivery_address && <p className="text-xs text-red-500 mt-1">{errors.delivery_address.message}</p>}
                 </div>
               </div>
@@ -301,7 +313,7 @@ export default function CheckoutPage() {
             <div className="card p-4">
               <h2 className="font-semibold text-ink-800 mb-4 flex items-center gap-2">
                 <CreditCard className="w-4 h-4" />
-                Njia ya malipo
+                {t('paymentMethod', lang)}
               </h2>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 {PAYMENT_METHODS.map((pm) => {
@@ -316,12 +328,12 @@ export default function CheckoutPage() {
                 })}
               </div>
               <div>
-                <label className="label">Nambari ya malipo / Reference (hiari)</label>
-                <input {...register('payment_reference')} className="input" placeholder="Nambari ya M-Pesa..." />
+                <label className="label">{t('paymentReference', lang)}</label>
+                <input {...register('payment_reference')} className="input" placeholder={t('paymentReferencePlaceholder', lang)} />
               </div>
               <div className="mt-3">
-                <label className="label">Maelezo mengine (hiari)</label>
-                <textarea {...register('notes')} rows={2} className="input resize-none" placeholder="Maagizo maalum..." />
+                <label className="label">{t('additionalNotes', lang)}</label>
+                <textarea {...register('notes')} rows={2} className="input resize-none" placeholder={t('notesPlaceholder', lang)} />
               </div>
             </div>
           </div>
@@ -329,18 +341,18 @@ export default function CheckoutPage() {
           {/* Order summary (right) */}
           <div className="lg:col-span-2">
             <div className="card p-4 sticky top-20">
-              <h2 className="font-semibold text-ink-800 mb-4">Muhtasari wa agizo</h2>
+              <h2 className="font-semibold text-ink-800 mb-4">{t('orderSummary', lang)}</h2>
               <div className="space-y-2 text-sm mb-4">
                 <div className="flex justify-between text-ink-700">
-                  <span>Jumla ya bidhaa</span>
+                  <span>{t('subtotal', lang)}</span>
                   <span>{formatTZS(subtotal())}</span>
                 </div>
                 <div className="flex justify-between text-ink-700">
-                  <span>Ada ya usafirishaji</span>
+                  <span>{t('deliveryFee', lang)}</span>
                   <span>{deliveryFee > 0 ? formatTZS(deliveryFee) : '—'}</span>
                 </div>
                 <div className="border-t border-ink-100 pt-2 mt-2 flex justify-between font-bold text-ink-900 text-base">
-                  <span>Jumla</span>
+                  <span>{t('total', lang)}</span>
                   <span>{formatTZS(total)}</span>
                 </div>
               </div>
@@ -349,10 +361,10 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className="btn-primary w-full justify-center py-3 text-base"
               >
-                {submitting ? 'Inaweka agizo...' : 'Weka agizo'}
+                {submitting ? t('placingOrder', lang) : t('placeOrder', lang)}
               </button>
               <p className="text-xs text-ink-400 text-center mt-3">
-                Tutakupigia simu ili kuthibitisha malipo yako
+                {t('callToConfirmPayment', lang)}
               </p>
             </div>
           </div>

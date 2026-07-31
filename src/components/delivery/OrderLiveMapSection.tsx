@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import LiveDeliveryMap from './LiveDeliveryMap'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 
 interface ActiveOrderDelivery {
   delivery_id: string
@@ -21,6 +23,7 @@ interface ActiveOrderDelivery {
  */
 export default function OrderLiveMapSection({ orderId }: { orderId: string }) {
   const supabase = createClient()
+  const lang = useLangStore((s) => s.lang)
   const [delivery, setDelivery] = useState<ActiveOrderDelivery | null>(null)
   const [riderLocation, setRiderLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [loading, setLoading] = useState(true)
@@ -57,7 +60,7 @@ export default function OrderLiveMapSection({ orderId }: { orderId: string }) {
 
   return (
     <div className="mt-4">
-     <h2 className="font-semibold text-sm text-ink-800 dark:text-ink-100 mb-2">Fuatilia Dereva Wako</h2>
+     <h2 className="font-semibold text-sm text-ink-800 dark:text-ink-100 mb-2">{t('trackYourRider', lang)}</h2>
       <LiveDeliveryMap
         deliveryId={delivery.delivery_id}
         pickupLocation={{ lat: delivery.pickup_lat, lng: delivery.pickup_lng }}

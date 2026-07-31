@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { BadgeCheck, Star, Package, MessageCircle, MapPin, TrendingUp } from 'lucide-react'
 import KikoiStripe from '@/components/shared/KikoiStripe'
 import ProductCard from '@/components/product/ProductCard'
+import LText from '@/components/shared/LText'
 import { whatsappUrl } from '@/utils'
 import type { Metadata } from 'next'
 
@@ -77,17 +78,17 @@ export default async function SellerStorePage({ params }: Props) {
               </div>
               {seller.national_id_verified && (
                 <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-500/15 ring-1 ring-brand-500/20 px-2 py-0.5 rounded-full mt-1">
-                  ✓ Muuzaji Aliyethibitishwa
+                  ✓ <LText k="verifiedSellerLabel" />
                 </span>
               )}
               <div className="flex items-center gap-3 text-sm text-ink-500 dark:text-ink-400 mt-0.5 flex-wrap">
                 <span className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  {seller.average_rating.toFixed(1)} ({seller.review_count} maoni)
+                  {seller.average_rating.toFixed(1)} ({seller.review_count} <LText k="reviews" />)
                 </span>
                 <span className="flex items-center gap-1">
                   <Package className="w-3.5 h-3.5" />
-                  Mauzo {seller.total_sales}
+                  <LText k="sales" /> {seller.total_sales}
                 </span>
                 {seller.location_area && (
                   <span className="flex items-center gap-1">
@@ -114,11 +115,11 @@ export default async function SellerStorePage({ params }: Props) {
         {/* Stats strip */}
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
-            { label: 'Bidhaa', value: products.length, icon: Package },
-            { label: 'Mauzo', value: seller.total_sales.toLocaleString(), icon: TrendingUp },
-            { label: 'Ukadiriaji', value: `${seller.average_rating.toFixed(1)} ★`, icon: Star },
-          ].map((s) => (
-            <div key={s.label} className="card dark:bg-ink-900 dark:border-ink-800 p-3 text-center">
+            { label: <LText k="products" />, value: products.length, icon: Package },
+            { label: <LText k="sales" />, value: seller.total_sales.toLocaleString(), icon: TrendingUp },
+            { label: <LText k="rating" />, value: `${seller.average_rating.toFixed(1)} ★`, icon: Star },
+          ].map((s, i) => (
+            <div key={i} className="card dark:bg-ink-900 dark:border-ink-800 p-3 text-center">
               <p className="font-black text-lg text-ink-900 dark:text-white">{s.value}</p>
               <p className="text-xs text-ink-500 dark:text-ink-400">{s.label}</p>
             </div>
@@ -127,13 +128,13 @@ export default async function SellerStorePage({ params }: Props) {
 
         {/* Products */}
         <h2 className="font-display font-bold text-lg text-ink-900 dark:text-white mb-4">
-          Bidhaa za {seller.store_name} ({products.length})
+          <LText k="productsOf" /> {seller.store_name} ({products.length})
         </h2>
 
         {products.length === 0 ? (
           <div className="card dark:bg-ink-900 dark:border-ink-800 p-12 text-center">
             <Package className="w-8 h-8 text-ink-300 dark:text-ink-600 mx-auto mb-3" />
-            <p className="text-ink-500 dark:text-ink-400 text-sm">Duka hili halina bidhaa bado</p>
+            <p className="text-ink-500 dark:text-ink-400 text-sm"><LText k="noProductsInStore" /></p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">

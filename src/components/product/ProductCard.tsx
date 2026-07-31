@@ -34,7 +34,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
     e.preventDefault()
     e.stopPropagation()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { toast.error(lang === 'sw' ? 'Ingia kwanza' : 'Please log in first'); return }
+    if (!user) { toast.error(t('loginFirst', lang)); return }
 
     setWishlistLoading(true)
     if (wishlisted) {
@@ -56,7 +56,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
     addItem(product)
     setJustAdded(true)
     setTimeout(() => setJustAdded(false), 900)
-    toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`)
+    toast.success(`${product.name} ${t('addedToCart', lang)}`)
   }
 
   return (
@@ -86,7 +86,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             {product.is_made_in_zanzibar && (
               <span className="badge bg-amber-100 text-amber-700 text-xs">
                 <span className="text-xs">🏅</span>
-                {lang === 'sw' ? 'Zanzibar' : 'Made in ZNZ'}
+                {t('madeInZanzibar', lang)}
               </span>
             )}
           </div>
@@ -110,13 +110,13 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             onClick={(e) => e.stopPropagation()}
             className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-ink-800 text-xs font-semibold shadow-sm"
           >
-            <Eye className="w-3.5 h-3.5" /> Tazama
+            <Eye className="w-3.5 h-3.5" /> {t('view', lang)}
           </Link>
 
           {/* Video / gallery indicators */}
           <div className="absolute bottom-2 right-2 flex items-center gap-1">
             {(product as any).videos?.length > 0 && (
-              <span className="w-6 h-6 rounded-full bg-black/55 flex items-center justify-center" aria-label="Video ipo">
+              <span className="w-6 h-6 rounded-full bg-black/55 flex items-center justify-center" aria-label={t('videoAvailable', lang)}>
                 <PlayCircle className="w-3.5 h-3.5 text-white" />
               </span>
             )}
@@ -160,13 +160,13 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
           <div className="flex items-center gap-1.5 mb-2">
             {product.stock_quantity > 0 ? (
               <span className={cn('text-xs font-medium', product.stock_quantity <= 5 ? 'text-spice-600' : 'text-brand-600 dark:text-brand-300')}>
-                {product.stock_quantity <= 5 ? `Vipo ${product.stock_quantity} tu` : t('inStock', lang)}
+                {product.stock_quantity <= 5 ? t('onlyLeft', lang).replace('{count}', String(product.stock_quantity)) : t('inStock', lang)}
               </span>
             ) : (
               <span className="text-xs font-medium text-ink-400">{t('outOfStock', lang)}</span>
             )}
             <span className="flex items-center gap-0.5 text-xs text-ink-400">
-              <Truck className="w-3 h-3" /> Inafikishwa
+              <Truck className="w-3 h-3" /> {t('delivers', lang)}
             </span>
           </div>
 

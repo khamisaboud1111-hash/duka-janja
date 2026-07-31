@@ -6,6 +6,7 @@ import { SlidersHorizontal, X, Search, Clock, TrendingUp } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { useProducts } from '@/hooks/useProducts'
 import { useLangStore } from '@/store'
+import { t, type Language } from '@/i18n/translations'
 import { createClient } from '@/lib/supabase/client'
 import { EmptyState } from '@/components/ui'
 import { Skeleton } from '@/components/ui/Card'
@@ -13,6 +14,10 @@ import type { Category } from '@/types'
 
 const RECENT_KEY = 'dj_recent_searches'
 const POPULAR_SEARCHES = ['Karafuu', 'Kanga', 'Mafuta ya Nazi', 'Vazi la Kiislamu', 'Vikapu vya Ukili']
+
+function catName(cat: Category, lang: Language) {
+  return lang === 'sw' ? cat.name_sw : cat.name_en
+}
 
 function getRecent(): string[] {
   if (typeof window === 'undefined') return []
@@ -111,7 +116,7 @@ export default function SearchPage() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={() => setSuggestOpen(true)}
-              placeholder={lang === 'sw' ? 'Tafuta bidhaa...' : 'Search products...'}
+              placeholder={t('search', lang)}
               className="input pl-9 w-full"
               autoComplete="off"
             />
@@ -133,10 +138,10 @@ export default function SearchPage() {
                 <div className="p-3 border-b border-ink-100 dark:border-ink-800">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" /> {lang === 'sw' ? 'Ulizosaka Hivi Karibuni' : 'Recent'}
+                      <Clock className="w-3.5 h-3.5" /> {t('recentSearches', lang)}
                     </p>
                     <button onClick={clearRecent} className="text-xs text-red-500 hover:underline">
-                      {lang === 'sw' ? 'Futa' : 'Clear'}
+                      {t('clear', lang)}
                     </button>
                   </div>
                   <div className="flex flex-wrap gap-1.5">
@@ -155,7 +160,7 @@ export default function SearchPage() {
 
               <div className="p-3 border-b border-ink-100 dark:border-ink-800">
                 <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-                  <TrendingUp className="w-3.5 h-3.5" /> {lang === 'sw' ? 'Zinazotafutwa Zaidi' : 'Popular Searches'}
+                  <TrendingUp className="w-3.5 h-3.5" /> {t('popularSearches', lang)}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {POPULAR_SEARCHES.map((p) => (
@@ -173,7 +178,7 @@ export default function SearchPage() {
               {categories.length > 0 && (
                 <div className="p-3">
                   <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">
-                    {lang === 'sw' ? 'Kategoria' : 'Categories'}
+                    {t('categories', lang)}
                   </p>
                   <div className="grid grid-cols-2 gap-1">
                     {categories.slice(0, 6).map((cat) => (
@@ -183,7 +188,7 @@ export default function SearchPage() {
                         className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors text-left"
                       >
                         <span>{cat.icon}</span>
-                        <span className="truncate">{cat.name_sw}</span>
+                        <span className="truncate">{catName(cat, lang)}</span>
                       </button>
                     ))}
                   </div>
@@ -201,7 +206,7 @@ export default function SearchPage() {
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />
-            <span className="hidden sm:inline">Chuja</span>
+            <span className="hidden sm:inline">{t('filter', lang)}</span>
           </button>
         </div>
 
@@ -209,10 +214,10 @@ export default function SearchPage() {
         {hasFilters && (
           <div className="flex flex-wrap gap-2 mb-4">
             {q && <FilterChip label={`"${q}"`} onRemove={() => setParam('q', null)} />}
-            {category && <FilterChip label={categories.find(c => c.slug === category)?.name_sw ?? category} onRemove={() => setParam('category', null)} />}
-            {madeInZnz && <FilterChip label="🏅 Imetengenezwa Zanzibar" onRemove={() => setParam('made_in_zanzibar', null)} />}
-            {sort !== 'newest' && <FilterChip label={sortLabel(sort)} onRemove={() => setParam('sort', null)} />}
-            <button onClick={clearAll} className="text-xs text-red-500 dark:text-red-400 font-medium hover:underline px-1">Futa chujio zote</button>
+            {category && <FilterChip label={categories.find(c => c.slug === category) ? catName(categories.find(c => c.slug === category)!, lang) : category} onRemove={() => setParam('category', null)} />}
+            {madeInZnz && <FilterChip label={t('madeInZanzibar', lang)} onRemove={() => setParam('made_in_zanzibar', null)} />}
+            {sort !== 'newest' && <FilterChip label={sortLabel(sort, lang)} onRemove={() => setParam('sort', null)} />}
+            <button onClick={clearAll} className="text-xs text-red-500 dark:text-red-400 font-medium hover:underline px-1">{t('clearAllFilters', lang)}</button>
           </div>
         )}
 
@@ -220,21 +225,21 @@ export default function SearchPage() {
         {filtersOpen && (
           <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-up">
             <div>
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Aina</p>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{t('type', lang)}</p>
               <div className="flex flex-wrap gap-1.5">
                 {categories.map((cat) => (
                   <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)}
                     className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
-                    {cat.icon} {cat.name_sw}
+                    {cat.icon} {catName(cat, lang)}
                   </button>
                 ))}
               </div>
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Panga kwa</p>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{t('sortBy', lang)}</p>
               <div className="flex flex-col gap-1.5">
-                {[['newest','Mpya zaidi'],['price_asc','Bei: chini kwenda juu'],['price_desc','Bei: juu kwenda chini'],['popular','Maarufu zaidi']].map(([v, label]) => (
+                {([['newest', t('sortNewest', lang)],['price_asc', t('sortPriceAsc', lang)],['price_desc', t('sortPriceDesc', lang)],['popular', t('sortPopular', lang)]] as [string, string][]).map(([v, label]) => (
                   <button key={v} onClick={() => setParam('sort', v)}
                     className={`text-xs text-left px-3 py-1.5 rounded-lg border transition-colors ${sort === v ? 'bg-brand-50 dark:bg-brand-500/15 border-brand-400 text-brand-700 dark:text-brand-300 font-semibold' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
                     {label}
@@ -244,10 +249,10 @@ export default function SearchPage() {
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Maalum</p>
+              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{t('special', lang)}</p>
               <button onClick={() => setParam('made_in_zanzibar', madeInZnz ? null : 'true')}
                 className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${madeInZnz ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-amber-300'}`}>
-                🏅 Imetengenezwa Zanzibar
+                {t('madeInZanzibar', lang)}
               </button>
             </div>
           </div>
@@ -256,7 +261,7 @@ export default function SearchPage() {
         {/* Results header */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-ink-500 dark:text-ink-400">
-            {loading ? 'Inatafuta...' : `Bidhaa ${count.toLocaleString()}`}
+            {loading ? t('searching', lang) : `${count.toLocaleString()} ${t('products', lang).toLowerCase()}`}
           </p>
         </div>
 
@@ -268,8 +273,8 @@ export default function SearchPage() {
         ) : products.length === 0 ? (
           <EmptyState
             icon={<Search className="w-10 h-10" />}
-            title="Hakuna bidhaa zilizopatikana"
-            description={q ? `Hakuna matokeo kwa "${q}"` : 'Jaribu kubadilisha vichujio'}
+            title={t('noProductsFound', lang)}
+            description={q ? `${t('noResultsFor', lang)} "${q}"` : t('tryAdjustingFilters', lang)}
           />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -280,9 +285,9 @@ export default function SearchPage() {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
-            <button onClick={() => setParam('page', String(page - 1))} disabled={page <= 1} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">← Nyuma</button>
-            <span className="text-sm text-ink-600 dark:text-ink-300 px-2">Ukurasa {page} / {totalPages}</span>
-            <button onClick={() => setParam('page', String(page + 1))} disabled={page >= totalPages} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">Mbele →</button>
+            <button onClick={() => setParam('page', String(page - 1))} disabled={page <= 1} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">← {t('previous', lang)}</button>
+            <span className="text-sm text-ink-600 dark:text-ink-300 px-2">{t('page', lang)} {page} / {totalPages}</span>
+            <button onClick={() => setParam('page', String(page + 1))} disabled={page >= totalPages} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">{t('next', lang)} →</button>
           </div>
         )}
       </div>
@@ -299,8 +304,8 @@ function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }
   )
 }
 
-function sortLabel(sort: string) {
-  const map: Record<string, string> = { price_asc: 'Bei: Chini', price_desc: 'Bei: Juu', popular: 'Maarufu' }
+function sortLabel(sort: string, lang: Language) {
+  const map: Record<string, string> = { price_asc: t('sortPriceAsc', lang), price_desc: t('sortPriceDesc', lang), popular: t('sortPopular', lang) }
   return map[sort] ?? sort
 }
 

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Package, ArrowLeft } from 'lucide-react'
 import OrderTracker from '@/components/order/OrderTracker'
 import { formatTZS, formatDate, DELIVERY_ZONES, PAYMENT_METHODS } from '@/utils'
+import { OrderStatusBadge } from '@/components/ui/Badge'
+import LText from '@/components/shared/LText'
 import PayNowButton from '@/components/order/PayNowButton'
 import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
 import OrderLiveMapSection from '@/components/delivery/OrderLiveMapSection'
@@ -34,35 +36,28 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
     <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
       <div className="page-container py-4 sm:py-8 max-w-2xl">
         <Link href="/orders" className="flex items-center gap-2 text-sm text-ink-500 dark:text-ink-400 hover:text-brand-600 dark:hover:text-brand-300 mb-5 transition-colors">
-          <ArrowLeft className="w-4 h-4" /> Maagizo yangu
+          <ArrowLeft className="w-4 h-4" /> <LText k="orders" />
         </Link>
 
         <div className="flex items-start justify-between gap-4 mb-6">
           <div>
             <h1 className="font-display font-black text-xl text-ink-900 dark:text-white">
-              Agizo #{order.id.slice(-8).toUpperCase()}
+              <LText k="orderNumber" /> #{order.id.slice(-8).toUpperCase()}
             </h1>
-            <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5">Imewekwa {formatDate(order.created_at)}</p>
+            <p className="text-sm text-ink-500 dark:text-ink-400 mt-0.5"><LText k="orderDate" /> {formatDate(order.created_at)}</p>
           </div>
-          <span className={`badge text-xs ${
-            order.status === 'delivered' ? 'badge-green' :
-            order.status === 'cancelled' ? 'badge-red' :
-            order.status === 'out_for_delivery' ? 'badge-orange' :
-            'badge-blue'
-          }`}>
-            {order.status.replace(/_/g, ' ')}
-          </span>
+          <OrderStatusBadge status={order.status} />
         </div>
 
         {/* Tracker */}
         <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 mb-4">
-          <h2 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-4">Hali ya agizo</h2>
+          <h2 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-4"><LText k="orderStatus" /></h2>
           <OrderTracker currentStatus={order.status} tracking={order.tracking} />
         </div>
 
         {/* Items */}
         <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 mb-4">
-          <h2 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-4">Bidhaa ({order.items?.length})</h2>
+          <h2 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-4"><LText k="items" /> ({order.items?.length})</h2>
           <div className="space-y-4 divide-y divide-ink-100 dark:divide-ink-800">
             {order.items?.map((item: any) => {
               const img = item.product?.images?.find((i: any) => i.is_primary) ?? item.product?.images?.[0]
@@ -73,7 +68,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-sm text-ink-900 dark:text-white">{item.product?.name}</p>
-                    <p className="text-xs text-ink-500 dark:text-ink-400">Idadi: {item.quantity}</p>
+                    <p className="text-xs text-ink-500 dark:text-ink-400"><LText k="quantity" />: {item.quantity}</p>
                   </div>
                   <p className="font-bold text-sm text-ink-900 dark:text-white">{formatTZS(item.total_price)}</p>
                 </div>
@@ -84,12 +79,12 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
 
         {/* Summary */}
         <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 mb-4">
-          <h2 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-3">Muhtasari</h2>
+          <h2 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-3"><LText k="orderSummary" /></h2>
           <div className="space-y-1.5 text-sm">
-            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Bidhaa</span><span>{formatTZS(order.subtotal)}</span></div>
-            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span>Usafirishaji</span><span>{formatTZS(order.delivery_fee)}</span></div>
+            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span><LText k="items" /></span><span>{formatTZS(order.subtotal)}</span></div>
+            <div className="flex justify-between text-ink-600 dark:text-ink-300"><span><LText k="shipping" /></span><span>{formatTZS(order.delivery_fee)}</span></div>
             <div className="flex justify-between font-bold text-ink-900 dark:text-white pt-1.5 border-t border-ink-100 dark:border-ink-800">
-              <span>Jumla</span><span>{formatTZS(order.total_amount)}</span>
+              <span><LText k="total" /></span><span>{formatTZS(order.total_amount)}</span>
             </div>
           </div>
         </div>
@@ -97,18 +92,18 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
         {/* Delivery & payment */}
         <div className="grid grid-cols-2 gap-4">
           <div className="card dark:bg-ink-900 dark:border-ink-800 p-4">
-            <h2 className="font-semibold text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Utoaji</h2>
+            <h2 className="font-semibold text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2"><LText k="delivery" /></h2>
             <p className="font-semibold text-sm text-ink-900 dark:text-white">{order.delivery_name}</p>
             <p className="text-xs text-ink-500 dark:text-ink-400">{order.delivery_phone}</p>
             <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">{zone?.nameSw}</p>
             <p className="text-xs text-ink-500 dark:text-ink-400">{order.delivery_address}</p>
           </div>
           <div className="card dark:bg-ink-900 dark:border-ink-800 p-4">
-            <h2 className="font-semibold text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Malipo</h2>
+            <h2 className="font-semibold text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2"><LText k="payment" /></h2>
             <p className="font-semibold text-sm text-ink-900 dark:text-white">{payment?.label ?? order.payment_method}</p>
             {order.payment_reference && <p className="text-xs text-ink-500 dark:text-ink-400 mt-1">Ref: {order.payment_reference}</p>}
             <span className={`badge mt-2 text-xs ${order.payment_confirmed ? 'badge-green' : 'badge-gray'}`}>
-              {order.payment_confirmed ? 'Imethibitishwa' : 'Inasubiri'}
+              <LText k={order.payment_confirmed ? 'confirmed' : 'pending'} />
             </span>
             {!order.payment_confirmed && order.payment_method !== 'cod' && (
               <div>

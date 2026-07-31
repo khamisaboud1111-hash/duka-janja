@@ -9,11 +9,14 @@ import { Modal } from '@/components/ui/Modal'
 import { DELIVERY_ZONES } from '@/utils'
 import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 
 export default function SettingsPage() {
   const supabase = createClient()
   const router = useRouter()
   const { profile, loading: authLoading } = useUser()
+  const lang = useLangStore((s) => s.lang)
 
   const [saving, setSaving] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
@@ -62,7 +65,7 @@ export default function SettingsPage() {
       .from('profiles')
       .update({ avatar_url: url, updated_at: new Date().toISOString() })
       .eq('id', profile.id)
-    if (updateError) { toast.error(updateError.message) } else { setAvatar(url); toast.success('Photo updated') }
+    if (updateError) { toast.error(updateError.message) } else { setAvatar(url); toast.success(t('photoUpdated', lang)) }
     setUploading(false)
   }
 
@@ -85,25 +88,25 @@ export default function SettingsPage() {
     else if (editField === 'delivery_zone') update.delivery_zone = (fieldValue || null) as DeliveryZone | null
     else if (editField === 'delivery_address') update.delivery_address = fieldValue || null
     const { error } = await supabase.from('profiles').update(update).eq('id', profile.id)
-    if (error) { toast.error(error.message) } else { toast.success('Updated'); router.refresh() }
+    if (error) { toast.error(error.message) } else { toast.success(t('updatedLabel', lang)); router.refresh() }
     setSaving(false)
     setEditField(null)
   }
 
   async function handleChangePassword() {
-    if (passwordForm.password.length < 6) { toast.error('Password must be at least 6 characters'); return }
-    if (passwordForm.password !== passwordForm.confirm) { toast.error("Passwords don't match"); return }
+    if (passwordForm.password.length < 6) { toast.error(t('passwordTooShort', lang)); return }
+    if (passwordForm.password !== passwordForm.confirm) { toast.error(t('passwordsDontMatch', lang)); return }
     setChangingPassword(true)
     const { error } = await supabase.auth.updateUser({ password: passwordForm.password })
-    if (error) { toast.error(error.message) } else { toast.success('Password updated'); setPasswordForm({ current: '', password: '', confirm: '' }) }
+    if (error) { toast.error(error.message) } else { toast.success(t('passwordUpdated', lang)); setPasswordForm({ current: '', password: '', confirm: '' }) }
     setChangingPassword(false)
   }
 
   async function handleChangeEmail() {
-    if (!emailValue.includes('@')) { toast.error('Enter a valid email'); return }
+    if (!emailValue.includes('@')) { toast.error(t('invalidEmail', lang)); return }
     setChangingEmail(true)
     const { error } = await supabase.auth.updateUser({ email: emailValue })
-    if (error) { toast.error(error.message) } else { toast.success('Check your inbox to confirm') }
+    if (error) { toast.error(error.message) } else { toast.success(t('checkInbox', lang)) }
     setChangingEmail(false)
   }
 
@@ -121,9 +124,9 @@ export default function SettingsPage() {
       body: JSON.stringify({ confirm: deleteText }),
     })
     const json = await res.json()
-    if (!res.ok) { toast.error(json.error || 'Could not delete account'); setDeleting(false); return }
+    if (!res.ok) { toast.error(json.error || t('deleteFailed', lang)); setDeleting(false); return }
     await supabase.auth.signOut()
-    toast.success('Account deleted')
+    toast.success(t('accountDeleted', lang))
     router.push('/')
     router.refresh()
   }
@@ -131,9 +134,9 @@ export default function SettingsPage() {
   if (authLoading || !profile) return <PageLoader />
 
   const roleBadge = ({
-    buyer: { label: 'Buyer', color: 'bg-brand-500' },
-    seller: { label: 'Seller', color: 'bg-emerald-500' },
-    rider: { label: 'Rider', color: 'bg-amber-500' },
+    buyer: { label: t('buyerRole', lang), color: 'bg-brand-500' },
+    seller: { label: t('sellerRole', lang), color: 'bg-emerald-500' },
+    rider: { label: t('riderRole', lang), color: 'bg-amber-500' },
   } as Record<string, { label: string; color: string }>)[profile.role] ?? { label: 'User', color: 'bg-ink-400' }
 
   return (
@@ -163,7 +166,7 @@ export default function SettingsPage() {
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={uploadAvatar} />
           </div>
-          {uploading && <p className="text-xs text-brand-500 mb-1">Uploading...</p>}
+          {uploading && <p className="text-xs text-brand-500 mb-1">{t('uploadingLabel', lang)}</p>}
           <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white">{profile.full_name}</h1>
           <div className="flex items-center gap-2 mt-1">
             <span className={`text-[10px] font-bold uppercase tracking-wider text-white px-2 py-0.5 rounded-full ${roleBadge.color}`}>
@@ -182,7 +185,7 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
               </svg>
             }
-            label="Name"
+            label={t('name', lang)}
             value={profile.full_name}
             editing={editField === 'full_name'}
             editValue={fieldValue}
@@ -198,7 +201,7 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
               </svg>
             }
-            label="Phone"
+            label={t('phone', lang)}
             value={profile.phone ?? '—'}
             editing={editField === 'phone'}
             editValue={fieldValue}
@@ -215,7 +218,7 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
               </svg>
             }
-            label="Zone"
+            label={t('zone', lang)}
             value={profile.delivery_zone ? (DELIVERY_ZONES[profile.delivery_zone]?.nameEn ?? profile.delivery_zone) : '—'}
             editing={editField === 'delivery_zone'}
             editValue={fieldValue}
@@ -233,7 +236,7 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
               </svg>
             }
-            label="Address"
+            label={t('address', lang)}
             value={profile.delivery_address ?? '—'}
             editing={editField === 'delivery_address'}
             editValue={fieldValue}
@@ -256,15 +259,15 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
             }
-            label="Change Password"
+            label={t('changePassword', lang)}
             expanded={changingPassword}
             onToggle={() => setChangingPassword(!changingPassword)}
           >
             <div className="px-4 pb-4 space-y-3">
-              <input value={passwordForm.password} onChange={(e) => setPasswordForm(p => ({ ...p, password: e.target.value }))} type="password" placeholder="New password" className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
-              <input value={passwordForm.confirm} onChange={(e) => setPasswordForm(p => ({ ...p, confirm: e.target.value }))} type="password" placeholder="Confirm password" className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
+              <input value={passwordForm.password} onChange={(e) => setPasswordForm(p => ({ ...p, password: e.target.value }))} type="password" placeholder={t('newPassword', lang)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
+              <input value={passwordForm.confirm} onChange={(e) => setPasswordForm(p => ({ ...p, confirm: e.target.value }))} type="password" placeholder={t('confirmPassword', lang)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
               <button onClick={handleChangePassword} disabled={changingPassword} className="btn-primary w-full justify-center py-2.5 text-sm">
-                {changingPassword ? 'Updating...' : 'Update Password'}
+                {changingPassword ? t('updatingLabel', lang) : t('updatePassword', lang)}
               </button>
             </div>
           </SectionRow>
@@ -274,15 +277,15 @@ export default function SettingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
               </svg>
             }
-            label="Change Email"
+            label={t('changeEmail', lang)}
             expanded={changingEmail}
             onToggle={() => setChangingEmail(!changingEmail)}
           >
             <div className="px-4 pb-4 space-y-3">
-              <p className="text-xs text-ink-400">Current: {profile.email}</p>
+              <p className="text-xs text-ink-400">{t('currentLabel', lang)} {profile.email}</p>
               <input value={emailValue} onChange={(e) => setEmailValue(e.target.value)} type="email" placeholder="new@example.com" className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
               <button onClick={handleChangeEmail} disabled={changingEmail} className="btn-secondary w-full justify-center py-2.5 text-sm">
-                {changingEmail ? 'Sending...' : 'Send Confirmation'}
+                {changingEmail ? t('sendingLabel', lang) : t('sendConfirmation', lang)}
               </button>
             </div>
           </SectionRow>
@@ -293,7 +296,7 @@ export default function SettingsPage() {
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
           </svg>
-          Log Out
+          {t('logOut', lang)}
         </button>
 
         {/* Danger Zone */}
@@ -307,13 +310,13 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <Modal open={deleteOpen} onClose={() => { setDeleteOpen(false); setDeleteText('') }} title="Delete Account" size="sm">
-        <p className="text-sm text-ink-600 dark:text-ink-300 mb-4">This cannot be undone. Type DELETE below to confirm.</p>
+      <Modal open={deleteOpen} onClose={() => { setDeleteOpen(false); setDeleteText('') }} title={t('deleteAccount', lang)} size="sm">
+        <p className="text-sm text-ink-600 dark:text-ink-300 mb-4">{t('deleteConfirmDesc', lang)}</p>
         <input value={deleteText} onChange={(e) => setDeleteText(e.target.value)} placeholder="DELETE" className="input mb-4 dark:bg-ink-800 dark:border-ink-700 dark:text-white" />
         <div className="flex gap-3 justify-end">
-          <button onClick={() => { setDeleteOpen(false); setDeleteText('') }} className="btn-secondary text-sm">Cancel</button>
+          <button onClick={() => { setDeleteOpen(false); setDeleteText('') }} className="btn-secondary text-sm">{t('cancel', lang)}</button>
           <button onClick={handleDeleteAccount} disabled={deleteText !== 'DELETE' || deleting} className="btn-danger text-sm">
-            {deleting ? 'Deleting...' : 'Delete permanently'}
+            {deleting ? t('deletingLabel', lang) : t('deletePermanently', lang)}
           </button>
         </div>
       </Modal>
@@ -339,13 +342,15 @@ function ProfileRow({
   isSelect?: boolean
   selectOptions?: { value: string; label: string }[]
 }) {
+  const lang = useLangStore((s) => s.lang)
+
   if (editing) {
     return (
       <div className="px-4 py-3 bg-brand-50/50 dark:bg-brand-950/20">
         <p className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">{label}</p>
         {isSelect && selectOptions ? (
           <select value={editValue} onChange={(e) => onEditValue(e.target.value)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm">
-            <option value="">-- Select --</option>
+            <option value="">{t('selectOption', lang)}</option>
             {selectOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
         ) : (
@@ -353,9 +358,9 @@ function ProfileRow({
         )}
         <div className="flex gap-2 mt-2">
           <button onClick={onSave} disabled={saving} className="text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/30 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors">
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? t('savingLabel', lang) : t('save', lang)}
           </button>
-          <button onClick={onCancel} className="text-xs font-semibold text-ink-500 bg-ink-50 dark:bg-ink-800 px-3 py-1.5 rounded-lg hover:bg-ink-100 transition-colors">Cancel</button>
+          <button onClick={onCancel} className="text-xs font-semibold text-ink-500 bg-ink-50 dark:bg-ink-800 px-3 py-1.5 rounded-lg hover:bg-ink-100 transition-colors">{t('cancel', lang)}</button>
         </div>
       </div>
     )
@@ -404,6 +409,7 @@ function SectionRow({
 
 function AccountTypeCard({ profile, router }: { profile: any; router: any }) {
   const supabase = createClient()
+  const lang = useLangStore((s) => s.lang)
   const [roles, setRoles] = useState<any>({ seller: null, rider: null })
   const [loading, setLoading] = useState(true)
   const [switching, setSwitching] = useState<string | null>(null)
@@ -426,8 +432,8 @@ function AccountTypeCard({ profile, router }: { profile: any; router: any }) {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ role }),
     })
     const json = await res.json()
-    if (!res.ok) { toast.error(json.message || json.error || 'Could not switch') }
-    else { toast.success('Switched!'); router.refresh() }
+    if (!res.ok) { toast.error(json.message || json.error || t('switchFailed', lang)) }
+    else { toast.success(t('switchedLabel', lang)); router.refresh() }
     setSwitching(null)
   }
 
@@ -435,18 +441,18 @@ function AccountTypeCard({ profile, router }: { profile: any; router: any }) {
     {
       id: 'buyer',
       icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>,
-      label: 'Buyer',
+      label: t('buyerRole', lang),
       status: 'active',
-      statusLabel: 'Active',
+      statusLabel: t('activeStatus', lang),
       active: profile.role === 'buyer',
       onClick: () => switchRole('buyer'),
     },
     {
       id: 'seller',
       icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" /></svg>,
-      label: 'Seller',
+      label: t('sellerRole', lang),
       status: roles.seller?.status === 'approved' ? 'approved' : roles.seller?.status === 'pending' ? 'pending' : roles.seller ? 'suspended' : null,
-      statusLabel: roles.seller ? roles.seller.status : 'Not set up',
+      statusLabel: roles.seller ? t(roles.seller.status, lang) : t('notSetUp', lang),
       active: profile.role === 'seller',
       onClick: () => roles.seller ? switchRole('seller') : router.push('/seller/settings?onboarding=true'),
       disabled: roles.seller?.status === 'suspended',
@@ -454,9 +460,9 @@ function AccountTypeCard({ profile, router }: { profile: any; router: any }) {
     {
       id: 'rider',
       icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" /></svg>,
-      label: 'Rider',
+      label: t('riderRole', lang),
       status: roles.rider?.is_verified ? 'approved' : roles.rider && roles.rider.account_status !== 'suspended' ? 'pending' : roles.rider?.account_status === 'suspended' ? 'suspended' : null,
-      statusLabel: roles.rider ? (roles.rider.is_verified ? 'Verified' : 'Pending') : 'Not applied',
+      statusLabel: roles.rider ? (roles.rider.is_verified ? t('verified', lang) : t('pending', lang)) : t('notApplied', lang),
       active: profile.role === 'rider',
       onClick: () => roles.rider ? switchRole('rider') : router.push('/rider/apply'),
       disabled: roles.rider?.account_status === 'suspended',
@@ -484,6 +490,7 @@ function RoleRow({ icon, label, status, statusLabel, active, onClick, loading, d
   loading: boolean
   disabled?: boolean
 }) {
+  const lang = useLangStore((s) => s.lang)
   const statusColor = status === 'active' || status === 'approved' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
     : status === 'pending' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
     : status === 'suspended' ? 'text-red-600 bg-red-50 dark:bg-red-950/30'
@@ -497,7 +504,7 @@ function RoleRow({ icon, label, status, statusLabel, active, onClick, loading, d
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-ink-800 dark:text-ink-100">{label}</span>
-          {active && <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/50 px-1.5 py-0.5 rounded-full">ACTIVE</span>}
+          {active && <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/50 px-1.5 py-0.5 rounded-full">{t('activeStatus', lang)}</span>}
         </div>
         <span className={`inline-flex items-center text-[11px] font-medium mt-0.5 px-1.5 py-0.5 rounded-md ${statusColor}`}>
           {statusLabel}
@@ -505,7 +512,7 @@ function RoleRow({ icon, label, status, statusLabel, active, onClick, loading, d
       </div>
       {!active && (
         <span className="text-xs text-brand-600 dark:text-brand-400 font-semibold whitespace-nowrap">
-          {loading ? '...' : status ? 'Switch' : 'Set up'}
+          {loading ? '...' : status ? t('switchLabel', lang) : t('setUp', lang)}
         </span>
       )}
     </button>

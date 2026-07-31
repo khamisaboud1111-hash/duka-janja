@@ -1,5 +1,9 @@
+'use client'
+
 import { Check } from 'lucide-react'
 import { cn } from '@/utils'
+import { useLangStore } from '@/store'
+import { t, type TranslationKey } from '@/i18n/translations'
 
 type BadgeVariant = 'green' | 'orange' | 'blue' | 'red' | 'gray' | 'gold'
 
@@ -27,20 +31,23 @@ export function Badge({ variant = 'gray', children, className }: BadgeProps) {
 }
 
 export function OrderStatusBadge({ status }: { status: string }) {
+  const lang = useLangStore((s) => s.lang)
   const map: Record<string, BadgeVariant> = {
     pending: 'gray', confirmed: 'blue', packed: 'blue',
     out_for_delivery: 'orange', delivered: 'green',
     cancelled: 'red', refunded: 'red',
   }
-  const labels: Record<string, string> = {
-    pending: 'Inasubiri', confirmed: 'Imethibitishwa', packed: 'Imefungashwa',
-    out_for_delivery: 'Inasafirishwa', delivered: 'Imefikishwa',
-    cancelled: 'Imefutwa', refunded: 'Imerudishwa',
+  const labelKey: Record<string, TranslationKey> = {
+    pending: 'pending', confirmed: 'confirmed', packed: 'packed',
+    out_for_delivery: 'outForDelivery', delivered: 'delivered',
+    cancelled: 'cancelled', refunded: 'refunded',
   }
-  return <Badge variant={map[status] ?? 'gray'}>{labels[status] ?? status}</Badge>
+  const key = labelKey[status]
+  return <Badge variant={map[status] ?? 'gray'}>{key ? t(key, lang) : status}</Badge>
 }
 
 export function VerifiedSellerBadge({ verified, className }: { verified: boolean; className?: string }) {
+  const lang = useLangStore((s) => s.lang)
   if (!verified) return null
   return (
     <span className={cn(
@@ -48,19 +55,25 @@ export function VerifiedSellerBadge({ verified, className }: { verified: boolean
       'bg-brand-500/15 text-brand-600 dark:text-brand-300 ring-1 ring-brand-500/30',
       className
     )}>
-      <Check className="w-3 h-3" /> Muuzaji Aliyethibitishwa
+      <Check className="w-3 h-3" /> {t('verifiedSellerLabel', lang)}
     </span>
   )
 }
 
 export function SellerStatusBadge({ status }: { status: string }) {
+  const lang = useLangStore((s) => s.lang)
   const map: Record<string, BadgeVariant> = { approved: 'green', pending: 'orange', suspended: 'red' }
-  const labels: Record<string, string> = { approved: 'Imeidhinishwa', pending: 'Inasubiri', suspended: 'Imesimamishwa' }
-  return <Badge variant={map[status] ?? 'gray'}>{labels[status] ?? status}</Badge>
+  const labelKey: Record<string, TranslationKey> = { approved: 'approved', pending: 'pending', suspended: 'suspended' }
+  const key = labelKey[status]
+  return <Badge variant={map[status] ?? 'gray'}>{key ? t(key, lang) : status}</Badge>
 }
 
 export function ProductStatusBadge({ status }: { status: string }) {
+  const lang = useLangStore((s) => s.lang)
   const map: Record<string, BadgeVariant> = { active: 'green', draft: 'gray', out_of_stock: 'orange', sold: 'red', rejected: 'red' }
-  const labels: Record<string, string> = { active: 'Inauzwa', draft: 'Rasimu', out_of_stock: 'Imeisha', sold: 'Imeuzwa', rejected: 'Imekataliwa' }
-  return <Badge variant={map[status] ?? 'gray'}>{labels[status] ?? status}</Badge>
+  const labelKey: Record<string, TranslationKey> = {
+    active: 'activeStatus', draft: 'draft', out_of_stock: 'outOfStock', sold: 'sold', rejected: 'rejected',
+  }
+  const key = labelKey[status]
+  return <Badge variant={map[status] ?? 'gray'}>{key ? t(key, lang) : status}</Badge>
 }

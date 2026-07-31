@@ -2,12 +2,14 @@ import { createServerClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Star, BadgeCheck, MessageCircle, Package } from 'lucide-react'
+import { Star, BadgeCheck, Package } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
+import LText from '@/components/shared/LText'
 import TrackView from './TrackView'
 import RecentlyViewedRow from './RecentlyViewedRow'
 import AddToCartSection from './AddToCartSection'
-import { formatTZS, formatDate, whatsappUrl } from '@/utils'
+import ContactSellerButtons from './ContactSellerButtons'
+import { formatTZS, formatDate } from '@/utils'
 import type { Metadata } from 'next'
 
 interface Props {
@@ -68,16 +70,13 @@ export default async function ProductPage({ params }: Props) {
   const reviews = product.reviews ?? []
   const isVerifiedSeller = seller?.national_id_verified ?? false
 
-  const waMessage = `Habari! Nimeona bidhaa yako kwenye Duka Janja: ${product.name} (${formatTZS(product.price)}). Je, ipo?`
-  const waUrl = seller ? whatsappUrl(seller.whatsapp_number, waMessage) : '#'
-
   return (
     <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
       <TrackView productId={product.id} />
       <div className="page-container py-4 sm:py-6">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400 mb-4">
-          <Link href="/" className="hover:text-brand-600 dark:hover:text-brand-300">Nyumbani</Link>
+          <Link href="/" className="hover:text-brand-600 dark:hover:text-brand-300"><LText k="home" /></Link>
           <span>/</span>
           <Link href={`/search?category=${product.category?.slug}`} className="hover:text-brand-600 dark:hover:text-brand-300">{product.category?.name_sw}</Link>
           <span>/</span>
@@ -105,7 +104,7 @@ export default async function ProductPage({ params }: Props) {
               )}
               {product.is_made_in_zanzibar && (
                 <span className="absolute top-3 left-3 badge-orange">
-                  🏅 Imetengenezwa Zanzibar
+                  🏅 <LText k="madeInZanzibar" />
                 </span>
               )}
             </div>
@@ -152,7 +151,7 @@ export default async function ProductPage({ params }: Props) {
                   ))}
                 </div>
                 <span className="text-sm font-semibold text-ink-700 dark:text-ink-200">{product.average_rating.toFixed(1)}</span>
-                <span className="text-sm text-ink-500 dark:text-ink-400">({product.review_count} maoni)</span>
+                <span className="text-sm text-ink-500 dark:text-ink-400">({product.review_count} <LText k="reviews" />)</span>
               </div>
             )}
 
@@ -173,9 +172,11 @@ export default async function ProductPage({ params }: Props) {
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${product.stock_quantity > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
               <span className="text-sm text-ink-700 dark:text-ink-200">
-                {product.stock_quantity > 0
-                  ? `Ipo — vipande ${product.stock_quantity}`
-                  : 'Imeisha'}
+                {product.stock_quantity > 0 ? (
+                  <><LText k="inStock" /> — {product.stock_quantity} <LText k="pieces" /></>
+                ) : (
+                  <LText k="outOfStock" />
+                )}
               </span>
             </div>
 
@@ -184,32 +185,25 @@ export default async function ProductPage({ params }: Props) {
 
             {/* WhatsApp + In-app chat */}
             {seller && (
-              <div className="grid grid-cols-2 gap-2">
-                <a href={waUrl} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors text-sm">
-                  <MessageCircle className="w-4 h-4" />
-                  WhatsApp
-                </a>
-                <Link href={`/messages/${seller.id}`}
-                  className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-brand-500 text-brand-600 dark:text-brand-300 font-semibold hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors text-sm">
-                  <MessageCircle className="w-4 h-4" />
-                  Ongea Hapa
-                </Link>
-              </div>
+              <ContactSellerButtons
+                seller={seller}
+                productName={product.name}
+                priceLabel={formatTZS(product.price)}
+              />
             )}
 
             {/* Description */}
             <div>
-              <h3 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-2">Maelezo</h3>
+              <h3 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-2"><LText k="description" /></h3>
               <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed whitespace-pre-wrap">
-                {product.description || 'Hakuna maelezo.'}
+                {product.description || <LText k="noDescription" />}
               </p>
             </div>
 
             {/* Seller card */}
             {seller && (
               <div className="card dark:bg-ink-900 dark:border-ink-800 p-4">
-                <p className="text-xs text-ink-500 dark:text-ink-400 font-semibold mb-3 uppercase tracking-wide">Kuhusu duka</p>
+                <p className="text-xs text-ink-500 dark:text-ink-400 font-semibold mb-3 uppercase tracking-wide"><LText k="aboutStore" /></p>
                 <Link href={`/sellers/${seller.store_slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                   {seller.logo_url ? (
                     <img src={seller.logo_url} alt={seller.store_name} className="w-12 h-12 rounded-xl object-cover" />
@@ -224,7 +218,7 @@ export default async function ProductPage({ params }: Props) {
                       {isVerifiedSeller && <BadgeCheck className="w-4 h-4 text-brand-500" />}
                     </div>
                     <p className="text-xs text-ink-500 dark:text-ink-400">
-                      ⭐ {seller.average_rating.toFixed(1)} · {seller.review_count} maoni · Mauzo {seller.total_sales}
+                      ⭐ {seller.average_rating.toFixed(1)} · {seller.review_count} <LText k="reviews" /> · <LText k="sales" /> {seller.total_sales}
                     </p>
                   </div>
                 </Link>
@@ -236,11 +230,11 @@ export default async function ProductPage({ params }: Props) {
         {/* Reviews */}
         <section className="mt-10">
           <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-4">
-            Maoni ya wateja ({product.review_count})
+            <LText k="customerReviews" /> ({product.review_count})
           </h2>
           {reviews.length === 0 ? (
             <div className="card dark:bg-ink-900 dark:border-ink-800 p-8 text-center">
-              <p className="text-ink-500 dark:text-ink-400 text-sm">Hakuna maoni bado. Kuwa wa kwanza kuandika maoni!</p>
+              <p className="text-ink-500 dark:text-ink-400 text-sm"><LText k="noReviewsPrompt" /></p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -256,7 +250,7 @@ export default async function ProductPage({ params }: Props) {
                         </div>
                       )}
                       <div>
-                        <p className="text-sm font-semibold text-ink-800 dark:text-ink-100">{review.buyer?.full_name ?? 'Mteja'}</p>
+                        <p className="text-sm font-semibold text-ink-800 dark:text-ink-100">{review.buyer?.full_name ?? <LText k="customer" />}</p>
                         <p className="text-xs text-ink-400 dark:text-ink-500">{formatDate(review.created_at)}</p>
                       </div>
                     </div>
@@ -269,7 +263,7 @@ export default async function ProductPage({ params }: Props) {
                   {review.comment && <p className="text-sm text-ink-700 dark:text-ink-200">{review.comment}</p>}
                   {review.seller_reply && (
                     <div className="mt-3 p-3 bg-brand-50 dark:bg-brand-500/10 rounded-xl border border-brand-100 dark:border-brand-800">
-                      <p className="text-xs text-brand-700 dark:text-brand-300 font-semibold mb-1">Jibu la muuzaji:</p>
+                      <p className="text-xs text-brand-700 dark:text-brand-300 font-semibold mb-1"><LText k="sellerReply" /></p>
                       <p className="text-sm text-ink-700 dark:text-ink-200">{review.seller_reply}</p>
                     </div>
                   )}
@@ -282,7 +276,7 @@ export default async function ProductPage({ params }: Props) {
         {/* Related products */}
         {related.length > 0 && (
           <section className="mt-10">
-            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-4">Unaweza pia kupenda</h2>
+            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-4"><LText k="relatedProducts" /></h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {related.map((p: any) => <ProductCard key={p.id} product={p} />)}
             </div>

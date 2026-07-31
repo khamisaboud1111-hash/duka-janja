@@ -17,7 +17,7 @@ export default function AddToCartSection({ product }: { product: Product }) {
 
   function handleAdd() {
     for (let i = 0; i < qty; i++) addItem(product)
-    toast.success(lang === 'sw' ? `${product.name} imeongezwa kikapuni` : `${product.name} added to cart`)
+    toast.success(`${product.name} ${t('addedToCart', lang)}`)
   }
 
   if (isSold) {

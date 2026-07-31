@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useUser } from '@/hooks/useUser'
 import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 import { formatDate } from '@/utils'
 import { PageLoader, EmptyState } from '@/components/ui'
 import { cn } from '@/utils'
@@ -25,7 +26,7 @@ export default function NotificationsPage() {
   if (authLoading) return <PageLoader />
   if (!profile) return (
     <div className="page-container py-16 text-center">
-      <Link href="/login" className="btn-primary inline-flex">Ingia kwanza</Link>
+      <Link href="/login" className="btn-primary inline-flex">{t('loginFirst', lang)}</Link>
     </div>
   )
 
@@ -37,11 +38,11 @@ export default function NotificationsPage() {
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display font-black text-2xl text-ink-900 flex items-center gap-3">
             <Bell className="w-6 h-6 text-brand-500" />
-            Arifa {unread > 0 && <span className="text-base font-normal text-ink-500">({unread} mpya)</span>}
+            {t('notifications', lang)} {unread > 0 && <span className="text-base font-normal text-ink-500">({unread} {t('new', lang)})</span>}
           </h1>
           {unread > 0 && (
             <button onClick={markAllRead} className="flex items-center gap-1.5 text-sm text-brand-600 font-medium hover:underline">
-              <CheckCheck className="w-4 h-4" /> Soma zote
+              <CheckCheck className="w-4 h-4" /> {t('markAllRead', lang)}
             </button>
           )}
         </div>
@@ -61,8 +62,8 @@ export default function NotificationsPage() {
         ) : notifications.length === 0 ? (
           <EmptyState
             icon={<Bell className="w-10 h-10" />}
-            title="Hakuna arifa"
-            description="Arifa zako zitaonekana hapa"
+            title={t('noNotifications', lang)}
+            description={t('noNotificationsDesc', lang)}
           />
         ) : (
           <div className="space-y-2">

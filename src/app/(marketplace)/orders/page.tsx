@@ -8,12 +8,15 @@ import { useBuyerOrders } from '@/hooks/useOrders'
 import { useUser } from '@/hooks/useUser'
 import { OrderStatusBadge } from '@/components/ui/Badge'
 import { formatTZS, formatDate } from '@/utils'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 import { PageLoader, EmptyState } from '@/components/ui'
 import { Skeleton } from '@/components/ui/Card'
 
 export default function OrdersPage() {
   const { profile, loading: authLoading } = useUser()
   const { orders, loading } = useBuyerOrders()
+  const lang = useLangStore((s) => s.lang)
 
   if (authLoading) return <PageLoader />
   if (!profile) { redirect('/login'); return null }
@@ -21,7 +24,7 @@ export default function OrdersPage() {
   return (
     <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
       <div className="page-container py-4 sm:py-8 max-w-2xl">
-        <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-6">Maagizo yangu</h1>
+        <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-6">{t('orders', lang)}</h1>
 
         {loading ? (
           <div className="space-y-3">
@@ -30,9 +33,9 @@ export default function OrdersPage() {
         ) : orders.length === 0 ? (
           <EmptyState
             icon={<Package className="w-12 h-12" />}
-            title="Huna maagizo bado"
-            description="Unapoweka agizo, litaonekana hapa"
-            action={<Link href="/" className="btn-primary">Anza kununua</Link>}
+            title={t('noOrders', lang)}
+            description={t('noOrdersDesc', lang)}
+            action={<Link href="/" className="btn-primary">{t('startShopping', lang)}</Link>}
           />
         ) : (
           <div className="space-y-3">
@@ -62,8 +65,8 @@ export default function OrdersPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <p className="font-semibold text-sm text-ink-900 dark:text-white truncate">
-                          {firstItem?.product?.name ?? 'Bidhaa'}
-                          {extraCount > 0 && <span className="text-ink-500 dark:text-ink-400"> +{extraCount} zaidi</span>}
+                          {firstItem?.product?.name ?? t('product', lang)}
+                          {extraCount > 0 && <span className="text-ink-500 dark:text-ink-400"> +{extraCount} {t('more', lang)}</span>}
                         </p>
                         <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">#{order.id.slice(-8).toUpperCase()}</p>
                       </div>
