@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, Heart, Bell, User, Menu, X, Sparkles } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useUiStore } from "@/store";
 
 // Define the shape of individual category items
 export interface Category {
@@ -21,7 +21,8 @@ interface NavbarProps {
 
 export default function Navbar({ categories = [] }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const sidebarOpen = useUiStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
   const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -39,11 +40,11 @@ export default function Navbar({ categories = [] }: NavbarProps) {
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              onClick={() => setSidebarOpen(!sidebarOpen)}
               className="lg:hidden p-2 rounded-lg text-ink-900 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800"
               aria-label="Toggle Menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
             <Link href="/" className="flex items-center gap-2">
               <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent">
@@ -114,37 +115,6 @@ export default function Navbar({ categories = [] }: NavbarProps) {
         </div>
       )}
 
-      {/* Mobile Menu Dropdown */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="lg:hidden glass-card border-b overflow-hidden"
-          >
-            <div className="px-4 pt-2 pb-6 space-y-4">
-              <form onSubmit={handleSearch} className="relative w-full mt-2">
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
-                  className="w-full bg-ink-100 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-full py-2.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-                />
-                <Search className="absolute left-4 top-3 w-4 h-4 text-ink-400 dark:text-ink-500" />
-              </form>
-              <div className="flex flex-col space-y-2 pt-2">
-                <Link href="/" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">Home</Link>
-                <Link href="/search" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">Explore Products</Link>
-                <Link href="/orders" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">My Orders</Link>
-                <Link href="/notifications" className="px-3 py-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 text-sm font-medium">Notifications</Link>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
   );
 }

@@ -2,13 +2,12 @@ import { Suspense } from 'react'
 import { createServerClient } from '@/lib/supabase/server'
 import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
-import CategoryShowcase from '@/components/home/CategoryShowcase'
 import TrustBadges from '@/components/home/TrustBadges'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
 import DeliveryProcess from '@/components/home/DeliveryProcess'
 import { FadeInView } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
-import type { Product, Category } from '@/types'
+import type { Product } from '@/types'
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/Card'
 import type { HomeStats } from '@/components/home/HeroSection'
@@ -16,16 +15,6 @@ import type { HomeStats } from '@/components/home/HeroSection'
 export const dynamic = 'force-dynamic'
 
 // ─── Data Fetching ────────────────────────────────────────────────────────
-
-async function getCategories(): Promise<Category[]> {
-  try {
-    const supabase = createServerClient()
-    const { data } = await supabase.from('categories').select('*').order('sort_order').limit(8)
-    return (data as Category[]) ?? []
-  } catch {
-    return []
-  }
-}
 
 async function getStats(): Promise<HomeStats> {
   const empty: HomeStats = { active_sellers: 0, verified_stores: 0, products_available: 0, orders_delivered: 0, active_riders: 0 }
@@ -83,8 +72,7 @@ async function getRecentProducts() {
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export default async function MarketplaceHomePage() {
-  const [categories, stats, featuredSellers, recentProducts] = await Promise.all([
-    getCategories(),
+  const [stats, featuredSellers, recentProducts] = await Promise.all([
     getStats(),
     getFeaturedSellers(),
     getRecentProducts(),
@@ -97,14 +85,6 @@ export default async function MarketplaceHomePage() {
 
       {/* Trust badges — moved up for early buyer confidence */}
       <TrustBadges />
-
-      {categories.length > 0 && (
-        <FadeInView>
-          <Suspense fallback={<div className="section"><Skeleton className="h-48 w-full rounded-2xl" /></div>}>
-            <CategoryShowcase categories={categories} />
-          </Suspense>
-        </FadeInView>
-      )}
 
       {recentProducts.length > 0 && (
         <FadeInView>
