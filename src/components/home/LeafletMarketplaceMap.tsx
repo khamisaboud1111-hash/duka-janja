@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
-import { Maximize, Minimize, MapPin, Satellite, Layers } from 'lucide-react'
+import { Maximize, Minimize, MapPin, Satellite, Layers, Home } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 export interface SellerPin {
@@ -16,7 +15,11 @@ export interface SellerPin {
   longitude: number
 }
 
-// Default Zanzibar center (Stone Town) used when no pins are available yet.
+// Zanzibar archipelago bounds — covers Unguja (main island) + Pemba.
+const ZANZIBAR_BOUNDS: [[number, number], [number, number]] = [
+  [-6.9, 38.9],
+  [-4.6, 39.9],
+]
 const ZANZIBAR_CENTER: [number, number] = [-6.1659, 39.2026]
 
 type LayerKey = 'streets' | 'satellite'
@@ -49,10 +52,9 @@ export default function LeafletMarketplaceMap({ pins }: { pins: SellerPin[] }) {
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       })
 
-      const center: [number, number] =
-        pins.length > 0 ? [pins[0].latitude, pins[0].longitude] : ZANZIBAR_CENTER
-
       // Fully interactive: scroll wheel zoom, drag pan, pinch zoom on touch.
+      // Constrained to the Zanzibar region so users can't get lost at sea,
+      // and locked to a min zoom that always shows the islands.
       map = L.map(mapRef.current, {
         scrollWheelZoom: true,
         dragging: true,
@@ -61,12 +63,18 @@ export default function LeafletMarketplaceMap({ pins }: { pins: SellerPin[] }) {
         boxZoom: true,
         keyboard: true,
         zoomControl: false,
-      }).setView(center, pins.length > 0 ? 13 : 12)
+        minZoom: 9,
+        maxBounds: ZANZIBAR_BOUNDS,
+        maxBoundsViscosity: 0.8,
+      })
       leafletMapRef.current = map
 
-      streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
+      // Colorful street map — CartoDB Voyager. Friendly palette, street
+      // labels and routes visible from street level up.
+      streetLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+        maxZoom: 20,
+        subdomains: 'abcd',
       }).addTo(map)
 
       satelliteLayer = L.tileLayer(
@@ -78,6 +86,29 @@ export default function LeafletMarketplaceMap({ pins }: { pins: SellerPin[] }) {
       )
       streetLayerRef.current = streetLayer
       satelliteLayerRef.current = satelliteLayer
+
+      // Fallback: if CartoDB tiles fail to load (network/region block), swap
+      // to plain OpenStreetMap so the map is never blank.
+      streetLayer.on('tileerror', () => {
+        if (streetLayerRef.current?._url?.includes('cartocdn')) {
+          const fallback = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+          })
+          map.removeLayer(streetLayer)
+          streetLayer = fallback
+          streetLayerRef.current = fallback
+          fallback.addTo(map)
+        }
+      })
+
+      // Fit the whole archipelago on first load, or fit to the pins.
+      if (pins.length > 0) {
+        const latLngs = pins.map((p) => L.latLng(p.latitude, p.longitude))
+        map.fitBounds(L.latLngBounds(latLngs).pad(0.35))
+      } else {
+        map.fitBounds(ZANZIBAR_BOUNDS)
+      }
 
       // Standard zoom controls, top-left.
       L.control.zoom({ position: 'topleft' }).addTo(map)
@@ -97,8 +128,9 @@ export default function LeafletMarketplaceMap({ pins }: { pins: SellerPin[] }) {
         marker.bindPopup(popupHtml)
       })
 
-      // Fix layout after the map container gets its final size (modal open).
-      setTimeout(() => map.invalidateSize(), 60)
+      // Fix layout after the map container gets its final size (modal open / FadeInView reveal).
+      setTimeout(() => map.invalidateSize(), 120)
+      setTimeout(() => map.invalidateSize(), 500)
     }
 
     init()
@@ -123,6 +155,13 @@ export default function LeafletMarketplaceMap({ pins }: { pins: SellerPin[] }) {
       streetLayerRef.current?.addTo(map)
     }
   }, [layer])
+
+  // Reset the view to the whole Zanzibar archipelago.
+  function resetView() {
+    const map = leafletMapRef.current
+    if (!map) return
+    map.flyToBounds(ZANZIBAR_BOUNDS)
+  }
 
   // Manual fullscreen for the modal so the map is as big as possible.
   async function toggleFullscreen() {
@@ -210,6 +249,14 @@ export default function LeafletMarketplaceMap({ pins }: { pins: SellerPin[] }) {
           </div>
 
           <div className="flex rounded-xl overflow-hidden bg-white dark:bg-ink-800 shadow-card border border-ink-200 dark:border-ink-700">
+            <button
+              type="button"
+              onClick={resetView}
+              title="Onyesha Zanzibar yote"
+              className="p-2 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
+            >
+              <Home className="w-4 h-4" />
+            </button>
             <button
               type="button"
               onClick={locateMe}
