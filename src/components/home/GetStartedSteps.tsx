@@ -3,43 +3,46 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { UserPlus, Compass, ShoppingCart, Truck, ArrowRight, Sparkles } from 'lucide-react'
+import { useLangStore } from '@/store'
+import { t, type TranslationKey } from '@/i18n/translations'
 
-const STEPS = [
+const STEPS: { icon: any; step: string; titleKey: TranslationKey; descKey: TranslationKey; ctaKey: TranslationKey; href: string }[] = [
   {
     icon: UserPlus,
     step: '01',
-    title: 'Fungua Akaunti',
-    desc: 'Jisajili bure kama mnunuzi, muuzaji au rider — sekunde chache tu.',
-    cta: 'Jisajili Bure',
+    titleKey: 'gs1Title',
+    descKey: 'gs1Desc',
+    ctaKey: 'gs1Cta',
     href: '/register',
   },
   {
     icon: Compass,
     step: '02',
-    title: 'Vinjari Bidhaa',
-    desc: 'Gundua maelfu ya bidhaa halisi kutoka kwa wauzaji waliothibitishwa.',
-    cta: 'Anza Kutafuta',
+    titleKey: 'gs2Title',
+    descKey: 'gs2Desc',
+    ctaKey: 'gs2Cta',
     href: '/search',
   },
   {
     icon: ShoppingCart,
     step: '03',
-    title: 'Weka Agizo',
-    desc: 'Lipa kwa usalama kwa M-Pesa, Tigo Pesa au Airtel Money.',
-    cta: 'Jaza Kikapu',
+    titleKey: 'gs3Title',
+    descKey: 'gs3Desc',
+    ctaKey: 'gs3Cta',
     href: '/checkout',
   },
   {
     icon: Truck,
     step: '04',
-    title: 'Pokea Haraka',
-    desc: 'Fuatilia agizo lako moja kwa moja hadi lifike mlangoni kwako.',
-    cta: 'Fuatilia Agizo',
+    titleKey: 'gs4Title',
+    descKey: 'gs4Desc',
+    ctaKey: 'gs4Cta',
     href: '/orders',
   },
 ]
 
 export default function GetStartedSteps() {
+  const lang = useLangStore((s) => s.lang)
   return (
     <section className="section relative overflow-hidden bg-gradient-to-b from-white to-brand-50/40 dark:from-ink-950 dark:to-ink-900/40">
       {/* Decorative glow */}
@@ -54,7 +57,7 @@ export default function GetStartedSteps() {
             transition={{ duration: 0.4 }}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-100 dark:bg-brand-900/40 text-brand-700 dark:text-brand-300 text-[11px] font-bold tracking-wide uppercase mb-4"
           >
-            <Sparkles className="w-3.5 h-3.5" /> Anza Leo
+            <Sparkles className="w-3.5 h-3.5" /> {t('startToday', lang)}
           </motion.span>
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -63,7 +66,7 @@ export default function GetStartedSteps() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="font-display font-bold text-2xl sm:text-3xl text-ink-900 dark:text-white"
           >
-            Njia 4 Rahisi za Kuanza
+            {t('fourEasySteps', lang)}
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -72,7 +75,7 @@ export default function GetStartedSteps() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-sm text-ink-500 dark:text-ink-300 mt-2"
           >
-            Kuanzia akaunti mpya hadi agizo likifika mlangoni — hatua nne tu.
+            {t('getStartedSubtitle', lang)}
           </motion.p>
         </div>
 
@@ -103,14 +106,14 @@ export default function GetStartedSteps() {
                     </span>
                   </div>
 
-                  <h3 className="font-bold text-ink-900 dark:text-white text-base mb-1.5">{s.title}</h3>
-                  <p className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed mb-4">{s.desc}</p>
+                  <h3 className="font-bold text-ink-900 dark:text-white text-base mb-1.5">{t(s.titleKey, lang)}</h3>
+                  <p className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed mb-4">{t(s.descKey, lang)}</p>
 
                   <Link
                     href={s.href}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-300 group-hover:gap-2.5 transition-all"
                   >
-                    {s.cta} <ArrowRight className="w-4 h-4" />
+                    {t(s.ctaKey, lang)} <ArrowRight className="w-4 h-4" />
                   </Link>
                 </div>
               </motion.div>

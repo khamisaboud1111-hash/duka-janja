@@ -1,6 +1,10 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { BadgeCheck, MapPin, Package, ShoppingBag, Star } from 'lucide-react'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 
 interface FeaturedSeller {
   id: string
@@ -19,17 +23,18 @@ interface FeaturedSeller {
 
 export default function FeaturedSellersShowcase({ sellers }: { sellers: FeaturedSeller[] }) {
   if (sellers.length === 0) return null
+  const lang = useLangStore((s) => s.lang)
 
   return (
     <section className="section bg-ink-50/50 dark:bg-ink-900/40">
       <div className="page-container">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">Maduka Maarufu</h2>
-            <p className="text-sm text-ink-500 dark:text-ink-300">Wauzaji halisi waliothibitishwa Zanzibar</p>
+            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">{t('popularStores', lang)}</h2>
+            <p className="text-sm text-ink-500 dark:text-ink-300">{t('featuredSellersSubtitle', lang)}</p>
           </div>
           <Link href="/search?type=sellers" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
-            Zote →
+            {t('seeAll', lang)} →
           </Link>
         </div>
 
@@ -45,7 +50,7 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
                 {seller.banner_url && (
                   <Image
                     src={seller.banner_url}
-                    alt={`Banner ya ${seller.store_name}`}
+                    alt={`${t('bannerAlt', lang)} ${seller.store_name}`}
                     fill
                     sizes="400px"
                     className="object-cover"
@@ -68,7 +73,7 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
                 <div className="flex items-center gap-1.5 mb-1">
                   <h3 className="font-bold text-ink-900 dark:text-white text-sm line-clamp-1">{seller.store_name}</h3>
                   {seller.national_id_verified && (
-                    <BadgeCheck className="w-4 h-4 text-brand-500 flex-shrink-0" aria-label="Duka lililothibitishwa" />
+                    <BadgeCheck className="w-4 h-4 text-brand-500 flex-shrink-0" aria-label={t('verifiedBadge', lang)} />
                   )}
                 </div>
 
@@ -95,7 +100,7 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
                 </div>
 
                 <span className="mt-3 inline-flex w-full justify-center items-center gap-1 py-2 rounded-lg bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-xs font-semibold group-hover:bg-brand-500 group-hover:text-white transition-colors">
-                  Tembelea Duka
+                  {t('visitStore', lang)}
                 </span>
               </div>
             </Link>

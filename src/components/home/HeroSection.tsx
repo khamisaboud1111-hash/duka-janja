@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Store, ShoppingBag, Package, Medal, Sparkles, ArrowRight, ShieldCheck, Bike, BadgeCheck } from 'lucide-react'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 
 interface HomeStats {
   active_sellers: number
@@ -35,6 +37,7 @@ function StatCard({ icon: Icon, value, label }: { icon: any; value: string | num
 }
 
 export default function HeroSection({ stats }: { stats: HomeStats }) {
+  const lang = useLangStore((s) => s.lang)
   return (
     <section className="relative isolate overflow-hidden rounded-b-[2rem] sm:rounded-b-[2.5rem] bg-gradient-to-br from-teal-800 via-teal-600 to-emerald-500 animate-gradient-pan">
       {/* Decorative orbs */}
@@ -58,7 +61,7 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             <ShieldCheck className="w-5 h-5 text-emerald-100" />
           </div>
           <div>
-            <p className="text-white text-xs font-bold leading-tight">Malipo Salama</p>
+            <p className="text-white text-xs font-bold leading-tight">{t('securePayments', lang)}</p>
             <p className="text-white/70 text-[10px]">M-Pesa · Tigo · Airtel</p>
           </div>
         </div>
@@ -69,8 +72,8 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             <Bike className="w-5 h-5 text-amber-200" />
           </div>
           <div>
-            <p className="text-white text-xs font-bold leading-tight">Usafirishaji wa Haraka</p>
-            <p className="text-white/70 text-[10px]">GPS moja kwa moja</p>
+            <p className="text-white text-xs font-bold leading-tight">{t('fastDelivery', lang)}</p>
+            <p className="text-white/70 text-[10px]">{t('liveGpsTracking', lang)}</p>
           </div>
         </div>
       </div>
@@ -80,8 +83,8 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             <BadgeCheck className="w-5 h-5 text-emerald-100" />
           </div>
           <div>
-            <p className="text-white text-xs font-bold leading-tight">Wauzaji Halisi</p>
-            <p className="text-white/70 text-[10px]">Wamethibitishwa 100%</p>
+            <p className="text-white text-xs font-bold leading-tight">{t('verifiedSellers', lang)}</p>
+            <p className="text-white/70 text-[10px]">{t('verified100', lang)}</p>
           </div>
         </div>
       </div>
@@ -96,19 +99,19 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] font-bold tracking-wide uppercase mb-4"
           >
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-            Soko Namba 1 la Zanzibar
+            {t('zanzibarTopMarket', lang)}
           </motion.span>
 
           <motion.h1
             variants={item}
             className="font-display font-black text-white text-3xl sm:text-5xl lg:text-6xl leading-[1.08] mb-3 max-w-2xl"
           >
-            Nunua Bidhaa Bora{' '}
-            <span className="shimmer-text">Kutoka Zanzibar</span>
+            {t('heroTitlePart1', lang)}{' '}
+            <span className="shimmer-text">{t('heroTitlePart2', lang)}</span>
           </motion.h1>
 
           <motion.p variants={item} className="text-white/85 text-sm sm:text-lg mb-7 max-w-md">
-            Gundua maelfu ya bidhaa kutoka kwa wauzaji halisi, zikiwa na malipo salama na usafirishaji wa haraka.
+            {t('heroSubtitle', lang)}
           </motion.p>
 
           <motion.div variants={item} className="flex flex-wrap gap-3 mb-8">
@@ -116,14 +119,14 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
               href="/register"
               className="group inline-flex items-center gap-2 px-6 py-3 bg-white text-teal-700 font-bold rounded-xl hover:bg-teal-50 transition-all shadow-lg hover:shadow-2xl hover:-translate-y-0.5 active:scale-95"
             >
-              Anza Kununua
+              {t('startShopping', lang)}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
             <Link
               href="/register?type=seller"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-colors border border-white/30 backdrop-blur-sm hover:-translate-y-0.5 active:scale-95"
             >
-              <Store className="w-4 h-4" /> Fungua Duka
+              <Store className="w-4 h-4" /> {t('openStore', lang)}
             </Link>
           </motion.div>
         </motion.div>
@@ -136,10 +139,10 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             animate="visible"
             className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl"
           >
-            <StatCard icon={ShoppingBag} value={stats.products_available} label="Bidhaa" />
-            <StatCard icon={Store} value={stats.active_sellers} label="Wauzaji" />
-            <StatCard icon={Package} value={stats.orders_delivered} label="Yamefikishwa" />
-            <StatCard icon={Medal} value={stats.active_riders} label="Madereva" />
+            <StatCard icon={ShoppingBag} value={stats.products_available} label={t('products', lang)} />
+            <StatCard icon={Store} value={stats.active_sellers} label={t('sellers', lang)} />
+            <StatCard icon={Package} value={stats.orders_delivered} label={t('ordersDelivered', lang)} />
+            <StatCard icon={Medal} value={stats.active_riders} label={t('riders', lang)} />
           </motion.div>
         )}
       </div>

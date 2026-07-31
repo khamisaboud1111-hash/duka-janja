@@ -4,17 +4,20 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, LayoutGrid, ShoppingCart, Package, User } from 'lucide-react'
 import { cn } from '@/utils'
+import { useLangStore } from '@/store'
+import { t, type TranslationKey } from '@/i18n/translations'
 
-const LINKS = [
-  { href: '/', icon: Home, label: 'Nyumbani' },
-  { href: '/search', icon: LayoutGrid, label: 'Vinjari' },
-  { href: '/checkout', icon: ShoppingCart, label: 'Kikapu' },
-  { href: '/orders', icon: Package, label: 'Maagizo' },
-  { href: '/settings', icon: User, label: 'Akaunti' },
+const LINKS: { href: string; icon: any; labelKey: TranslationKey }[] = [
+  { href: '/', icon: Home, labelKey: 'home' },
+  { href: '/search', icon: LayoutGrid, labelKey: 'browse' },
+  { href: '/checkout', icon: ShoppingCart, labelKey: 'cart' },
+  { href: '/orders', icon: Package, labelKey: 'orders' },
+  { href: '/settings', icon: User, labelKey: 'account' },
 ]
 
 export default function MobileBottomNav() {
   const pathname = usePathname()
+  const lang = useLangStore((s) => s.lang)
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-ink-900 border-t border-ink-100 dark:border-ink-800 safe-bottom">
@@ -32,7 +35,7 @@ export default function MobileBottomNav() {
               )}
             >
               <Icon className={cn('w-5 h-5 transition-transform', active && 'scale-110')} />
-              <span className="text-[10px] font-semibold leading-none">{link.label}</span>
+              <span className="text-[10px] font-semibold leading-none">{t(link.labelKey, lang)}</span>
             </Link>
           )
         })}

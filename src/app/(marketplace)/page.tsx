@@ -7,6 +7,7 @@ import GetStartedSteps from '@/components/home/GetStartedSteps'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
 import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
+import LText from '@/components/shared/LText'
 import type { Product } from '@/types'
 import Link from 'next/link'
 import { Skeleton } from '@/components/ui/Card'
@@ -101,11 +102,11 @@ export default async function MarketplaceHomePage() {
                 <div className="flex items-end justify-between mb-4">
                   <div>
                     <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">
-                      Bidhaa Mpya
+                      <LText k="newProducts" />
                     </h2>
                   </div>
                   <Link href="/search?sort=newest" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
-                    Zote →
+                    <LText k="seeAll" /> →
                   </Link>
                 </div>
                 <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -133,17 +134,17 @@ export default async function MarketplaceHomePage() {
         <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-white/10 animate-pulse-glow" style={{ animationDelay: '2s' }} />
         <div className="page-container relative text-center">
           <h2 className="font-display font-black text-xl sm:text-2xl text-white mb-2">
-            Anza Kununua na Kuuza Leo!
+            <LText k="bottomCtaTitle" />
           </h2>
           <p className="text-white/85 text-sm mb-5 max-w-sm mx-auto">
-            Jiunge na maelfu ya Wazanzibari wanaotumia Duka Janja.
+            <LText k="bottomCtaSubtitle" />
           </p>
           <div className="flex flex-wrap justify-center gap-2">
             <Link href="/register" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95">
-              Fungua Akaunti Bure
+              <LText k="gs1Cta" />
             </Link>
             <Link href="/search" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-all border border-white/30 hover:-translate-y-0.5 active:scale-95">
-              Vinjari Bidhaa
+              <LText k="browse" />
             </Link>
           </div>
         </div>

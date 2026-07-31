@@ -194,7 +194,7 @@ export default function Sidebar() {
                 <button
                   onClick={() => setOpen(false)}
                   className="p-2 rounded-lg text-ink-500 dark:text-ink-400 hover:bg-ink-100 dark:hover:bg-ink-800"
-                  aria-label="Funga menyu"
+                  aria-label={t('closeMenu', lang)}
                 >
                   <X className="w-6 h-6" />
                 </button>

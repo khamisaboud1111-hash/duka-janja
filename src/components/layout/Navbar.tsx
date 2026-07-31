@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, ShoppingCart, Heart, Bell, User, Menu, X, Sparkles } from "lucide-react";
-import { useUiStore } from "@/store";
+import { useUiStore, useLangStore } from "@/store";
+import { t } from "@/i18n/translations";
 
 // Define the shape of individual category items
 export interface Category {
@@ -23,6 +24,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
+  const lang = useLangStore((s) => s.lang);
   const router = useRouter();
 
   const handleSearch = (e: React.FormEvent) => {
@@ -42,7 +44,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="lg:hidden p-2 rounded-lg text-ink-900 dark:text-white hover:bg-ink-100 dark:hover:bg-ink-800"
-              aria-label="Toggle Menu"
+              aria-label={t('toggleMenu', lang)}
             >
               {sidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -51,7 +53,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
                 DUKA JANJA
               </span>
               <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-orange-100 dark:bg-orange-950 text-orange-600 dark:text-orange-400">
-                <Sparkles className="w-3 h-3 mr-1" /> Ultimate
+                <Sparkles className="w-3 h-3 mr-1" /> {t('ultimate', lang)}
               </span>
             </Link>
           </div>
@@ -63,7 +65,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search millions of products, verified stores & brands..."
+                placeholder={t('searchPlaceholder', lang)}
                 className="w-full bg-ink-100/50 dark:bg-ink-800/50 border border-ink-200 dark:border-ink-700 rounded-full py-2.5 pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-inner transition-all"
               />
               <Search className="absolute left-4 top-3 w-4 h-4 text-ink-400 dark:text-ink-500" />
@@ -71,29 +73,29 @@ export default function Navbar({ categories = [] }: NavbarProps) {
                 type="submit"
                 className="absolute right-1.5 top-1.5 bg-brand-500 text-white px-4 py-1.5 rounded-full text-xs font-medium hover:opacity-90 transition-opacity"
               >
-                Search
+                {t('searchButton', lang)}
               </button>
             </div>
           </form>
 
           {/* Quick Actions & Navigation Shortcuts */}
           <div className="flex items-center gap-2 sm:gap-4">
-            <Link href="/wishlist" className="p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label="Wishlist">
+            <Link href="/wishlist" className="p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label={t('wishlist', lang)}>
               <Heart className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full"></span>
             </Link>
 
-            <Link href="/checkout" className="p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label="Cart">
+            <Link href="/checkout" className="p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label={t('cart', lang)}>
               <ShoppingCart className="w-5 h-5" />
             </Link>
 
-            <Link href="/notifications" className="hidden sm:flex p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label="Notifications">
+            <Link href="/notifications" className="hidden sm:flex p-2.5 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 text-ink-900 dark:text-white relative" aria-label={t('notifications', lang)}>
               <Bell className="w-5 h-5" />
             </Link>
 
             <Link href="/settings" className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-2 rounded-full hover:bg-ink-100 dark:hover:bg-ink-800 border border-ink-200 dark:border-ink-700">
               <User className="w-5 h-5 text-brand-500" />
-              <span className="hidden lg:inline text-xs font-medium">Account</span>
+              <span className="hidden lg:inline text-xs font-medium">{t('account', lang)}</span>
             </Link>
           </div>
         </div>
@@ -102,7 +104,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
       {/* Optional: Render category pills if provided */}
       {categories.length > 0 && (
         <div className="hidden lg:flex items-center gap-4 px-8 py-2 border-t border-ink-200/40 dark:border-ink-700/40 bg-ink-100/20 dark:bg-ink-800/20 text-xs overflow-x-auto">
-          <span className="font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider">Categories:</span>
+          <span className="font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider">{t('categoriesLabel', lang)}</span>
           {categories.map((cat) => (
             <Link
               key={cat.id}
