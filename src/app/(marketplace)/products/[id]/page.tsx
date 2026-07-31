@@ -105,7 +105,7 @@ export default async function ProductPage({ params }: Props) {
               )}
               {product.is_made_in_zanzibar && (
                 <span className="absolute top-3 left-3 badge-orange">
-                  🏅 Imezalishwa Zanzibar
+                  🏅 Imetengenezwa Zanzibar
                 </span>
               )}
             </div>

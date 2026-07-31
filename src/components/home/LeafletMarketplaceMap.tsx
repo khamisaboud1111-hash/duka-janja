@@ -311,15 +311,6 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
             </div>
           )}
 
-          {/* Non-blocking hint when there are no seller pins yet — the map stays usable */}
-          {pins.length === 0 && tilesReady && (
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[500] max-w-[90%]">
-              <p className="text-xs text-ink-600 dark:text-ink-200 bg-white/90 dark:bg-ink-800/90 backdrop-blur-sm border border-ink-200 dark:border-ink-700 rounded-full px-4 py-1.5 shadow-card text-center">
-                Maduka yataongezwa hivi karibuni — vinjari ramani ya Zanzibar hadi sasa
-              </p>
-            </div>
-          )}
-
           {/* Locate feedback */}
           {notice && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-[600] max-w-[90%]">

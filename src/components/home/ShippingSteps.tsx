@@ -33,7 +33,7 @@ const STEPS = [
     color: 'from-violet-500 to-purple-500',
     ring: 'bg-violet-50 dark:bg-violet-950/40',
     title: 'Fuatilia Moja kwa Moja',
-    desc: 'Unaona agizo lako linapoenda kwenye ramani — mawasiliano ya GPS.',
+    desc: 'Unaona agizo lako linaposafiri kwenye ramani kupitia ufuatiliaji wa GPS.',
     tag: 'Hatua 4',
   },
   {

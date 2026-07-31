@@ -31,7 +31,7 @@ export default async function MarketplaceLayout({ children }: { children: React.
               <h4 className="text-white font-semibold text-sm mb-3">Kununua</h4>
               <ul className="space-y-2 text-xs">
                 <li><a href="/search" className="hover:text-white transition-colors">Bidhaa zote</a></li>
-                <li><a href="/search?made_in_zanzibar=true" className="hover:text-white transition-colors">Imezalishwa Zanzibar</a></li>
+                <li><a href="/search?made_in_zanzibar=true" className="hover:text-white transition-colors">Imetengenezwa Zanzibar</a></li>
                 <li><a href="/orders" className="hover:text-white transition-colors">Maagizo yangu</a></li>
               </ul>
             </div>

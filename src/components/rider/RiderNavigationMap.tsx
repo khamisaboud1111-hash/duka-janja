@@ -99,12 +99,12 @@ export function RiderNavigationMap({
 
     pickupMarkerRef.current = L.marker([pickupLocation.lat, pickupLocation.lng], { icon: pickupIcon })
       .addTo(map)
-      .bindPopup('Eneo la Kuchukulia Bidhaa')
+      .bindPopup('Mahali pa Kuchukua Bidhaa')
 
     if (deliveryLocation) {
       deliveryMarkerRef.current = L.marker([deliveryLocation.lat, deliveryLocation.lng], { icon: deliveryIcon })
         .addTo(map)
-        .bindPopup('Eneo la Kufikisha Bidhaa')
+        .bindPopup('Mahali pa Kufikisha Bidhaa')
     }
 
     leafletMapRef.current = map

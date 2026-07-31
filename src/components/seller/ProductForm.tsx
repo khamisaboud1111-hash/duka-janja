@@ -15,7 +15,7 @@ import toast from 'react-hot-toast'
 
 const schema = z.object({
   name:               z.string().min(2, 'Jina linahitajika'),
-  description:        z.string().min(10, 'Maelezo yanachukua angalau herufi 10'),
+  description:        z.string().min(10, 'Maelezo yanahitaji angalau herufi 10'),
   category_id:        z.string().min(1, 'Chagua aina'),
   price:              z.coerce.number().min(100, 'Bei lazima iwe zaidi ya TZS 100'),
   compare_at_price:   z.coerce.number().optional(),
@@ -148,8 +148,8 @@ export default function ProductForm({ seller, product }: Props) {
           onClick={() => setValue('is_made_in_zanzibar', !watch('is_made_in_zanzibar'))}>
           <input type="checkbox" {...register('is_made_in_zanzibar')} className="w-4 h-4 rounded accent-amber-500" />
           <div>
-            <p className="text-sm font-semibold text-amber-800">🏅 Imezalishwa Zanzibar</p>
-            <p className="text-xs text-amber-600">Tiki hii kama bidhaa yako imezalishwa Zanzibar</p>
+            <p className="text-sm font-semibold text-amber-800">🏅 Imetengenezwa Zanzibar</p>
+            <p className="text-xs text-amber-600">Tiki hii kama bidhaa yako imetengenezwa Zanzibar</p>
           </div>
         </div>
       </div>
@@ -184,7 +184,7 @@ export default function ProductForm({ seller, product }: Props) {
 
       {/* Location & delivery options */}
       <div className="card p-5 space-y-4">
-        <h2 className="font-semibold text-ink-800">Mahali na Uwasilishaji</h2>
+        <h2 className="font-semibold text-ink-800">Mahali na Usafirishaji</h2>
         <div>
           <label className="label">Eneo la bidhaa (hiari)</label>
           <input {...register('location_area')} className="input" placeholder="Mfano: Stone Town, Michenzani" />
@@ -192,7 +192,7 @@ export default function ProductForm({ seller, product }: Props) {
         <div className="flex gap-3">
           <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${watch('delivery_available') ? 'border-brand-500 bg-brand-50' : 'border-ink-200'}`}>
             <input type="checkbox" {...register('delivery_available')} className="w-4 h-4 rounded accent-brand-500" />
-            <span className="text-sm font-medium">🚚 Uwasilishaji unapatikana</span>
+            <span className="text-sm font-medium">🚚 Usafirishaji unapatikana</span>
           </label>
           <label className={`flex-1 flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-colors ${watch('pickup_available') ? 'border-brand-500 bg-brand-50' : 'border-ink-200'}`}>
             <input type="checkbox" {...register('pickup_available')} className="w-4 h-4 rounded accent-brand-500" />

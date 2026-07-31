@@ -210,7 +210,7 @@ export default function SearchPage() {
           <div className="flex flex-wrap gap-2 mb-4">
             {q && <FilterChip label={`"${q}"`} onRemove={() => setParam('q', null)} />}
             {category && <FilterChip label={categories.find(c => c.slug === category)?.name_sw ?? category} onRemove={() => setParam('category', null)} />}
-            {madeInZnz && <FilterChip label="🏅 Imezalishwa Zanzibar" onRemove={() => setParam('made_in_zanzibar', null)} />}
+            {madeInZnz && <FilterChip label="🏅 Imetengenezwa Zanzibar" onRemove={() => setParam('made_in_zanzibar', null)} />}
             {sort !== 'newest' && <FilterChip label={sortLabel(sort)} onRemove={() => setParam('sort', null)} />}
             <button onClick={clearAll} className="text-xs text-red-500 dark:text-red-400 font-medium hover:underline px-1">Futa chujio zote</button>
           </div>
@@ -247,7 +247,7 @@ export default function SearchPage() {
               <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">Maalum</p>
               <button onClick={() => setParam('made_in_zanzibar', madeInZnz ? null : 'true')}
                 className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${madeInZnz ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-amber-300'}`}>
-                🏅 Imezalishwa Zanzibar
+                🏅 Imetengenezwa Zanzibar
               </button>
             </div>
           </div>

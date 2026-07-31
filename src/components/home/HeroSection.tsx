@@ -69,7 +69,7 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             <Bike className="w-5 h-5 text-amber-200" />
           </div>
           <div>
-            <p className="text-white text-xs font-bold leading-tight">Uwasilishaji wa Haraka</p>
+            <p className="text-white text-xs font-bold leading-tight">Usafirishaji wa Haraka</p>
             <p className="text-white/70 text-[10px]">GPS moja kwa moja</p>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
             <StatCard icon={ShoppingBag} value={stats.products_available} label="Bidhaa" />
             <StatCard icon={Store} value={stats.active_sellers} label="Wauzaji" />
             <StatCard icon={Package} value={stats.orders_delivered} label="Yamefikishwa" />
-            <StatCard icon={Medal} value={stats.active_riders} label="Watumishi" />
+            <StatCard icon={Medal} value={stats.active_riders} label="Madereva" />
           </motion.div>
         )}
       </div>

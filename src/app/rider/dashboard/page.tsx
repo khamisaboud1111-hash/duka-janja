@@ -240,7 +240,7 @@ export default function RiderDashboardPage() {
           loadRiderData()
         } else {
           setActiveDelivery({ ...activeDelivery, status: DeliveryStatus.PickedUp })
-          toast.success('Bidhaa zimechukuliwa mafanikio.')
+          toast.success('Bidhaa zimechukuliwa kwa mafanikio.')
         }
       } else {
         toast.error(json.message || 'Imeshindikana kusasisha hali ya safari.')
