@@ -3,17 +3,17 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, LayoutGrid, ShoppingCart, Package, Heart, User, Store, X, Search, Check, Sun, Moon } from 'lucide-react'
+import { Home, LayoutGrid, ShoppingCart, Package, Heart, User, Store, X, Search, Check, Sun, Moon, Languages, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utils'
 import { useUiStore, useLangStore, useThemeStore } from '@/store'
 import { t, type Language, type TranslationKey } from '@/i18n/translations'
 
-const LANGUAGES: { code: Language; label: string }[] = [
-  { code: 'en', label: 'English' },
-  { code: 'sw', label: 'Kiswahili' },
-  { code: 'ar', label: 'العربية' },
-  { code: 'fr', label: 'Français' },
+const LANGUAGES: { code: Language; flag: string; label: string }[] = [
+  { code: 'en', flag: '🇬🇧', label: 'English' },
+  { code: 'sw', flag: '🇹🇿', label: 'Kiswahili' },
+  { code: 'ar', flag: '🇸🇦', label: 'العربية' },
+  { code: 'fr', flag: '🇫🇷', label: 'Français' },
 ]
 
 const LINKS: { href: string; icon: any; labelKey: TranslationKey }[] = [
@@ -85,14 +85,15 @@ export default function Sidebar() {
             <button
               onClick={() => setLangOpen((v) => !v)}
               title={t('language', lang)}
+              aria-label={t('language', lang)}
               className="w-12 h-10 flex items-center justify-center rounded-xl text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200 transition-colors"
             >
-              <span className="text-[10px] font-bold tracking-wide">{lang.toUpperCase()}</span>
+              <Languages className="w-5 h-5" />
             </button>
             {langOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                <div className="absolute left-12 bottom-0 z-50 bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 rounded-xl shadow-xl p-1.5 min-w-[140px]">
+                <div className="absolute left-12 bottom-0 z-50 bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 rounded-xl shadow-xl p-1.5 min-w-[170px]">
                   {LANGUAGES.map((l) => (
                     <button
                       key={l.code}
@@ -101,13 +102,14 @@ export default function Sidebar() {
                         setLangOpen(false)
                       }}
                       className={cn(
-                        'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
+                        'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
                         lang === l.code
                           ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 font-semibold'
                           : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
                       )}
                     >
-                      {l.label}
+                      <span className="text-base leading-none">{l.flag}</span>
+                      <span className="flex-1 text-left">{l.label}</span>
                       {lang === l.code && <Check className="w-4 h-4" />}
                     </button>
                   ))}
@@ -191,28 +193,38 @@ export default function Sidebar() {
               </nav>
 
               {/* Language + theme controls */}
-              <div className="border-t border-ink-100 dark:border-ink-800 p-4 space-y-3">
-                <div>
-                  <p className="text-[11px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide mb-2">
-                    {t('language', lang)}
-                  </p>
-                  <div className="grid grid-cols-4 gap-1.5">
+              <div className="border-t border-ink-100 dark:border-ink-800 p-4 space-y-2">
+                <button
+                  onClick={() => setLangOpen((v) => !v)}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-sm font-medium hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
+                >
+                  <Languages className="w-5 h-5" />
+                  <span>{t('language', lang)}</span>
+                  <ChevronDown className={cn('w-4 h-4 ml-auto transition-transform', langOpen && 'rotate-180')} />
+                </button>
+                {langOpen && (
+                  <div className="space-y-1 pl-1">
                     {LANGUAGES.map((l) => (
                       <button
                         key={l.code}
-                        onClick={() => setLang(l.code)}
+                        onClick={() => {
+                          setLang(l.code)
+                          setLangOpen(false)
+                        }}
                         className={cn(
-                          'px-1 py-2 rounded-lg text-xs font-semibold transition-colors',
+                          'w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors',
                           lang === l.code
-                            ? 'bg-teal-500 text-white'
-                            : 'bg-ink-50 dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700'
+                            ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 font-semibold'
+                            : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
                         )}
                       >
-                        {l.code.toUpperCase()}
+                        <span className="text-base leading-none">{l.flag}</span>
+                        <span className="flex-1 text-left">{l.label}</span>
+                        {lang === l.code && <Check className="w-4 h-4" />}
                       </button>
                     ))}
                   </div>
-                </div>
+                )}
                 <button
                   onClick={toggleTheme}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-sm font-medium hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
