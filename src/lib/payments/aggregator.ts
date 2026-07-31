@@ -21,6 +21,8 @@
  *      verify incoming webhooks are really from Flutterwave, not spoofed)
  */
 
+import { timingSafeEqual } from 'crypto'
+
 const FLW_BASE_URL = 'https://api.flutterwave.com/v3'
 
 export interface CreateCheckoutLinkInput {
@@ -150,5 +152,12 @@ export async function verifyTransaction(transactionId: string | number): Promise
 export function isValidWebhookSignature(headerValue: string | null): boolean {
   const expected = process.env.FLUTTERWAVE_SECRET_HASH
   if (!expected || !headerValue) return false
-  return headerValue === expected
+  try {
+    return timingSafeEqual(
+      Buffer.from(headerValue, 'utf8'),
+      Buffer.from(expected, 'utf8')
+    )
+  } catch {
+    return false
+  }
 }

@@ -27,15 +27,41 @@ export function useNotifications() {
   }, [])
 
   useEffect(() => {
-    fetch()
+    let channel: ReturnType<typeof supabase.channel> | null = null
+    let cancelled = false
 
-    // Realtime subscription
-    const channel = supabase
-      .channel('notifications')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => fetch())
-      .subscribe()
+    async function setup() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setLoading(false); return }
+      if (cancelled) return
 
-    return () => { supabase.removeChannel(channel) }
+      // Load existing notifications on mount
+      await fetch()
+
+      // Realtime subscription scoped to this user only. A global 'notifications'
+      // channel would make every connected client re-fetch on every insert for
+      // any user — O(users × events) load.
+      channel = supabase
+        .channel(`notifications-${user.id}`)
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        }, (payload) => {
+          const n = payload.new as Notification
+          setNotifications((prev) => [n, ...prev])
+          setUnreadCount((c) => c + 1)
+        })
+        .subscribe()
+    }
+
+    setup()
+
+    return () => {
+      cancelled = true
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [fetch])
 
   async function markRead(id: string) {

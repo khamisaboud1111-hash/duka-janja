@@ -28,6 +28,29 @@ export function useProducts(filters: ProductFilters = {}) {
     setLoading(true)
     setError(null)
 
+    // Resolve the category slug to a category_id first. PostgREST dot-notation
+    // filters on the embedded 'category' relation (q.eq('category.slug', ...))
+    // do NOT exclude parent product rows, so products of other categories would
+    // leak through with an empty category object.
+    let categoryId: string | null = null
+    if (category) {
+      const { data: cat } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('slug', category)
+        .maybeSingle()
+      categoryId = cat?.id ?? null
+    }
+
+    // Unknown category slug → nothing can match; return empty rather than
+    // silently dropping the filter.
+    if (category && !categoryId) {
+      setProducts([])
+      setCount(0)
+      setLoading(false)
+      return
+    }
+
     let q = supabase
       .from('products')
       .select(`
@@ -39,7 +62,7 @@ export function useProducts(filters: ProductFilters = {}) {
       .eq('status', 'active')
       .range(from, to)
 
-    if (category)         q = q.eq('category.slug', category)
+    if (categoryId)       q = q.eq('category_id', categoryId)
     if (madeInZanzibar)   q = q.eq('is_made_in_zanzibar', true)
     if (search)           q = q.ilike('name', `%${search}%`)
 

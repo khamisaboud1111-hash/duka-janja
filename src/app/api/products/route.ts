@@ -13,14 +13,34 @@ export async function GET(req: NextRequest) {
   const from = (page - 1) * pageSize
   const to   = from + pageSize - 1
 
+  // Resolve the category slug to a category_id first. PostgREST dot-notation
+  // filters on the embedded 'category' relation (q.eq('category.slug', ...))
+  // do NOT exclude parent product rows, so products of other categories would
+  // leak through.
+  let categoryId: string | null = null
+  if (category) {
+    const { data: cat } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('slug', category)
+      .maybeSingle()
+    categoryId = cat?.id ?? null
+  }
+
+  // Unknown category slug → nothing can match; return empty rather than
+  // silently dropping the filter.
+  if (category && !categoryId) {
+    return NextResponse.json({ data: [], count: 0, page, pageSize, totalPages: 0 })
+  }
+
   let query = supabase
     .from('products')
     .select(`*, seller:sellers(id, store_name, store_slug, status, logo_url, national_id_verified), category:categories(*), images:product_images(*)`, { count: 'exact' })
     .eq('status', 'active')
     .range(from, to)
 
-  if (category) query = query.eq('category.slug', category)
-  if (search)   query = query.ilike('name', `%${search}%`)
+  if (categoryId) query = query.eq('category_id', categoryId)
+  if (search)     query = query.ilike('name', `%${search}%`)
 
   switch (sort) {
     case 'price_asc':  query = query.order('price', { ascending: true }); break
