@@ -65,6 +65,7 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
           keyboard: true,
           zoomControl: false,
           minZoom: 9,
+          maxZoom: 19,
           maxBounds: ARCHIPELAGO_BOUNDS,
           maxBoundsViscosity: 0.8,
         })

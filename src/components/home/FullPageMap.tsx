@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { ArrowLeft, MapPin, Store } from 'lucide-react'
+import { Home, MapPin, Store } from 'lucide-react'
 import type { SellerPin } from './LeafletMarketplaceMap'
 
 const LeafletMarketplaceMap = dynamic(() => import('./LeafletMarketplaceMap'), {
@@ -16,10 +16,9 @@ export default function FullPageMap({ pins }: { pins: SellerPin[] }) {
       <header className="flex items-center gap-3 px-4 py-3 border-b border-ink-100 dark:border-ink-800 flex-shrink-0">
         <Link
           href="/"
-          aria-label="Rudi nyumbani"
-          className="p-2 -ml-2 rounded-lg hover:bg-ink-100 dark:hover:bg-ink-800 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-xs font-semibold hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors whitespace-nowrap"
         >
-          <ArrowLeft className="w-5 h-5 text-ink-600 dark:text-ink-300" />
+          <Home className="w-4 h-4" /> Nyumbani
         </Link>
         <div className="flex-1">
           <h1 className="font-display font-bold text-lg text-ink-900 dark:text-white flex items-center gap-2">
