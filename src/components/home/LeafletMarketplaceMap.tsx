@@ -78,16 +78,22 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
           {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
             maxZoom: 20,
+            maxNativeZoom: 19,
             subdomains: 'abcd',
           }
         ).addTo(map)
 
-        // Real satellite imagery — Esri World Imagery.
+        // Real satellite imagery — Esri World Imagery. Esri only generates
+        // tiles to a certain level in each area; beyond that it serves a
+        // "Map data not yet available" placeholder tile. maxNativeZoom stops
+        // us ever requesting those — Leaflet upscales the best available
+        // imagery instead, so there is no no-data tile at any zoom.
         satelliteLayer = L.tileLayer(
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
           {
             attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics',
             maxZoom: 19,
+            maxNativeZoom: 17,
           }
         )
         streetsLayerRef.current = streetsLayer
@@ -99,6 +105,7 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
             const fallback = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
               maxZoom: 19,
+              maxNativeZoom: 18,
             })
             map.removeLayer(streetsLayer)
             streetsLayer = fallback
