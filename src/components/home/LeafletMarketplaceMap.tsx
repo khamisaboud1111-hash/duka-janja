@@ -1,7 +1,7 @@
 'use client'
 
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { Maximize, Minimize, MapPin, Satellite, Layers, Home } from 'lucide-react'
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState, type ReactNode } from 'react'
+import { Maximize, Minimize, MapPin, Satellite, Layers, Map, Home } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 export interface SellerPin {
@@ -32,10 +32,9 @@ const ARCHIPELAGO_BOUNDS: [[number, number], [number, number]] = [
 ]
 const ZANZIBAR_CENTER: [number, number] = [-6.1659, 39.2026]
 
-// Simplified Zanzibar island outlines (Unguja + Pemba). These are drawn as
-// vector shapes the moment the map initializes, so the archipelago appears
-// instantly — even before map tiles finish loading (or if a tile server is
-// slow/blocked).
+// Simplified Zanzibar island outlines (Unguja + Pemba). Drawn as vector shapes
+// the moment the map initializes — the archipelago is visible instantly with
+// ZERO external requests, so it can never be a blank screen.
 const ZANZIBAR_ISLANDS = {
   type: 'FeatureCollection',
   features: [
@@ -107,36 +106,154 @@ const ZANZIBAR_ISLANDS = {
   ],
 }
 
-type LayerKey = 'streets' | 'satellite'
+// Main roads of Zanzibar as vector routes — visible instantly, no tiles needed.
+// Approximate real-world routes (Stone Town → Nungwi, east coast, the island
+// crossing, the southern loop, and Pemba's Chake Chake → Wete road).
+const ZANZIBAR_ROADS = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { name: 'West coast road (Stone Town – Nungwi)' },
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [39.192, -6.162],
+          [39.204, -6.12],
+          [39.208, -6.08],
+          [39.213, -6.042],
+          [39.217, -6.008],
+          [39.221, -5.972],
+          [39.227, -5.94],
+          [39.237, -5.902],
+          [39.247, -5.868],
+          [39.262, -5.835],
+          [39.283, -5.8],
+          [39.299, -5.765],
+          [39.3, -5.726],
+        ],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { name: 'East coast road (Kiwengwa – Paje)' },
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [39.425, -5.99],
+          [39.442, -6.022],
+          [39.455, -6.058],
+          [39.463, -6.095],
+          [39.47, -6.13],
+          [39.475, -6.165],
+          [39.478, -6.2],
+          [39.484, -6.235],
+          [39.494, -6.27],
+          [39.504, -6.303],
+          [39.511, -6.32],
+        ],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { name: 'Stone Town – Paje crossing' },
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [39.192, -6.162],
+          [39.232, -6.17],
+          [39.272, -6.185],
+          [39.312, -6.205],
+          [39.352, -6.23],
+          [39.392, -6.26],
+          [39.432, -6.29],
+          [39.472, -6.312],
+          [39.505, -6.32],
+        ],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { name: 'Southern loop (Paje – Jambiani – Kizimkazi – Stone Town)' },
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [39.511, -6.32],
+          [39.518, -6.36],
+          [39.525, -6.4],
+          [39.533, -6.435],
+          [39.518, -6.46],
+          [39.492, -6.468],
+          [39.458, -6.464],
+          [39.425, -6.456],
+          [39.39, -6.45],
+          [39.378, -6.44],
+          [39.33, -6.42],
+          [39.292, -6.382],
+          [39.256, -6.332],
+          [39.24, -6.282],
+          [39.228, -6.238],
+          [39.214, -6.202],
+          [39.192, -6.162],
+        ],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { name: 'Pemba road (Chake Chake – Wete)' },
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [39.76, -5.245],
+          [39.745, -5.15],
+          [39.722, -5.055],
+        ],
+      },
+    },
+  ],
+}
+
+// Towns & villages of Zanzibar with their locations.
+const ZANZIBAR_TOWNS: { name: string; lat: number; lng: number }[] = [
+  { name: 'Stone Town', lat: -6.162, lng: 39.192 },
+  { name: 'Nungwi', lat: -5.726, lng: 39.3 },
+  { name: 'Kendwa', lat: -5.756, lng: 39.227 },
+  { name: 'Kiwengwa', lat: -5.99, lng: 39.425 },
+  { name: 'Matemwe', lat: -6.036, lng: 39.475 },
+  { name: 'Uroa', lat: -6.2, lng: 39.49 },
+  { name: 'Paje', lat: -6.32, lng: 39.51 },
+  { name: 'Jambiani', lat: -6.38, lng: 39.515 },
+  { name: 'Makunduchi', lat: -6.435, lng: 39.53 },
+  { name: 'Kizimkazi', lat: -6.44, lng: 39.38 },
+  { name: 'Fumba', lat: -6.27, lng: 39.25 },
+  { name: 'Bwejuu', lat: -6.28, lng: 39.5 },
+  { name: 'Chake Chake', lat: -5.245, lng: 39.76 },
+  { name: 'Wete', lat: -5.055, lng: 39.72 },
+]
+
+type LayerKey = 'zanzibar' | 'live' | 'satellite'
 
 const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }>(
   function LeafletMarketplaceMap({ pins }, ref) {
     const mapRef = useRef<HTMLDivElement | null>(null)
     const leafletMapRef = useRef<any>(null)
-    const streetLayerRef = useRef<any>(null)
+    const cartoLayerRef = useRef<any>(null)
     const satelliteLayerRef = useRef<any>(null)
+    const baseVizLayerRef = useRef<any>(null)
     const containerRef = useRef<HTMLDivElement | null>(null)
     const userMarkerRef = useRef<any>(null)
-    const [layer, setLayer] = useState<LayerKey>('streets')
+    const [layer, setLayer] = useState<LayerKey>('zanzibar')
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [notice, setNotice] = useState<string | null>(null)
 
     useEffect(() => {
       let map: any
-      let streetLayer: any
+      let cartoLayer: any
       let satelliteLayer: any
 
       async function init() {
         const L = (await import('leaflet')).default
         if (!mapRef.current || leafletMapRef.current) return
-
-        // Fix default marker icon paths (Leaflet's bundled assets don't resolve via webpack)
-        delete (L.Icon.Default.prototype as any)._getIconUrl
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-          iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-          shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        })
 
         map = L.map(mapRef.current, {
           scrollWheelZoom: true,
@@ -152,27 +269,74 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }
         })
         leafletMapRef.current = map
 
-        // Zanzibar islands drawn immediately — visible before any tile loads.
-        L.geoJSON(ZANZIBAR_ISLANDS as any, {
+        // ── Always-on vector base map (zero external requests) ─────────────
+        // Islands rendered as sand shapes over the ocean gradient.
+        const islands = L.geoJSON(ZANZIBAR_ISLANDS as any, {
           style: {
-            color: '#0f9d76',
+            color: '#14b8a6',
             weight: 1.5,
-            fillColor: '#10b981',
-            fillOpacity: 0.35,
+            fillColor: '#f5e7c1',
+            fillOpacity: 0.9,
           },
-        }).addTo(map)
+        })
 
-        // Colorful street map — CartoDB Voyager. Friendly palette, street
-        // labels and routes visible from street level up.
-        streetLayer = L.tileLayer(
+        // Big decorative "ZANZIBAR" label over the main island.
+        const zanzibarLabel = L.marker([-6.12, 39.32], {
+          interactive: false,
+          icon: L.divIcon({
+            className: '',
+            html: `<span style="font-size:30px;font-weight:800;color:rgba(13,148,136,.45);letter-spacing:3px;font-family:ui-sans-serif,system-ui;white-space:nowrap;transform:translate(-50%,-50%);display:inline-block">ZANZIBAR</span>`,
+            iconSize: [0, 0],
+          }),
+        })
+
+        baseVizLayerRef.current = L.layerGroup([islands, zanzibarLabel]).addTo(map)
+
+        // Roads: white casing underneath, amber route lines on top.
+        const roadCasing = L.geoJSON(ZANZIBAR_ROADS as any, {
+          style: {
+            color: '#ffffff',
+            weight: 7,
+            opacity: 0.95,
+            lineCap: 'round',
+            lineJoin: 'round',
+          },
+        })
+        const roadLines = L.geoJSON(ZANZIBAR_ROADS as any, {
+          style: {
+            color: '#f59e0b',
+            weight: 3.5,
+            opacity: 0.95,
+            lineCap: 'round',
+            lineJoin: 'round',
+          },
+        })
+
+        // Towns: teal dot + white label pill.
+        const towns = L.layerGroup(
+          ZANZIBAR_TOWNS.map((t) =>
+            L.marker([t.lat, t.lng], {
+              interactive: false,
+              keyboard: false,
+              icon: L.divIcon({
+                className: '',
+                html: `<div style="transform:translate(-50%,-50%);display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.94);border:1px solid #0d9488;border-radius:9999px;padding:1px 7px;font-size:10px;font-weight:700;color:#0f766e;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.15)"><span style="width:6px;height:6px;border-radius:50%;background:#0d9488;display:inline-block;flex-shrink:0"></span>${t.name}</div>`,
+                iconSize: [0, 0],
+              }),
+            })
+          )
+        )
+        L.layerGroup([roadCasing, roadLines, towns]).addTo(map)
+
+        // ── Optional live tiles (only shown when the user picks the layer) ─
+        cartoLayer = L.tileLayer(
           'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
           {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
             maxZoom: 20,
             subdomains: 'abcd',
           }
-        ).addTo(map)
-
+        )
         satelliteLayer = L.tileLayer(
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
           {
@@ -180,27 +344,25 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }
             maxZoom: 19,
           }
         )
-        streetLayerRef.current = streetLayer
+        cartoLayerRef.current = cartoLayer
         satelliteLayerRef.current = satelliteLayer
 
-        // Fallback: if CartoDB tiles fail (network/region block), swap to
-        // plain OpenStreetMap so the map is never blank.
-        streetLayer.on('tileerror', () => {
-          if (streetLayerRef.current?._url?.includes('cartocdn')) {
+        // Fallback: if CartoDB tiles fail (network/region block), swap to OSM.
+        cartoLayer.on('tileerror', () => {
+          if (cartoLayerRef.current?._url?.includes('cartocdn')) {
             const fallback = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
               attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
               maxZoom: 19,
             })
-            map.removeLayer(streetLayer)
-            streetLayer = fallback
-            streetLayerRef.current = fallback
+            map.removeLayer(cartoLayer)
+            cartoLayer = fallback
+            cartoLayerRef.current = fallback
             fallback.addTo(map)
           }
         })
 
-        // Initial view: if the container is visible we fit Zanzibar's main
-        // island; if it's hidden (modal preloaded) we just pick the center so
-        // tiles warm up, then refresh() fits the island when shown.
+        // Initial view: fit Zanzibar's main island (or pick a center + warm
+        // tiles when the container is hidden, e.g. in the preloaded modal).
         if (mapRef.current.clientHeight > 0) {
           map.fitBounds(UNGUJA_BOUNDS)
         } else {
@@ -210,8 +372,16 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }
         L.control.zoom({ position: 'topleft' }).addTo(map)
         L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map)
 
+        // Seller pins as colored teardrop divIcons — no external image files.
         pins.forEach((pin) => {
-          const marker = L.marker([pin.latitude, pin.longitude]).addTo(map)
+          const initial = (pin.store_name.trim()[0] || 'S').toUpperCase()
+          const icon = L.divIcon({
+            className: '',
+            html: `<div style="width:26px;height:26px;border-radius:50%;background:#14b8a6;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;transform:translateY(-7px)">${initial}</div>`,
+            iconSize: [26, 34],
+            iconAnchor: [13, 34],
+          })
+          const marker = L.marker([pin.latitude, pin.longitude], { icon }).addTo(map)
           marker.bindPopup(
             `<div style="min-width:160px">
               <div style="font-weight:700;font-size:13px;margin-bottom:2px">${escapeHtml(pin.store_name)}</div>
@@ -247,16 +417,19 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }
       },
     }))
 
-    // Swap base layer when the user toggles Streets / Satellite.
+    // Swap base layer: vector Zanzibar map (default, always works), live
+    // colorful tiles, or satellite imagery.
     useEffect(() => {
       const map = leafletMapRef.current
       if (!map) return
-      if (layer === 'satellite') {
-        streetLayerRef.current?.remove()
-        satelliteLayerRef.current?.addTo(map)
+      cartoLayerRef.current?.remove()
+      satelliteLayerRef.current?.remove()
+      if (layer === 'zanzibar') {
+        baseVizLayerRef.current?.addTo(map)
       } else {
-        satelliteLayerRef.current?.remove()
-        streetLayerRef.current?.addTo(map)
+        baseVizLayerRef.current?.remove()
+        if (layer === 'live') cartoLayerRef.current?.addTo(map)
+        if (layer === 'satellite') satelliteLayerRef.current?.addTo(map)
       }
     }, [layer])
 
@@ -309,45 +482,37 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }
       )
     }
 
+    const layerButton = (key: LayerKey, label: string, icon: ReactNode, active: boolean) => (
+      <button
+        type="button"
+        onClick={() => setLayer(key)}
+        className={`flex items-center gap-1 px-2.5 py-2 text-xs font-semibold transition-colors ${
+          active ? 'bg-teal-500 text-white' : 'text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700'
+        }`}
+        aria-pressed={active}
+      >
+        {icon} {label}
+      </button>
+    )
+
     return (
       <div className="relative">
         <div ref={containerRef} className="relative">
-          {/* Ocean gradient + no pure-white void: the islands GeoJSON shows over this instantly */}
+          {/* Ocean gradient — the vector Zanzibar map renders on top instantly */}
           <div
             ref={mapRef}
             style={{
-              background: 'linear-gradient(180deg, #a9d9ec 0%, #c9e9f5 55%, #dff2f9 100%)',
+              background: 'linear-gradient(180deg, #8fd0ea 0%, #bce4f3 55%, #dbf1f9 100%)',
             }}
             className="w-full h-[380px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden border border-ink-100 dark:border-ink-800 z-0"
           />
 
           {/* Layer toggle + fullscreen + locate controls */}
-          <div className="absolute top-2 right-2 z-[500] flex flex-col gap-1.5">
+          <div className="absolute top-2 right-2 z-[500] flex flex-col gap-1.5 items-end">
             <div className="flex rounded-xl overflow-hidden bg-white dark:bg-ink-800 shadow-card border border-ink-200 dark:border-ink-700">
-              <button
-                type="button"
-                onClick={() => setLayer('streets')}
-                className={`flex items-center gap-1 px-2.5 py-2 text-xs font-semibold transition-colors ${
-                  layer === 'streets'
-                    ? 'bg-teal-500 text-white'
-                    : 'text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700'
-                }`}
-                aria-pressed={layer === 'streets'}
-              >
-                <Layers className="w-3.5 h-3.5" /> Ramani
-              </button>
-              <button
-                type="button"
-                onClick={() => setLayer('satellite')}
-                className={`flex items-center gap-1 px-2.5 py-2 text-xs font-semibold transition-colors ${
-                  layer === 'satellite'
-                    ? 'bg-teal-500 text-white'
-                    : 'text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700'
-                }`}
-                aria-pressed={layer === 'satellite'}
-              >
-                <Satellite className="w-3.5 h-3.5" /> Anga
-              </button>
+              {layerButton('zanzibar', 'Zanzibar', <Map className="w-3.5 h-3.5" />, layer === 'zanzibar')}
+              {layerButton('live', 'Live', <Layers className="w-3.5 h-3.5" />, layer === 'live')}
+              {layerButton('satellite', 'Anga', <Satellite className="w-3.5 h-3.5" />, layer === 'satellite')}
             </div>
 
             <div className="flex rounded-xl overflow-hidden bg-white dark:bg-ink-800 shadow-card border border-ink-200 dark:border-ink-700">
