@@ -5,7 +5,6 @@ import QuickActionsCard from '@/components/home/QuickActionsCard'
 import TrustBadges from '@/components/home/TrustBadges'
 import GetStartedSteps from '@/components/home/GetStartedSteps'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
-import DeliveryProcess from '@/components/home/DeliveryProcess'
 import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
 import type { Product } from '@/types'
@@ -125,12 +124,6 @@ export default async function MarketplaceHomePage() {
       <FadeInView>
         <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
           <FeaturedSellersShowcase sellers={featuredSellers} />
-        </Suspense>
-      </FadeInView>
-
-      <FadeInView>
-        <Suspense fallback={<Skeleton className="h-48 w-full rounded-2xl" />}>
-          <DeliveryProcess />
         </Suspense>
       </FadeInView>
 
