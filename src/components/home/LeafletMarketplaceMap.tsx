@@ -34,8 +34,8 @@ const ZANZIBAR_CENTER: [number, number] = [-6.1659, 39.2026]
 
 type LayerKey = 'streets' | 'satellite'
 
-const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }>(
-  function LeafletMarketplaceMap({ pins }, ref) {
+const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; fill?: boolean }>(
+  function LeafletMarketplaceMap({ pins, fill = false }, ref) {
     const mapRef = useRef<HTMLDivElement | null>(null)
     const leafletMapRef = useRef<any>(null)
     const streetsLayerRef = useRef<any>(null)
@@ -244,14 +244,18 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[] }
     )
 
     return (
-      <div className="relative">
-        <div ref={containerRef} className="relative">
+      <div className={fill ? 'relative h-full' : 'relative'}>
+        <div ref={containerRef} className={fill ? 'relative h-full' : 'relative'}>
           <div
             ref={mapRef}
             style={{
               background: 'linear-gradient(180deg, #b8dff0 0%, #d8eef7 100%)',
             }}
-            className="w-full h-[380px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden border border-ink-100 dark:border-ink-800 z-0"
+            className={
+              fill
+                ? 'w-full h-full overflow-hidden z-0'
+                : 'w-full h-[380px] sm:h-[460px] lg:h-[520px] rounded-2xl overflow-hidden border border-ink-100 dark:border-ink-800 z-0'
+            }
           />
 
           {/* Layer toggle + fullscreen + locate controls */}

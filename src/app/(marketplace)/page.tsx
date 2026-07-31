@@ -82,7 +82,7 @@ export default async function MarketplaceHomePage() {
   return (
     <>
       <HeroSection stats={stats} />
-      <QuickActionsCard pins={[]} />
+      <QuickActionsCard />
 
       {/* Trust badges — moved up for early buyer confidence */}
       <FadeInView>
