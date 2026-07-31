@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import type { DeliveryZone, OrderStatus } from '@/types'
+import type { Language } from '@/i18n/translations'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -15,8 +16,9 @@ export function formatTZS(amount: number): string {
   }).format(amount)
 }
 
-export function formatDate(dateString: string, lang: 'en' | 'sw' = 'en'): string {
-  return new Intl.DateTimeFormat(lang === 'sw' ? 'sw-TZ' : 'en-TZ', {
+export function formatDate(dateString: string, lang: Language = 'en'): string {
+  const locale = lang === 'sw' ? 'sw-TZ' : lang === 'ar' ? 'ar' : lang === 'fr' ? 'fr-FR' : 'en-TZ'
+  return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

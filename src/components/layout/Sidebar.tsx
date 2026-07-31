@@ -3,19 +3,27 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, LayoutGrid, ShoppingCart, Package, Heart, User, Store, X, Search } from 'lucide-react'
+import { Home, LayoutGrid, ShoppingCart, Package, Heart, User, Store, X, Search, Check, Sun, Moon } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utils'
-import { useUiStore } from '@/store'
+import { useUiStore, useLangStore, useThemeStore } from '@/store'
+import { t, type Language, type TranslationKey } from '@/i18n/translations'
 
-const LINKS = [
-  { href: '/', icon: Home, label: 'Nyumbani' },
-  { href: '/search', icon: LayoutGrid, label: 'Vinjari' },
-  { href: '/checkout', icon: ShoppingCart, label: 'Kikapu' },
-  { href: '/orders', icon: Package, label: 'Maagizo' },
-  { href: '/wishlist', icon: Heart, label: 'Pendwa' },
-  { href: '/seller/dashboard', icon: Store, label: 'Duka' },
-  { href: '/settings', icon: User, label: 'Akaunti' },
+const LANGUAGES: { code: Language; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'sw', label: 'Kiswahili' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'fr', label: 'Français' },
+]
+
+const LINKS: { href: string; icon: any; labelKey: TranslationKey }[] = [
+  { href: '/', icon: Home, labelKey: 'home' },
+  { href: '/search', icon: LayoutGrid, labelKey: 'browse' },
+  { href: '/checkout', icon: ShoppingCart, labelKey: 'cart' },
+  { href: '/orders', icon: Package, labelKey: 'orders' },
+  { href: '/wishlist', icon: Heart, labelKey: 'wishlist' },
+  { href: '/seller/dashboard', icon: Store, labelKey: 'myStore' },
+  { href: '/settings', icon: User, labelKey: 'account' },
 ]
 
 export default function Sidebar() {
@@ -23,7 +31,13 @@ export default function Sidebar() {
   const router = useRouter()
   const open = useUiStore((s) => s.sidebarOpen)
   const setOpen = useUiStore((s) => s.setSidebarOpen)
+  const lang = useLangStore((s) => s.lang)
+  const setLang = useLangStore((s) => s.setLang)
+  const theme = useThemeStore((s) => s.theme)
+  const hasHydrated = useThemeStore((s) => s.hasHydrated)
+  const toggleTheme = useThemeStore((s) => s.toggleTheme)
   const [query, setQuery] = useState('')
+  const [langOpen, setLangOpen] = useState(false)
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/'
@@ -38,6 +52,8 @@ export default function Sidebar() {
     setQuery('')
   }
 
+  const themeIcon = hasHydrated && theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />
+
   return (
     <>
       {/* Desktop rail */}
@@ -49,7 +65,7 @@ export default function Sidebar() {
             <Link
               key={link.href}
               href={link.href}
-              title={link.label}
+              title={t(link.labelKey, lang)}
               className={cn(
                 'relative w-12 h-12 flex flex-col items-center justify-center gap-0.5 rounded-xl mx-2 mb-1 transition-all duration-200 group',
                 active
@@ -58,10 +74,55 @@ export default function Sidebar() {
               )}
             >
               <Icon className={cn('w-5 h-5 transition-transform duration-200', active ? 'scale-110' : 'group-hover:scale-110')} />
-              <span className="text-[9px] font-semibold leading-none">{link.label}</span>
+              <span className="text-[9px] font-semibold leading-none">{t(link.labelKey, lang)}</span>
             </Link>
           )
         })}
+
+        {/* Language + theme controls pinned to the bottom of the rail */}
+        <div className="mt-auto flex flex-col items-center gap-1 pb-4 pt-3 w-full border-t border-ink-100 dark:border-ink-800">
+          <div className="relative">
+            <button
+              onClick={() => setLangOpen((v) => !v)}
+              title={t('language', lang)}
+              className="w-12 h-10 flex items-center justify-center rounded-xl text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200 transition-colors"
+            >
+              <span className="text-[10px] font-bold tracking-wide">{lang.toUpperCase()}</span>
+            </button>
+            {langOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
+                <div className="absolute left-12 bottom-0 z-50 bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 rounded-xl shadow-xl p-1.5 min-w-[140px]">
+                  {LANGUAGES.map((l) => (
+                    <button
+                      key={l.code}
+                      onClick={() => {
+                        setLang(l.code)
+                        setLangOpen(false)
+                      }}
+                      className={cn(
+                        'w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
+                        lang === l.code
+                          ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 font-semibold'
+                          : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
+                      )}
+                    >
+                      {l.label}
+                      {lang === l.code && <Check className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <button
+            onClick={toggleTheme}
+            title={t('theme', lang)}
+            className="w-12 h-10 flex items-center justify-center rounded-xl text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200 transition-colors"
+          >
+            {themeIcon}
+          </button>
+        </div>
       </aside>
 
       {/* Mobile drawer */}
@@ -101,7 +162,7 @@ export default function Sidebar() {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Tafuta bidhaa..."
+                  placeholder={t('search', lang)}
                   className="w-full bg-ink-100 dark:bg-ink-800 border border-ink-200 dark:border-ink-700 rounded-full py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
                 />
                 <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 dark:text-ink-500" />
@@ -123,11 +184,43 @@ export default function Sidebar() {
                       )}
                     >
                       <Icon className={cn('w-5 h-5', active && 'scale-110')} />
-                      <span className="text-sm font-medium">{link.label}</span>
+                      <span className="text-sm font-medium">{t(link.labelKey, lang)}</span>
                     </Link>
                   )
                 })}
               </nav>
+
+              {/* Language + theme controls */}
+              <div className="border-t border-ink-100 dark:border-ink-800 p-4 space-y-3">
+                <div>
+                  <p className="text-[11px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wide mb-2">
+                    {t('language', lang)}
+                  </p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {LANGUAGES.map((l) => (
+                      <button
+                        key={l.code}
+                        onClick={() => setLang(l.code)}
+                        className={cn(
+                          'px-1 py-2 rounded-lg text-xs font-semibold transition-colors',
+                          lang === l.code
+                            ? 'bg-teal-500 text-white'
+                            : 'bg-ink-50 dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:bg-ink-100 dark:hover:bg-ink-700'
+                        )}
+                      >
+                        {l.code.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button
+                  onClick={toggleTheme}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-sm font-medium hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
+                >
+                  {themeIcon}
+                  <span>{t('theme', lang)}</span>
+                </button>
+              </div>
             </motion.aside>
           </>
         )}

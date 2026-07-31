@@ -81,6 +81,13 @@ export const useUiStore = create<UiStore>()((set) => ({
 
 // ─── Language Store ───────────────────────────────────────────────────────────
 
+function applyDir(lang: Language) {
+  if (typeof document !== 'undefined') {
+    // Arabic reads right-to-left; every other language is left-to-right.
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+  }
+}
+
 interface LangStore {
   lang: Language
   setLang: (lang: Language) => void
@@ -90,9 +97,17 @@ export const useLangStore = create<LangStore>()(
   persist(
     (set) => ({
       lang: 'sw',
-      setLang: (lang) => set({ lang }),
+      setLang: (lang) => {
+        applyDir(lang)
+        set({ lang })
+      },
     }),
-    { name: 'duka-janja-lang' }
+    {
+      name: 'duka-janja-lang',
+      onRehydrateStorage: () => (state) => {
+        if (state) applyDir(state.lang)
+      },
+    }
   )
 )
 
