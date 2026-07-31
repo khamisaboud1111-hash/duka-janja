@@ -9,12 +9,52 @@ import { cn } from '@/utils'
 import { useUiStore, useLangStore, useThemeStore } from '@/store'
 import { t, type Language, type TranslationKey } from '@/i18n/translations'
 
-const LANGUAGES: { code: Language; flag: string; label: string }[] = [
-  { code: 'en', flag: '🇬🇧', label: 'English' },
-  { code: 'sw', flag: '🇹🇿', label: 'Kiswahili' },
-  { code: 'ar', flag: '🇸🇦', label: 'العربية' },
-  { code: 'fr', flag: '🇫🇷', label: 'Français' },
+const LANGUAGES: { code: Language; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'sw', label: 'Kiswahili' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'fr', label: 'Français' },
 ]
+
+function Flag({ code }: { code: Language }) {
+  if (code === 'fr')
+    return (
+      <svg viewBox="0 0 60 40" aria-hidden="true" className="w-5 h-5 rounded-sm shrink-0">
+        <rect width="20" height="40" fill="#0055A4" />
+        <rect x="20" width="20" height="40" fill="#FFFFFF" />
+        <rect x="40" width="20" height="40" fill="#EF4135" />
+      </svg>
+    )
+  if (code === 'sw')
+    return (
+      <svg viewBox="0 0 60 40" aria-hidden="true" className="w-5 h-5 rounded-sm shrink-0">
+        <rect width="60" height="40" fill="#1EB53A" />
+        <path fill="#00A3DD" d="M0 40 60 0v40z" />
+        <path fill="#FCD116" d="M0 35 60 5v3l-60 30z" />
+        <path fill="#FCD116" d="M0 41 60 11v3l-60 30z" />
+        <path fill="#000" d="M0 38 60 8v3l-60 30z" />
+      </svg>
+    )
+  if (code === 'ar')
+    return (
+      <svg viewBox="0 0 60 40" aria-hidden="true" className="w-5 h-5 rounded-sm shrink-0">
+        <rect width="60" height="40" fill="#006C35" />
+        <g fill="#fff">
+          <path d="M20 8 44 32l-6 6L14 14z" />
+          <rect x="10" y="4" width="7" height="18" rx="2" />
+        </g>
+      </svg>
+    )
+  return (
+    <svg viewBox="0 0 60 30" aria-hidden="true" className="w-5 h-5 rounded-sm shrink-0">
+      <rect width="60" height="30" fill="#012169" />
+      <path d="M0 30 60 0M0 0 60 30" stroke="#fff" strokeWidth="12" />
+      <path d="M0 30 60 0M0 0 60 30" stroke="#C8102E" strokeWidth="8" />
+      <path d="M30 0v30M0 15h60" stroke="#fff" strokeWidth="12" />
+      <path d="M30 0v30M0 15h60" stroke="#C8102E" strokeWidth="8" />
+    </svg>
+  )
+}
 
 const LINKS: { href: string; icon: any; labelKey: TranslationKey }[] = [
   { href: '/', icon: Home, labelKey: 'home' },
@@ -108,7 +148,7 @@ export default function Sidebar() {
                           : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
                       )}
                     >
-                      <span className="text-base leading-none">{l.flag}</span>
+                      <Flag code={l.code} />
                       <span className="flex-1 text-left">{l.label}</span>
                       {lang === l.code && <Check className="w-4 h-4" />}
                     </button>
@@ -218,7 +258,7 @@ export default function Sidebar() {
                             : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
                         )}
                       >
-                        <span className="text-base leading-none">{l.flag}</span>
+                        <Flag code={l.code} />
                         <span className="flex-1 text-left">{l.label}</span>
                         {lang === l.code && <Check className="w-4 h-4" />}
                       </button>
