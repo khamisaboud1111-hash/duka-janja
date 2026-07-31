@@ -54,7 +54,7 @@ const components = [
   'src/components/ui/Input.tsx',
   'src/components/ui/Modal.tsx',
   'src/components/home/HeroSection.tsx',
-  'src/components/home/CategoryShowcase.tsx',
+  'src/components/home/TrustBadges.tsx',
   'src/components/product/ProductCard.tsx',
   'src/components/shared/FadeInView.tsx',
 ]

@@ -3,9 +3,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
 import TrustBadges from '@/components/home/TrustBadges'
+import GetStartedSteps from '@/components/home/GetStartedSteps'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
 import DeliveryProcess from '@/components/home/DeliveryProcess'
-import { FadeInView } from '@/components/shared/FadeInView'
+import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
 import type { Product } from '@/types'
 import Link from 'next/link'
@@ -84,7 +85,12 @@ export default async function MarketplaceHomePage() {
       <QuickActionsCard pins={[]} />
 
       {/* Trust badges — moved up for early buyer confidence */}
-      <TrustBadges />
+      <FadeInView>
+        <TrustBadges />
+      </FadeInView>
+
+      {/* Get Started — staged onboarding for new visitors */}
+      <GetStartedSteps />
 
       {recentProducts.length > 0 && (
         <FadeInView>
@@ -103,11 +109,13 @@ export default async function MarketplaceHomePage() {
                     Zote →
                   </Link>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {recentProducts.slice(0, 4).map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <StaggerItem key={product.id}>
+                      <ProductCard product={product} />
+                    </StaggerItem>
                   ))}
-                </div>
+                </StaggerGrid>
               </div>
             </section>
           </Suspense>
@@ -127,8 +135,10 @@ export default async function MarketplaceHomePage() {
       </FadeInView>
 
       {/* Bottom CTA */}
-      <section className="bg-gradient-to-r from-brand-500 to-brand-600 py-10">
-        <div className="page-container text-center">
+      <section className="relative isolate overflow-hidden bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 py-12 animate-gradient-pan">
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 animate-pulse-glow" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-white/10 animate-pulse-glow" style={{ animationDelay: '2s' }} />
+        <div className="page-container relative text-center">
           <h2 className="font-display font-black text-xl sm:text-2xl text-white mb-2">
             Anza Kununua na Kuuza Leo!
           </h2>
@@ -136,10 +146,10 @@ export default async function MarketplaceHomePage() {
             Jiunge na maelfu ya Wazanzibari wanaotumia Duka Janja.
           </p>
           <div className="flex flex-wrap justify-center gap-2">
-            <Link href="/register" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-colors shadow-lg">
+            <Link href="/register" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95">
               Fungua Akaunti Bure
             </Link>
-            <Link href="/search" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-colors border border-white/30">
+            <Link href="/search" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-all border border-white/30 hover:-translate-y-0.5 active:scale-95">
               Vinjari Bidhaa
             </Link>
           </div>
