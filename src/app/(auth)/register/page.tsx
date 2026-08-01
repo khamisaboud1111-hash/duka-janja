@@ -7,7 +7,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Lock, User, Phone, Eye, EyeOff, ShoppingBag, Store, Bike, Check, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { useLangStore } from '@/store'
@@ -21,24 +20,18 @@ const ROLES = [
     label: 'Mnunuzi',
     tagline: 'Nunua bidhaa halisi za Zanzibar kwa urahisi na uhakika.',
     icon: ShoppingBag,
-    // Free to use, Unsplash License
-    photo: 'https://images.unsplash.com/photo-1758520388397-bf53b6e11bba?q=80&w=800&auto=format&fit=crop',
   },
   {
     id: 'seller' as const,
     label: 'Muuzaji',
     tagline: 'Fungua duka lako na ufikie wateja kote Zanzibar.',
     icon: Store,
-    // African market vendor, Dar es Salaam — free to use, Unsplash License
-    photo: 'https://images.unsplash.com/photo-1687422808565-929533931584?q=80&w=800&auto=format&fit=crop',
   },
   {
     id: 'rider' as const,
     label: 'Dereva',
     tagline: 'Pata kipato kwa kusafirisha bidhaa kwa bodaboda yako.',
     icon: Bike,
-    // Boda boda, East Africa — free to use, Unsplash License
-    photo: 'https://images.unsplash.com/photo-1754086988896-c607880ce10e?q=80&w=800&auto=format&fit=crop',
   },
 ]
 
@@ -284,14 +277,12 @@ export default function RegisterPage() {
                         transition={{ delay: 0.1 + i * 0.1 }}
                         onClick={() => setValue('type', role.id)}
                         aria-pressed={isSelected}
-                        className={`relative rounded-2xl overflow-hidden aspect-[3/4] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                        className={`relative rounded-2xl overflow-hidden flex flex-col items-center justify-center gap-3 p-6 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                           isSelected
-                            ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-ink-900 scale-[1.03] shadow-xl'
-                            : 'ring-1 ring-ink-200 dark:ring-ink-700 opacity-75 hover:opacity-100 hover:scale-[1.01]'
+                            ? 'ring-2 ring-brand-500 ring-offset-2 dark:ring-offset-ink-900 bg-brand-50 dark:bg-brand-950/30 scale-[1.03] shadow-xl'
+                            : 'ring-1 ring-ink-200 dark:ring-ink-700 bg-ink-50 dark:bg-ink-800 opacity-75 hover:opacity-100 hover:scale-[1.01]'
                         }`}
                       >
-                        <Image src={role.photo} alt={role.label} fill sizes="140px" className="object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/0" />
                         {isSelected && (
                           <motion.div
                             initial={{ scale: 0 }}
@@ -302,10 +293,16 @@ export default function RegisterPage() {
                             <Check className="w-3 h-3 text-white" strokeWidth={3} />
                           </motion.div>
                         )}
-                        <div className="absolute bottom-0 inset-x-0 p-2 flex flex-col items-center gap-0.5">
-                          <Icon className="w-4 h-4 text-white" />
-                          <span className="text-white font-bold text-[11px] leading-tight">{role.label}</span>
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${
+                          isSelected
+                            ? 'bg-brand-500 text-white shadow-lg'
+                            : 'bg-ink-100 dark:bg-ink-700 text-ink-500 dark:text-ink-400'
+                        }`}>
+                          <Icon className="w-7 h-7" />
                         </div>
+                        <span className={`font-bold text-sm ${isSelected ? 'text-brand-700 dark:text-brand-300' : 'text-ink-700 dark:text-ink-300'}`}>
+                          {role.label}
+                        </span>
                       </motion.button>
                     )
                   })}
