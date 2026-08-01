@@ -1,13 +1,48 @@
 'use client'
 
+import { useState } from 'react'
+import { Send } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
 
 export default function Footer() {
   const lang = useLangStore((s) => s.lang)
+  const [email, setEmail] = useState('')
   return (
     <footer className="hidden sm:block bg-ink-900 text-ink-300 py-10 mt-8 lg:pl-16">
       <div className="page-container">
+        {/* Newsletter band */}
+        <div className="mb-10 rounded-2xl bg-gradient-to-r from-brand-500/15 to-spice-500/15 border border-white/10 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h3 className="font-display font-bold text-white text-lg">{t('newsletterTitle', lang)}</h3>
+            <p className="text-xs text-ink-400 mt-1 max-w-sm">{t('newsletterDesc', lang)}</p>
+          </div>
+          <form
+            className="flex w-full sm:w-auto gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              if (!email.trim()) return
+              toast.success(t('subscribe', lang))
+              setEmail('')
+            }}
+          >
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('emailPlaceholder', lang)}
+              className="bg-white/10 border-white/20 text-white placeholder:text-ink-400 focus:ring-brand-500 min-w-[220px]"
+              aria-label={t('emailPlaceholder', lang)}
+            />
+            <Button type="submit" variant="primary" size="md">
+              <Send className="w-4 h-4" /> {t('subscribe', lang)}
+            </Button>
+          </form>
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-8">
           <div>
             <div className="flex items-center gap-2 mb-3">

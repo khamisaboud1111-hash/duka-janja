@@ -137,6 +137,8 @@ export const ar = {
 
   // Admin
   adminDashboard: 'لوحة تحكم المدير',
+  riderDashboard: 'لوحة التحكم للمندوب',
+  messages: 'الرسائل',
   pendingSellers: 'البائعون المعلقون',
   approveSeller: 'موافقة',
   suspendSeller: 'تعليق',
@@ -268,6 +270,9 @@ export const ar = {
   selling: 'البيع',
   support: 'الدعم',
   copyright: '© 2024 دوكا جانجا. جميع الحقوق محفوظة.',
+  newsletterTitle: 'احصل على عروض حصرية في بريدك',
+  newsletterDesc: 'انضم إلى آلاف المشتركين واحصل على أفضل عروض زنجبار.',
+  subscribe: 'اشترك',
 
   // Homepage sections
   newProducts: 'وصل حديثًا',

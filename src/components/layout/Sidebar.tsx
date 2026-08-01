@@ -97,7 +97,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop rail */}
-      <aside className="hidden lg:flex flex-col items-center gap-1 fixed left-0 top-0 bottom-0 w-16 bg-white dark:bg-ink-900 border-r border-ink-100 dark:border-ink-800 pt-20 z-30">
+      <aside className="hidden lg:flex flex-col items-center gap-1 fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border pt-20 z-30">
         {LINKS.map((link) => {
           const Icon = link.icon
           const active = isActive(link.href)
@@ -109,7 +109,7 @@ export default function Sidebar() {
               className={cn(
                 'relative w-12 h-12 flex flex-col items-center justify-center gap-0.5 rounded-xl mx-2 mb-1 transition-all duration-200 group',
                 active
-                  ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 shadow-sm'
+                  ? 'bg-brand-50 dark:bg-brand-500/15 text-brand-600 dark:text-brand-300 shadow-sm'
                   : 'text-ink-400 dark:text-ink-500 hover:bg-ink-50 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200'
               )}
             >
@@ -144,7 +144,7 @@ export default function Sidebar() {
                       className={cn(
                         'w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors',
                         lang === l.code
-                          ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 font-semibold'
+                          ? 'bg-brand-50 dark:bg-brand-500/15 text-brand-600 dark:text-brand-300 font-semibold'
                           : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
                       )}
                     >
@@ -185,7 +185,7 @@ export default function Sidebar() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-              className="fixed left-0 top-0 bottom-0 w-72 max-w-[80vw] z-50 flex flex-col bg-white dark:bg-ink-900 shadow-xl lg:hidden"
+              className="fixed left-0 top-0 bottom-0 w-72 max-w-[80vw] z-50 flex flex-col bg-card shadow-xl lg:hidden"
             >
               <div className="flex items-center justify-between px-4 h-16 border-b border-ink-100 dark:border-ink-800">
                 <span className="font-display font-black text-xl tracking-tight bg-gradient-to-r from-orange-600 via-amber-500 to-yellow-500 bg-clip-text text-transparent">
@@ -221,7 +221,7 @@ export default function Sidebar() {
                       className={cn(
                         'flex items-center gap-3 px-3 py-3 rounded-xl mb-1 transition-colors',
                         active
-                          ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 font-semibold'
+                          ? 'bg-brand-50 dark:bg-brand-500/15 text-brand-600 dark:text-brand-300 font-semibold'
                           : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
                       )}
                     >
@@ -254,7 +254,7 @@ export default function Sidebar() {
                         className={cn(
                           'w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors',
                           lang === l.code
-                            ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 font-semibold'
+                            ? 'bg-brand-50 dark:bg-brand-500/15 text-brand-600 dark:text-brand-300 font-semibold'
                             : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
                         )}
                       >

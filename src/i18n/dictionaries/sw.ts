@@ -139,6 +139,8 @@ export const sw: Record<TranslationKey, string> = {
 
   // Admin
   adminDashboard: 'Dashibodi ya msimamizi',
+  riderDashboard: 'Dashibodi ya Rider',
+  messages: 'Ujumbe',
   pendingSellers: 'Wauzaji wanaosubiri',
   approveSeller: 'Idhinisha',
   suspendSeller: 'Simamisha',
@@ -271,6 +273,9 @@ export const sw: Record<TranslationKey, string> = {
   selling: 'Kuuza',
   support: 'Msaada',
   copyright: '© 2024 Duka Janja. Haki zote zimehifadhiwa.',
+  newsletterTitle: 'Pata ofa za kipekee kwenye barua pepe',
+  newsletterDesc: 'Jiunge na maelfu ya wanachama upate ofa bora za Zanzibar.',
+  subscribe: 'Jiandikishe',
 
   // Homepage sections
   newProducts: 'Bidhaa Mpya',

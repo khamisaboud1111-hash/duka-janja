@@ -13,9 +13,9 @@ export default function NotFound() {
         <div className="w-20 h-20 rounded-3xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mx-auto mb-6">
           <SearchX className="w-10 h-10 text-amber-500" />
         </div>
-        <h1 className="font-display font-black text-6xl text-ink-900 dark:text-white mb-2">404</h1>
-        <p className="text-lg font-semibold text-ink-700 dark:text-ink-200 mb-2">Ukurasa haupatikani</p>
-        <p className="text-sm text-ink-500 dark:text-ink-400 mb-8 max-w-xs mx-auto">
+        <h1 className="font-display font-black text-6xl text-foreground mb-2">404</h1>
+        <p className="text-lg font-semibold text-foreground mb-2">Ukurasa haupatikani</p>
+        <p className="text-sm text-muted-foreground mb-8 max-w-xs mx-auto">
           Samahani, ukurasa unaoutafuta haupo au umehamishwa. Angalia URL au rudi nyumbani.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">

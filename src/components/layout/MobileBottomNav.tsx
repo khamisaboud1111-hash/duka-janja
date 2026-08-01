@@ -20,7 +20,7 @@ export default function MobileBottomNav() {
   const lang = useLangStore((s) => s.lang)
 
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-ink-900 border-t border-ink-100 dark:border-ink-800 safe-bottom">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border safe-bottom">
       <div className="flex items-center justify-around h-14">
         {LINKS.map((link) => {
           const Icon = link.icon
@@ -31,7 +31,7 @@ export default function MobileBottomNav() {
               href={link.href}
               className={cn(
                 'flex flex-col items-center justify-center gap-0.5 min-w-[56px] h-full transition-colors',
-                active ? 'text-teal-600 dark:text-teal-300' : 'text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300'
+                active ? 'text-brand-600 dark:text-brand-300' : 'text-ink-400 dark:text-ink-500 hover:text-ink-600 dark:hover:text-ink-300'
               )}
             >
               <Icon className={cn('w-5 h-5 transition-transform', active && 'scale-110')} />

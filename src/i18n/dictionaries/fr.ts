@@ -137,6 +137,8 @@ export const fr = {
 
   // Admin
   adminDashboard: 'Tableau de bord admin',
+  riderDashboard: 'Tableau de bord livreur',
+  messages: 'Messages',
   pendingSellers: 'Vendeurs en attente',
   approveSeller: 'Approuver',
   suspendSeller: 'Suspendre',
@@ -268,6 +270,9 @@ export const fr = {
   selling: 'Vente',
   support: 'Assistance',
   copyright: '© 2024 Duka Janja. Tous droits réservés.',
+  newsletterTitle: 'Recevez des offres exclusives',
+  newsletterDesc: 'Rejoignez des milliers d’abonnés et recevez les meilleures offres de Zanzibar.',
+  subscribe: 'S’abonner',
 
   // Homepage sections
   newProducts: 'Nouveautés',
