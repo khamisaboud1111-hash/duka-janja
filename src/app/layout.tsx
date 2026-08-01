@@ -1,11 +1,17 @@
 import type { Metadata, Viewport } from 'next'
 import PullToRefreshIndicator from '@/components/layout/PullToRefreshIndicator'
-import { Inter } from 'next/font/google'
+import { Inter, Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import ThemeScript from '@/components/layout/ThemeScript'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800', '900'],
+  variable: '--font-display',
+  display: 'swap',
+})
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -95,7 +101,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.variable} min-h-screen bg-white text-ink-900 antialiased selection:bg-primary/20 selection:text-primary`}>
+      <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
         {/* Accessibility Skip Link */}
         <a 
           href="#main-content" 

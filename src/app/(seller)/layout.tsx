@@ -37,9 +37,9 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="min-h-screen bg-ink-50 flex">
+    <div className="min-h-screen bg-background flex">
       {/* Sidebar — desktop */}
-      <aside className="hidden sm:flex flex-col w-56 bg-white border-r border-ink-100 sticky top-0 h-screen overflow-y-auto">
+      <aside className="hidden sm:flex flex-col w-56 bg-card border-r border-border sticky top-0 h-screen overflow-y-auto">
         <div className="p-4 border-b border-ink-100">
           <Link href="/" className="flex items-center gap-1.5 text-xs text-ink-500 hover:text-brand-600 mb-3">
             <ArrowLeft className="w-3.5 h-3.5" /> Rudi dukani
@@ -53,7 +53,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
               </div>
             )}
             <div className="min-w-0">
-              <p className="font-semibold text-sm text-ink-900 truncate">{seller?.store_name ?? 'Duka Langu'}</p>
+              <p className="font-semibold text-sm text-ink-900 dark:text-white truncate">{seller?.store_name ?? 'Duka Langu'}</p>
               <p className={`text-xs ${seller?.status === 'approved' ? 'text-emerald-600' : 'text-amber-600'}`}>
                 {seller?.status === 'approved' ? '● Inaendesha' : seller?.status === 'pending' ? '● Inasubiri' : '● Imesimamishwa'}
               </p>
@@ -78,7 +78,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
       </div>
 
       {/* Bottom nav — mobile */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-ink-100 safe-bottom">
+      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border safe-bottom">
         <div className="flex items-center justify-around h-14">
           {NAV.slice(0, 4).map(({ href, label, icon: Icon }) => (
             <Link key={href} href={href}
