@@ -48,6 +48,13 @@ export default function SearchPage() {
   const [recent, setRecent] = useState<string[]>([])
   const [inputValue, setInputValue] = useState('')
   const searchWrapRef = useRef<HTMLDivElement | null>(null)
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   const q          = params.get('q') ?? ''
   const category   = params.get('category') ?? ''
@@ -140,7 +147,7 @@ export default function SearchPage() {
   )
 
   return (
-    <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
+    <main className="pb-20 sm:pb-8 min-h-screen">
       <div className="page-container py-4 sm:py-6">
         <div className="flex items-center gap-3 mb-4 relative" ref={searchWrapRef}>
           {/* Search bar with instant suggestions */}
@@ -171,11 +178,11 @@ export default function SearchPage() {
 
           {/* Suggestions dropdown */}
           {suggestOpen && (
-            <div className="absolute top-full left-0 right-0 sm:right-auto sm:w-[26rem] mt-2 card dark:bg-ink-900 dark:border-ink-800 shadow-modal z-30 animate-scale-in origin-top overflow-hidden">
+            <div className="absolute top-full left-0 right-0 sm:right-auto sm:w-[26rem] mt-2 rounded-2xl bg-card border border-border shadow-xl z-30 animate-scale-in origin-top overflow-hidden">
               {recent.length > 0 && (
-                <div className="p-3 border-b border-ink-100 dark:border-ink-800">
+                <div className="p-3 border-b border-border">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide flex items-center gap-1.5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5" /> {t('recentSearches', lang)}
                     </p>
                     <button onClick={clearRecent} className="text-xs text-red-500 hover:underline">
@@ -187,7 +194,7 @@ export default function SearchPage() {
                       <button
                         key={r}
                         onClick={() => { setInputValue(r); runSearch(r) }}
-                        className="text-xs px-3 py-1.5 rounded-full bg-ink-50 dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 transition-colors"
+                        className="text-xs px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 transition-colors"
                       >
                         {r}
                       </button>
@@ -196,8 +203,8 @@ export default function SearchPage() {
                 </div>
               )}
 
-              <div className="p-3 border-b border-ink-100 dark:border-ink-800">
-                <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <div className="p-3 border-b border-border">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <TrendingUp className="w-3.5 h-3.5" /> {t('popularSearches', lang)}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
@@ -205,7 +212,7 @@ export default function SearchPage() {
                     <button
                       key={p}
                       onClick={() => { setInputValue(p); runSearch(p) }}
-                      className="text-xs px-3 py-1.5 rounded-full bg-ink-50 dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 transition-colors"
+                      className="text-xs px-3 py-1.5 rounded-full bg-muted text-muted-foreground hover:bg-brand-50 dark:hover:bg-brand-500/10 hover:text-brand-600 dark:hover:text-brand-300 transition-colors"
                     >
                       {p}
                     </button>
@@ -215,7 +222,7 @@ export default function SearchPage() {
 
               {categories.length > 0 && (
                 <div className="p-3">
-                  <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     {t('categories', lang)}
                   </p>
                   <div className="grid grid-cols-2 gap-1">
@@ -223,7 +230,7 @@ export default function SearchPage() {
                       <button
                         key={cat.id}
                         onClick={() => { setSuggestOpen(false); setParam('category', cat.slug) }}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors text-left"
+                        className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-muted-foreground hover:bg-muted transition-colors text-left"
                       >
                         <span>{cat.icon}</span>
                         <span className="truncate">{catName(cat, lang)}</span>
@@ -261,60 +268,47 @@ export default function SearchPage() {
           </div>
         )}
 
-        {/* Filter panel */}
-        {filtersOpen && (
-          <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 mb-5 grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-up">
-            <div>
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{t('type', lang)}</p>
-              <div className="flex flex-wrap gap-1.5">
-                {categories.map((cat) => (
-                  <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)}
-                    className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
-                    {cat.icon} {catName(cat, lang)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{t('sortBy', lang)}</p>
-              <div className="flex flex-col gap-1.5">
-                {([['newest', t('sortNewest', lang)],['price_asc', t('sortPriceAsc', lang)],['price_desc', t('sortPriceDesc', lang)],['popular', t('sortPopular', lang)]] as [string, string][]).map(([v, label]) => (
-                  <button key={v} onClick={() => setParam('sort', v)}
-                    className={`text-xs text-left px-3 py-1.5 rounded-lg border transition-colors ${sort === v ? 'bg-brand-50 dark:bg-brand-500/15 border-brand-400 text-brand-700 dark:text-brand-300 font-semibold' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{t('special', lang)}</p>
-              <button onClick={() => setParam('made_in_zanzibar', madeInZnz ? null : 'true')}
-                className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${madeInZnz ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-amber-300'}`}>
-                {t('madeInZanzibar', lang)}
-              </button>
-            </div>
+        {/* Filter panel — desktop inline */}
+        {filtersOpen && !isMobile && (
+          <div className="bg-card border border-border rounded-2xl p-4 mb-5 animate-fade-up">
+            {filterControls}
           </div>
+        )}
+
+        {/* Filter drawer — mobile sheet */}
+        {isMobile && (
+          <MobileSheet
+            open={filtersOpen}
+            onOpenChange={setFiltersOpen}
+            title={t('filter', lang)}
+            side="bottom"
+          >
+            {filterControls}
+          </MobileSheet>
         )}
 
         {/* Results header */}
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-ink-500 dark:text-ink-400">
+          <p className="text-sm text-muted-foreground">
             {loading ? t('searching', lang) : `${count.toLocaleString()} ${t('products', lang).toLowerCase()}`}
           </p>
         </div>
 
         {/* Grid */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-            {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}
-          </div>
+          <SkeletonGrid count={8} />
         ) : products.length === 0 ? (
           <EmptyState
             icon={<Search className="w-10 h-10" />}
             title={t('noProductsFound', lang)}
             description={q ? `${t('noResultsFor', lang)} "${q}"` : t('tryAdjustingFilters', lang)}
+            action={
+              hasFilters ? (
+                <button onClick={clearAll} className="btn-secondary text-sm">
+                  {t('clearAllFilters', lang)}
+                </button>
+              ) : undefined
+            }
           />
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">

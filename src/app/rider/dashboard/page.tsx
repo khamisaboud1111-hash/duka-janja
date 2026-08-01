@@ -4,19 +4,19 @@ import { useEffect, useState, useCallback, memo } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
-import { Power, Wallet, Package, Star, TrendingUp, ShieldAlert, RefreshCw } from 'lucide-react'
+import { Power, Wallet, Package, Star, TrendingUp, ShieldAlert, RefreshCw, Clock, MapPin, Navigation, Banknote, Phone, MessageCircle, ChevronRight, Zap, ArrowUpRight, Calendar } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { useRiderTracking } from '@/hooks/useRiderTracking'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/Button'
+import { StatCard, PageLoader } from '@/components/ui'
 import ActiveJobOverlay from '@/components/rider/ActiveJobOverlay'
+import { formatTZS } from '@/utils'
 
-// Dynamically import the map to prevent Leaflet window-is-not-defined errors during SSR builds
 const RiderNavigationMap = dynamic(
   () => import('@/components/rider/RiderNavigationMap').then((mod) => mod.RiderNavigationMap),
-  { 
+  {
     ssr: false,
-    loading: () => <div className="w-full h-80 sm:h-96 bg-ink-100 dark:bg-ink-800 rounded-2xl animate-pulse flex items-center justify-center text-ink-500 text-xs">Inapakia ramani...</div>
+    loading: () => <div className="w-full h-64 bg-ink-100 dark:bg-ink-800 rounded-2xl animate-pulse flex items-center justify-center text-ink-500 text-xs">Inapakia ramani...</div>
   }
 )
 
@@ -40,7 +40,10 @@ interface RiderProfileRow {
 interface Metrics {
   todayEarnings: number
   weekEarnings: number
+  monthEarnings: number
   completedToday: number
+  completedWeek: number
+  avgRating: number
 }
 
 interface ActiveDelivery {
@@ -54,6 +57,8 @@ interface ActiveDelivery {
   delivery_address: string
   customer_name?: string
   customer_phone?: string
+  delivery_fee: number
+  distance_meters?: number
 }
 
 export default function RiderDashboardPage() {
@@ -62,7 +67,7 @@ export default function RiderDashboardPage() {
   const { profile, loading: userLoading } = useUser()
 
   const [riderProfile, setRiderProfile] = useState<RiderProfileRow | null>(null)
-  const [metrics, setMetrics] = useState<Metrics>({ todayEarnings: 0, weekEarnings: 0, completedToday: 0 })
+  const [metrics, setMetrics] = useState<Metrics>({ todayEarnings: 0, weekEarnings: 0, monthEarnings: 0, completedToday: 0, completedWeek: 0, avgRating: 0 })
   const [loadingData, setLoadingData] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [togglingOnline, setTogglingOnline] = useState(false)
@@ -79,17 +84,13 @@ export default function RiderDashboardPage() {
     let isMounted = true
 
     try {
-      const profilePromise = supabase.from('rider_profiles').select('*').eq('id', profile.id).single()
-      
-      const metricsPromise = (async () => {
-        try {
-          return await supabase.rpc('get_rider_metrics', { p_rider_id: profile.id })
-        } catch {
-          return { data: null, error: null }
-        }
-      })()
-
-      const [profileResult, metricsResult] = await Promise.all([profilePromise, metricsPromise])
+      const [profileResult, metricsResult] = await Promise.all([
+        supabase.from('rider_profiles').select('*').eq('id', profile.id).single(),
+        (async () => {
+          try { return await supabase.rpc('get_rider_metrics', { p_rider_id: profile.id }) }
+          catch { return { data: null, error: null } }
+        })()
+      ])
 
       if (!isMounted) return
 
@@ -106,7 +107,10 @@ export default function RiderDashboardPage() {
         setMetrics({
           todayEarnings: metricsResult.data.todayEarnings || 0,
           weekEarnings: metricsResult.data.weekEarnings || 0,
+          monthEarnings: metricsResult.data.monthEarnings || 0,
           completedToday: metricsResult.data.completedToday || 0,
+          completedWeek: metricsResult.data.completedWeek || 0,
+          avgRating: metricsResult.data.avgRating || 0,
         })
       }
     } catch (err: any) {
@@ -118,102 +122,60 @@ export default function RiderDashboardPage() {
       if (isMounted) setLoadingData(false)
     }
 
-    return () => {
-      isMounted = false
-    }
+    return () => { isMounted = false }
   }, [profile, supabase, setIsOnline])
 
-  useEffect(() => {
-    if (!profile) return
-    loadRiderData()
-  }, [profile, loadRiderData])
+  useEffect(() => { if (profile) loadRiderData() }, [profile, loadRiderData])
 
   useEffect(() => {
     if (!profile) return
     const channel = supabase
       .channel(`rider-profile-changes-${profile.id}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'rider_profiles', filter: `id=eq.${profile.id}` },
-        (payload) => {
-          setRiderProfile(payload.new as RiderProfileRow)
-        }
-      )
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rider_profiles', filter: `id=eq.${profile.id}` },
+        (payload) => setRiderProfile(payload.new as RiderProfileRow))
       .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => { supabase.removeChannel(channel) }
   }, [profile, supabase])
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (profile) loadRiderData()
-    }, 60000)
+    const interval = setInterval(() => { if (profile) loadRiderData() }, 60000)
     return () => clearInterval(interval)
   }, [profile, loadRiderData])
 
   useEffect(() => {
-    if (!loadingData && profile?.role === 'rider' && !riderProfile) {
-      router.replace('/rider/apply')
-    }
+    if (!loadingData && profile?.role === 'rider' && !riderProfile) router.replace('/rider/apply')
   }, [loadingData, profile, riderProfile, router])
 
   useEffect(() => {
-    if (!activeDeliveryId || !profile) {
-      setActiveDelivery(null)
-      return
-    }
-    supabase.rpc('get_active_delivery_for_rider', { p_rider_id: profile.id }).then(({ data, error }: { data: ActiveDelivery[] | null; error: any }) => {
-      if (error) {
-        toast.error('Imeshindikana kupata safari inayoendelea')
-        return
-      }
+    if (!activeDeliveryId || !profile) { setActiveDelivery(null); return }
+    supabase.rpc('get_active_delivery_for_rider', { p_rider_id: profile.id }).then(({ data, error }) => {
+      if (error) { toast.error('Imeshindikana kupata safari inayoendelea'); return }
       const row = Array.isArray(data) ? data[0] : null
       setActiveDelivery(row ?? null)
     })
   }, [activeDeliveryId, profile, supabase])
 
   useEffect(() => {
-    if (!activeDelivery || !isOnline || !('geolocation' in navigator)) {
-      setRiderLatLng(null)
-      return
-    }
-
+    if (!activeDelivery || !isOnline || !('geolocation' in navigator)) { setRiderLatLng(null); return }
     const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        if (pos.coords.accuracy <= 25) {
-          setRiderLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude })
-        }
-      },
-      (err) => {
-        if (err.code === err.PERMISSION_DENIED) {
-          toast.error('Ruhusa ya GPS imekataliwa. Tafadhali ruhusu kupata eneo lako.')
-        }
-      },
+      (pos) => { if (pos.coords.accuracy <= 25) setRiderLatLng({ lat: pos.coords.latitude, lng: pos.coords.longitude }) },
+      (err) => { if (err.code === err.PERMISSION_DENIED) toast.error('Ruhusa ya GPS imekataliwa.') },
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     )
-
     return () => navigator.geolocation.clearWatch(id)
   }, [activeDelivery, isOnline])
 
   async function handleToggle() {
     if (!riderProfile) return
-    if (!riderProfile.is_verified) {
-      toast.error('Akaunti yako bado inasubiri uthibitisho wa msimamizi')
-      return
-    }
-
+    if (!riderProfile.is_verified) { toast.error('Akaunti yako bado inasubiri uthibitisho'); return }
     const previousState = isOnline
     setTogglingOnline(true)
-
     setIsOnline(!previousState)
-    setRiderProfile((prev) => (prev ? { ...prev, is_online: !previousState } : null))
-
+    setRiderProfile((prev) => prev ? { ...prev, is_online: !previousState } : null)
     const ok = await toggleOnline(!previousState)
     if (!ok) {
       setIsOnline(previousState)
-      setRiderProfile((prev) => (prev ? { ...prev, is_online: previousState } : null))
+      setRiderProfile((prev) => prev ? { ...prev, is_online: previousState } : null)
       toast.error('Imeshindikana kubadilisha hali mtandaoni')
     }
     setTogglingOnline(false)
@@ -222,7 +184,6 @@ export default function RiderDashboardPage() {
   async function handleUpdateStatus() {
     if (!activeDelivery || updatingDeliveryStatus) return
     setUpdatingDeliveryStatus(true)
-
     try {
       const nextStatus = activeDelivery.status === DeliveryStatus.Accepted ? DeliveryStatus.PickedUp : DeliveryStatus.Delivered
       const res = await fetch('/api/delivery/update-status', {
@@ -230,9 +191,7 @@ export default function RiderDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ delivery_id: activeDelivery.delivery_id, status: nextStatus }),
       })
-
       const json = await res.json()
-
       if (res.ok) {
         if (nextStatus === DeliveryStatus.Delivered) {
           setActiveDelivery(null)
@@ -254,34 +213,30 @@ export default function RiderDashboardPage() {
 
   if (userLoading || loadingData) {
     return (
-      <div className="page-container py-8 max-w-3xl mx-auto space-y-6 animate-pulse">
-        <div className="h-20 bg-ink-100 dark:bg-ink-800 rounded-2xl" />
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-24 bg-ink-100 dark:bg-ink-800 rounded-2xl" />
-          ))}
+      <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-4">
+        <div className="h-20 bg-ink-100 dark:bg-ink-800 rounded-2xl animate-pulse" />
+        <div className="grid grid-cols-2 gap-3">
+          {[1,2,3,4].map(i => <div key={i} className="h-24 bg-ink-100 dark:bg-ink-800 rounded-2xl animate-pulse" />)}
         </div>
-        <div className="h-48 bg-ink-100 dark:bg-ink-800 rounded-2xl" />
+        <div className="h-48 bg-ink-100 dark:bg-ink-800 rounded-2xl animate-pulse" />
       </div>
     )
   }
 
   if (loadError) {
     return (
-      <div className="page-container py-16 text-center max-w-md mx-auto space-y-4">
+      <div className="p-4 sm:p-6 max-w-md mx-auto text-center space-y-4 pt-16">
         <p className="text-red-500 font-medium">Imeshindikana kupakia dashibodi.</p>
-        <Button onClick={loadRiderData} className="flex items-center gap-2 mx-auto">
-          <RefreshCw className="w-4 h-4" /> Jaribu Tena
-        </Button>
+        <button onClick={loadRiderData} className="btn-primary gap-1.5"><RefreshCw className="w-4 h-4" /> Jaribu Tena</button>
       </div>
     )
   }
 
   if (!profile || profile.role !== 'rider') {
     return (
-      <div className="page-container py-16 text-center">
+      <div className="p-4 sm:p-6 max-w-md mx-auto text-center pt-16">
         <p className="text-ink-600 dark:text-ink-300 mb-4">Ukurasa huu ni kwa madereva tu.</p>
-        <Button onClick={() => router.replace('/rider/apply')}>Jiunge kama Dereva</Button>
+        <button onClick={() => router.replace('/rider/apply')} className="btn-primary">Jiunge kama Dereva</button>
       </div>
     )
   }
@@ -290,139 +245,197 @@ export default function RiderDashboardPage() {
 
   if (riderProfile.account_status === 'suspended') {
     return (
-      <div className="page-container py-16 text-center max-w-md mx-auto">
-        <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+      <div className="p-4 sm:p-6 max-w-md mx-auto text-center pt-16">
+        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+          <ShieldAlert className="w-8 h-8 text-red-500" />
+        </div>
         <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">Akaunti Imesimamishwa</h1>
-        <p className="text-ink-600 dark:text-ink-300 text-sm">
-          Akaunti yako ya dereva imesimamishwa kwa sasa kutokana na tathmini ya chini. Wasiliana na msimamizi kwa maelezo zaidi.
-        </p>
+        <p className="text-ink-600 dark:text-ink-300 text-sm">Wasiliana na msimamizi kwa maelezo zaidi.</p>
       </div>
     )
   }
 
   if (!riderProfile.is_verified) {
     return (
-      <div className="page-container py-16 text-center max-w-md mx-auto">
-        <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mx-auto mb-4">
-          <ShieldAlert className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+      <div className="p-4 sm:p-6 max-w-md mx-auto text-center pt-16">
+        <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+          <ShieldAlert className="w-8 h-8 text-amber-600" />
         </div>
         <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">Inasubiri Uthibitisho</h1>
-        <p className="text-ink-600 dark:text-ink-300 text-sm">
-          Maombi yako yanahakikiwa na msimamizi. Utaweza kuanza kupokea safari pindi utakapothibitishwa.
-        </p>
+        <p className="text-ink-600 dark:text-ink-300 text-sm">Maombi yako yanahakikiwa. Utapokea safari pindi utakapothibitishwa.</p>
       </div>
     )
   }
 
   return (
-    <div className="page-container py-6 sm:py-8 max-w-3xl mx-auto space-y-6">
-      <div
-        aria-live="polite"
-        className="flex items-center justify-between bg-white dark:bg-ink-900 border border-transparent dark:border-ink-800 rounded-2xl shadow-card p-4 sm:p-5"
-      >
+    <div className="p-4 sm:p-6 max-w-3xl mx-auto space-y-4">
+      {/* Online Status Bar */}
+      <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-ink-300 dark:bg-ink-600'}`} />
+          <div className={`w-3 h-3 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-ink-300'}`} />
           <div>
             <p className="font-display font-bold text-ink-900 dark:text-white">{isOnline ? 'Uko Mtandaoni' : 'Uko Nje ya Mtandao'}</p>
-            <p className="text-xs text-ink-500 dark:text-ink-400">{isOnline ? 'Unapokea safari mpya' : 'Bonyeza ili kuanza kupokea safari'}</p>
+            <p className="text-xs text-ink-500">{isOnline ? 'Unapokea safari mpya' : 'Bonyeza ili kuanza kupokea safari'}</p>
           </div>
         </div>
         <button
           onClick={handleToggle}
           disabled={togglingOnline}
-          role="switch"
-          aria-checked={isOnline}
-          aria-label="Badilisha hali ya mtandaoni"
+          role="switch" aria-checked={isOnline}
           className={`w-16 h-9 rounded-full relative transition-colors flex-shrink-0 ${isOnline ? 'bg-emerald-500' : 'bg-ink-200 dark:bg-ink-700'} disabled:opacity-60 cursor-pointer`}
         >
-          <span
-            className={`absolute top-1 left-1 w-7 h-7 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform ${isOnline ? 'translate-x-7' : ''}`}
-          >
+          <span className={`absolute top-1 left-1 w-7 h-7 rounded-full bg-white shadow-sm flex items-center justify-center transition-transform ${isOnline ? 'translate-x-7' : ''}`}>
             <Power className={`w-3.5 h-3.5 ${isOnline ? 'text-emerald-600' : 'text-ink-400'}`} />
           </span>
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <MetricCard icon={<Wallet className="w-4 h-4" />} label="Mapato ya Leo" value={`TZS ${metrics.todayEarnings.toLocaleString()}`} accent="brand" />
-        <MetricCard icon={<TrendingUp className="w-4 h-4" />} label="Mapato ya Wiki" value={`TZS ${metrics.weekEarnings.toLocaleString()}`} accent="green" />
-        <MetricCard icon={<Wallet className="w-4 h-4" />} label="Salio la Pochi" value={`TZS ${riderProfile.wallet_balance.toLocaleString()}`} accent="gold" />
-        <MetricCard icon={<Package className="w-4 h-4" />} label="Safari Zilizokamilika" value={String(riderProfile.total_deliveries)} accent="spice" />
-        <MetricCard icon={<Star className="w-4 h-4" />} label="Tathmini" value={riderProfile.rating_average.toFixed(1)} accent="gold" />
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 gap-3">
+        <StatCard label="Mapato ya Leo" value={formatTZS(metrics.todayEarnings)} icon={<Wallet className="w-5 h-5" />} accent="brand" />
+        <StatCard label="Mapato ya Wiki" value={formatTZS(metrics.weekEarnings)} icon={<TrendingUp className="w-5 h-5" />} accent="green" />
+        <StatCard label="Salio la Pochi" value={formatTZS(riderProfile.wallet_balance)} icon={<Banknote className="w-5 h-5" />} accent="gold" />
+        <StatCard label="Ukadiriaji" value={`${riderProfile.rating_average.toFixed(1)} ★`} icon={<Star className="w-5 h-5" />} accent="gold" subtitle={`${riderProfile.total_ratings} tathmini`} />
       </div>
 
-      <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-5 text-center">
-        <p className="text-sm text-ink-500 dark:text-ink-400">
-          {isOnline ? 'Tunakutafutia safari karibu na eneo lako...' : 'Washa hali ya mtandaoni ili kuanza kupokea ofa za safari.'}
-        </p>
+      {/* Quick Summary */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-white dark:bg-ink-900 rounded-xl shadow-card p-3 text-center">
+          <p className="font-display font-bold text-lg text-ink-900 dark:text-white">{riderProfile.total_deliveries}</p>
+          <p className="text-[10px] text-ink-500">Safari Zote</p>
+        </div>
+        <div className="bg-white dark:bg-ink-900 rounded-xl shadow-card p-3 text-center">
+          <p className="font-display font-bold text-lg text-emerald-600">{metrics.completedToday}</p>
+          <p className="text-[10px] text-ink-500">Leo</p>
+        </div>
+        <div className="bg-white dark:bg-ink-900 rounded-xl shadow-card p-3 text-center">
+          <p className="font-display font-bold text-lg text-brand-600">{metrics.completedWeek}</p>
+          <p className="text-[10px] text-ink-500">Wiki Hii</p>
+        </div>
       </div>
 
+      {/* Active Delivery */}
       {activeDelivery && (
-        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-4 sm:p-5 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card overflow-hidden">
+          <div className="p-4 border-b border-ink-100 dark:border-ink-800 flex items-center justify-between">
             <h2 className="font-display font-bold text-ink-900 dark:text-white">Safari Inayoendelea</h2>
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300">
               {activeDelivery.status === DeliveryStatus.Accepted ? 'Unakwenda kuchukua' : 'Bidhaa Zimechukuliwa'}
             </span>
           </div>
 
-          <RiderNavigationMap
-            riderLocation={riderLatLng}
-            pickupLocation={{ lat: activeDelivery.pickup_lat, lng: activeDelivery.pickup_lng }}
-            deliveryLocation={
-              activeDelivery.delivery_lat && activeDelivery.delivery_lng
-                ? { lat: activeDelivery.delivery_lat, lng: activeDelivery.delivery_lng }
-                : null
-            }
-            leg={activeDelivery.status === DeliveryStatus.Accepted ? 'to_pickup' : 'to_delivery'}
-            customerName={activeDelivery.customer_name}
-            customerPhone={activeDelivery.customer_phone}
-            customerAddress={activeDelivery.delivery_address}
-          />
+          {/* Delivery Info Cards */}
+          <div className="p-4 space-y-3">
+            {/* Pickup */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <MapPin className="w-4 h-4 text-emerald-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-ink-500 font-semibold uppercase">Mahali pa Kuchukua</p>
+                <p className="text-sm font-medium text-ink-900 dark:text-white truncate">{activeDelivery.pickup_address}</p>
+              </div>
+            </div>
+            {/* Delivery */}
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Navigation className="w-4 h-4 text-red-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-ink-500 font-semibold uppercase">Mahali pa Kufikisha</p>
+                <p className="text-sm font-medium text-ink-900 dark:text-white truncate">{activeDelivery.delivery_address}</p>
+              </div>
+            </div>
 
-          <Button
-            fullWidth
-            disabled={updatingDeliveryStatus}
-            onClick={handleUpdateStatus}
-          >
-            {updatingDeliveryStatus
-              ? 'Inasasisha...'
-              : activeDelivery.status === DeliveryStatus.Accepted
-              ? 'Nimechukua Bidhaa'
-              : 'Nimefikisha Bidhaa'}
-          </Button>
+            {/* Customer Info */}
+            {activeDelivery.customer_name && (
+              <div className="flex items-center gap-3 bg-ink-50 dark:bg-ink-800 rounded-xl p-3">
+                <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-700 font-bold text-sm flex-shrink-0">
+                  {activeDelivery.customer_name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-ink-900 dark:text-white truncate">{activeDelivery.customer_name}</p>
+                  {activeDelivery.customer_phone && (
+                    <p className="text-xs text-ink-500">{activeDelivery.customer_phone}</p>
+                  )}
+                </div>
+                {activeDelivery.customer_phone && (
+                  <div className="flex gap-2">
+                    <a href={`tel:${activeDelivery.customer_phone}`} className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 hover:bg-emerald-200 transition-colors">
+                      <Phone className="w-4 h-4" />
+                    </a>
+                    <a href={`https://wa.me/${activeDelivery.customer_phone.replace('+', '')}`} target="_blank" className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 hover:bg-emerald-200 transition-colors">
+                      <MessageCircle className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Earnings for this delivery */}
+            <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 rounded-xl p-3">
+              <span className="text-sm text-brand-700 dark:text-brand-300 font-medium">Mapato ya safari hii</span>
+              <span className="font-display font-bold text-brand-700 dark:text-brand-300">{formatTZS(activeDelivery.delivery_fee)}</span>
+            </div>
+          </div>
+
+          {/* Map */}
+          <div className="px-4 pb-4">
+            <RiderNavigationMap
+              riderLocation={riderLatLng}
+              pickupLocation={{ lat: activeDelivery.pickup_lat, lng: activeDelivery.pickup_lng }}
+              deliveryLocation={activeDelivery.delivery_lat && activeDelivery.delivery_lng ? { lat: activeDelivery.delivery_lat, lng: activeDelivery.delivery_lng } : null}
+              leg={activeDelivery.status === DeliveryStatus.Accepted ? 'to_pickup' : 'to_delivery'}
+              customerName={activeDelivery.customer_name}
+              customerPhone={activeDelivery.customer_phone}
+              customerAddress={activeDelivery.delivery_address}
+            />
+          </div>
+
+          {/* Action Button */}
+          <div className="px-4 pb-4">
+            <button
+              onClick={handleUpdateStatus}
+              disabled={updatingDeliveryStatus}
+              className="btn-primary w-full justify-center py-3.5 text-base gap-2"
+            >
+              {updatingDeliveryStatus ? (
+                'Inasasisha...'
+              ) : activeDelivery.status === DeliveryStatus.Accepted ? (
+                <><Package className="w-5 h-5" /> Nimechukua Bidhaa</>
+              ) : (
+                <><CheckCircle className="w-5 h-5" /> Nimefikisha Bidhaa</>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
-      {offer && (
-        <ActiveJobOverlay offer={offer} onAccept={acceptOffer} onDecline={declineOffer} />
+      {/* Waiting State */}
+      {!activeDelivery && isOnline && (
+        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center mx-auto mb-4">
+            <Zap className="w-8 h-8 text-brand-500 animate-pulse" />
+          </div>
+          <p className="font-semibold text-ink-800 dark:text-white mb-1">Tunakutafutia safari...</p>
+          <p className="text-sm text-ink-500">Ukadiriaji safari itafika hivi karibuni</p>
+        </div>
       )}
+
+      {!activeDelivery && !isOnline && (
+        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-8 text-center">
+          <div className="w-16 h-16 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center mx-auto mb-4">
+            <Power className="w-8 h-8 text-ink-400" />
+          </div>
+          <p className="font-semibold text-ink-800 dark:text-white mb-1">Washa hali ya mtandaoni</p>
+          <p className="text-sm text-ink-500">Bonyeza swichi hapo juu ili kuanza kupokea ofa za safari</p>
+        </div>
+      )}
+
+      {/* Offer Overlay */}
+      {offer && <ActiveJobOverlay offer={offer} onAccept={acceptOffer} onDecline={declineOffer} />}
     </div>
   )
 }
 
-const MetricCard = memo(function MetricCard({
-  icon,
-  label,
-  value,
-  accent,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  accent: 'brand' | 'spice' | 'green' | 'gold'
-}) {
-  const colors = {
-    brand: 'text-brand-600 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/30',
-    spice: 'text-spice-600 dark:text-spice-300 bg-spice-50 dark:bg-spice-900/30',
-    green: 'text-emerald-600 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30',
-    gold: 'text-amber-600 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/30',
-  }
-  return (
-    <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-card p-3.5">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center mb-2 ${colors[accent]}`}>{icon}</div>
-      <p className="font-display font-black text-base text-ink-900 dark:text-white leading-tight">{value}</p>
-      <p className="text-[10px] text-ink-500 dark:text-ink-400 leading-tight mt-0.5">{label}</p>
-    </div>
-  )
-})
+import { CheckCircle } from 'lucide-react'
