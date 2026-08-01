@@ -1,6 +1,4 @@
-import type { TranslationKey } from './en'
-
-export const fr: Record<TranslationKey, string> = {
+export const fr = {
   // Navigation
   home: 'Accueil',
   shop: 'Boutique',
@@ -386,4 +384,4 @@ export const fr: Record<TranslationKey, string> = {
   noProductsInStore: "Ce magasin n'a pas encore de produits",
 } as const
 
-export type TranslationKey = keyof typeof en
+export type TranslationKey = keyof typeof fr
