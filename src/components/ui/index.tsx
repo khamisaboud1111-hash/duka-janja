@@ -9,28 +9,31 @@ interface StatCardProps {
 }
 
 const accents = {
-  brand: 'border-brand-400 bg-brand-50',
-  spice: 'border-spice-400 bg-spice-50',
-  green: 'border-emerald-400 bg-emerald-50',
-  gold:  'border-amber-400 bg-amber-50',
+  brand: 'border-l-brand-500',
+  spice: 'border-l-spice-500',
+  green: 'border-l-emerald-500',
+  gold:  'border-l-amber-500',
 }
 
 const iconColors = {
-  brand: 'text-brand-500',
-  spice: 'text-spice-500',
-  green: 'text-emerald-500',
-  gold:  'text-amber-500',
+  brand: 'text-brand-600 dark:text-brand-300',
+  spice: 'text-spice-600 dark:text-spice-300',
+  green: 'text-emerald-600 dark:text-emerald-400',
+  gold:  'text-amber-600 dark:text-amber-400',
 }
 
 export function StatCard({ label, value, icon, trend, accent = 'brand' }: StatCardProps) {
   return (
-    <div className={cn('card p-4 border-l-4', accents[accent])}>
+    <div className={cn(
+      'rounded-2xl border border-border bg-card p-4 shadow-card border-l-4',
+      accents[accent]
+    )}>
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs text-ink-500 font-medium mb-1">{label}</p>
-          <p className="font-display font-black text-2xl text-ink-900">{value}</p>
+          <p className="text-xs text-muted-foreground font-medium mb-1">{label}</p>
+          <p className="font-display font-black text-2xl text-foreground">{value}</p>
           {trend && (
-            <p className={cn('text-xs font-medium mt-1', trend.up ? 'text-emerald-600' : 'text-red-500')}>
+            <p className={cn('text-xs font-medium mt-1', trend.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400')}>
               {trend.up ? '↑' : '↓'} {trend.value}
             </p>
           )}
@@ -52,11 +55,17 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-      {icon && <div className="text-ink-300 mb-4">{icon}</div>}
-      <h3 className="font-semibold text-ink-700 mb-1">{title}</h3>
-      {description && <p className="text-sm text-ink-500 max-w-xs mb-6">{description}</p>}
-      {action}
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/30 px-6 py-14 text-center">
+      {icon && (
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+          {icon}
+        </div>
+      )}
+      <h3 className="text-base font-semibold text-foreground">{title}</h3>
+      {description && (
+        <p className="mt-1 max-w-xs text-sm text-muted-foreground">{description}</p>
+      )}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   )
 }

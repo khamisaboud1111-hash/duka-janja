@@ -61,9 +61,9 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
 
   return (
     <Link href={`/products/${product.slug}`} className="group block">
-      <div className="card dark:bg-ink-900 dark:border-ink-800 overflow-hidden hover:shadow-card-hover transition-shadow duration-200">
+      <div className="bg-card border border-border overflow-hidden shadow-card hover:shadow-card-hover transition-shadow duration-200">
         {/* Image */}
-        <div className="product-image-container">
+        <div className="relative aspect-square overflow-hidden bg-muted">
           {primaryImage ? (
             <Image
               src={primaryImage.url}
@@ -73,8 +73,8 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
               className="object-cover group-hover:scale-105 transition-transform duration-300"
             />
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center bg-ink-100">
-              <span className="text-ink-300 text-4xl">📦</span>
+            <div className="absolute inset-0 flex items-center justify-center bg-muted">
+              <span className="text-muted-foreground text-4xl">📦</span>
             </div>
           )}
 
@@ -97,7 +97,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             disabled={wishlistLoading}
             className={cn(
               'absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all',
-              wishlisted ? 'bg-red-500 text-white' : 'bg-white/90 text-ink-600 hover:bg-white opacity-0 group-hover:opacity-100',
+              wishlisted ? 'bg-red-500 text-white' : 'bg-background/90 text-muted-foreground hover:bg-background opacity-0 group-hover:opacity-100',
               justLiked && 'animate-pop'
             )}
           >
@@ -108,7 +108,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
           <Link
             href={`/products/${product.slug}`}
             onClick={(e) => e.stopPropagation()}
-            className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 text-ink-800 text-xs font-semibold shadow-sm"
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/95 text-foreground text-xs font-semibold shadow-sm"
           >
             <Eye className="w-3.5 h-3.5" /> {t('view', lang)}
           </Link>
@@ -129,7 +129,7 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
 
           {/* Out of stock overlay */}
           {product.stock_quantity === 0 && (
-            <div className="absolute inset-0 bg-white/70 dark:bg-ink-900/75 flex items-center justify-center">
+            <div className="absolute inset-0 bg-background/70 dark:bg-background/80 flex items-center justify-center">
               <span className="badge-gray text-xs font-bold">{t('outOfStock', lang)}</span>
             </div>
           )}
