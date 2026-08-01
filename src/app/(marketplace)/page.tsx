@@ -8,9 +8,11 @@ import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
 import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
 import LText from '@/components/shared/LText'
+import { SectionHeading } from '@/components/shared/SectionHeading'
+import { SkeletonGrid } from '@/components/shared/SkeletonComposites'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { Product } from '@/types'
 import Link from 'next/link'
-import { Skeleton } from '@/components/ui/Card'
 import type { HomeStats } from '@/components/home/HeroSection'
 
 export const dynamic = 'force-dynamic'
@@ -95,20 +97,19 @@ export default async function MarketplaceHomePage() {
       {recentProducts.length > 0 && (
         <FadeInView>
           <Suspense fallback={
-            <div className="section"><div className="grid grid-cols-2 sm:grid-cols-4 gap-3"><Skeleton className="aspect-square rounded-2xl" /><Skeleton className="aspect-square rounded-2xl" /><Skeleton className="aspect-square rounded-2xl" /><Skeleton className="aspect-square rounded-2xl" /></div></div>
+            <div className="section"><SkeletonGrid count={4} className="grid-cols-2 sm:grid-cols-4" /></div>
           }>
-            <section className="section dark:bg-ink-950">
+            <section className="section">
               <div className="page-container">
-                <div className="flex items-end justify-between mb-4">
-                  <div>
-                    <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">
-                      <LText k="newProducts" />
-                    </h2>
-                  </div>
-                  <Link href="/search?sort=newest" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
-                    <LText k="seeAll" /> →
-                  </Link>
-                </div>
+                <SectionHeading
+                  title={<LText k="newProducts" />}
+                  action={
+                    <Link href="/search?sort=newest" className="text-sm font-semibold text-brand-600 dark:text-brand-300 whitespace-nowrap hover:underline">
+                      <LText k="seeAll" /> →
+                    </Link>
+                  }
+                  className="mb-4"
+                />
                 <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {recentProducts.slice(0, 4).map((product) => (
                     <StaggerItem key={product.id}>
@@ -123,7 +124,7 @@ export default async function MarketplaceHomePage() {
       )}
 
       <FadeInView>
-        <Suspense fallback={<Skeleton className="h-64 w-full rounded-2xl" />}>
+        <Suspense fallback={<div className="h-64 w-full rounded-2xl bg-ink-100 animate-pulse" />}>
           <FeaturedSellersShowcase sellers={featuredSellers} />
         </Suspense>
       </FadeInView>

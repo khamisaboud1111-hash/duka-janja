@@ -7,7 +7,19 @@ import { useUser } from '@/hooks/useUser'
 import { useSeller } from '@/hooks/useSeller'
 import { slugify } from '@/utils'
 import { PageLoader } from '@/components/ui'
+import { Camera, MapPin, Clock, Phone, Store, Globe, Save, CheckCircle, AlertCircle, ChevronRight, Image } from 'lucide-react'
 import toast from 'react-hot-toast'
+
+const DELIVERY_ZONES = [
+  { value: 'stone_town', label: 'Stone Town' },
+  { value: 'north_zanzibar', label: 'Kaskazini Zanzibar' },
+  { value: 'south_zanzibar', label: 'Kusini Zanzibar' },
+  { value: 'east_zanzibar', label: 'Mashariki Zanzibar' },
+  { value: 'west_zanzibar', label: 'Magharibi Zanzibar' },
+  { value: 'pemba_island', label: 'Kisiwa cha Pemba' },
+]
+
+const DAYS = ['Jumatatu', 'Jumanne', 'Jumatano', 'Alhamisi', 'Ijumaa', 'Jumamosi', 'Jumapili']
 
 export default function SellerSettingsPage() {
   const supabase = createClient()
@@ -18,7 +30,6 @@ export default function SellerSettingsPage() {
   const { seller, loading: sellerLoading, refetch } = useSeller()
 
   const [saving, setSaving] = useState(false)
-
   const [editField, setEditField] = useState<string | null>(null)
   const [fieldValue, setFieldValue] = useState('')
 
@@ -27,6 +38,11 @@ export default function SellerSettingsPage() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [locationLabel, setLocationLabel] = useState('')
   const [locating, setLocating] = useState(false)
+  const [activeSection, setActiveSection] = useState<string | null>(null)
+
+  const [whatsapp, setWhatsapp] = useState('')
+  const [deliveryZones, setDeliveryZones] = useState<string[]>([])
+  const [operatingHours, setOperatingHours] = useState<Record<string, { open: string; close: string; enabled: boolean }>>({})
 
   const logoRef = useRef<HTMLInputElement>(null)
   const bannerRef = useRef<HTMLInputElement>(null)
@@ -38,6 +54,14 @@ export default function SellerSettingsPage() {
       const s = seller as any
       if (s.latitude && s.longitude) setCoords({ lat: s.latitude, lng: s.longitude })
       setLocationLabel(s.location_label ?? '')
+      setWhatsapp(seller.whatsapp_number ?? '')
+      setDeliveryZones((s.delivery_zones as string[]) ?? [])
+      const hours = s.operating_hours ?? {}
+      const defaultHours: Record<string, { open: string; close: string; enabled: boolean }> = {}
+      DAYS.forEach(d => {
+        defaultHours[d] = hours[d] ?? { open: '08:00', close: '18:00', enabled: d !== 'Jumapili' }
+      })
+      setOperatingHours(defaultHours)
     }
   }, [seller])
 
@@ -47,15 +71,17 @@ export default function SellerSettingsPage() {
     const path = `${profile.id}/${field}.${ext}`
     const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, { upsert: true })
     if (uploadError) { toast.error(uploadError.message); return }
-    const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path)
-    const url = publicUrl
-    if (field === 'logo') setLogo(url)
-    else setBanner(url)
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path)
+    const publicUrl = data.publicUrl
+    if (field === 'logo') setLogo(publicUrl)
+    else setBanner(publicUrl)
     if (seller) {
-      await supabase.from('sellers').update({ [`${field}_url`]: url, updated_at: new Date().toISOString() }).eq('id', seller.id)
+      const updateData: any = { updated_at: new Date().toISOString() }
+      updateData[field + '_url'] = publicUrl
+      await supabase.from('sellers').update(updateData).eq('id', seller.id)
       refetch()
     }
-    toast.success(`${field === 'logo' ? 'Logo' : 'Banner'} updated`)
+    toast.success(field === 'logo' ? 'Logo imesasishwa' : 'Banner imesasishwa')
   }
 
   function startEdit(field: string, current: string) {
@@ -69,13 +95,11 @@ export default function SellerSettingsPage() {
   }
 
   async function saveField() {
-    if (!editField) return
+    if (!editField || !seller) return
     setSaving(true)
-    if (seller) {
-      await supabase.from('sellers').update({ [editField]: fieldValue || null, updated_at: new Date().toISOString() }).eq('id', seller.id)
-      refetch()
-    }
-    toast.success('Updated')
+    await supabase.from('sellers').update({ [editField]: fieldValue || null, updated_at: new Date().toISOString() }).eq('id', seller.id)
+    refetch()
+    toast.success('Imesasishwa')
     setSaving(false)
     setEditField(null)
   }
@@ -91,7 +115,21 @@ export default function SellerSettingsPage() {
       updated_at: new Date().toISOString(),
     }).eq('id', seller.id)
     refetch()
-    toast.success('Location updated')
+    toast.success('Eneo limebadilishwa')
+    setSaving(false)
+  }
+
+  async function saveDeliverySettings() {
+    if (!seller) return
+    setSaving(true)
+    await supabase.from('sellers').update({
+      whatsapp_number: whatsapp,
+      delivery_zones: deliveryZones,
+      operating_hours: operatingHours,
+      updated_at: new Date().toISOString(),
+    }).eq('id', seller.id)
+    refetch()
+    toast.success('Mipangilio ya usafirishaji imesasishwa')
     setSaving(false)
   }
 
@@ -107,32 +145,40 @@ export default function SellerSettingsPage() {
       status: 'pending',
     })
     if (error) { toast.error(error.message); setSaving(false); return }
-    toast.success('Store created! Awaiting approval.')
+    toast.success('Duka limetengenezwa! Inasubiri idhini.')
     router.push('/seller/dashboard')
+  }
+
+  function toggleSection(section: string) {
+    setActiveSection(activeSection === section ? null : section)
+  }
+
+  function toggleDeliveryZone(zone: string) {
+    setDeliveryZones(prev => prev.includes(zone) ? prev.filter(z => z !== zone) : [...prev, zone])
   }
 
   if (authLoading || sellerLoading) return <PageLoader />
 
   return (
-    <div className="max-w-lg mx-auto py-0">
-      {/* Banner + Logo Hero */}
-      <div className="relative">
-        <div className="h-36 sm:h-44 bg-gradient-to-br from-brand-400 via-brand-500 to-teal-500 overflow-hidden relative">
+    <div className="p-4 sm:p-6 max-w-3xl">
+      <h1 className="font-display font-black text-2xl text-ink-900 mb-6">Mipangilio ya Duka</h1>
+
+      {/* Hero Section - Banner + Logo */}
+      <div className="card rounded-2xl overflow-hidden mb-6">
+        <div className="relative h-36 sm:h-48 bg-gradient-to-br from-brand-400 via-brand-500 to-teal-500 overflow-hidden">
           {banner && <img src={banner} alt="" className="w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-black/20" />
-          <button onClick={() => bannerRef.current?.click()} className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-all hover:scale-105">
-            <svg className="w-4 h-4 text-ink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
-            </svg>
+          <button onClick={() => bannerRef.current?.click()}
+            className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-all hover:scale-105">
+            <Camera className="w-4 h-4 text-ink-700" />
           </button>
           <input ref={bannerRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f, 'seller-banners', 'banner') }} />
         </div>
 
-        <div className="px-4">
-          <div className="relative -mt-14 mb-4 flex items-end gap-4">
+        <div className="px-4 pb-4">
+          <div className="relative -mt-12 mb-4 flex items-end gap-4">
             <div className="relative group">
-              <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white dark:bg-ink-800 ring-4 ring-white dark:ring-ink-900 shadow-lg">
+              <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white ring-4 ring-white shadow-lg">
                 {logo ? (
                   <img src={logo} alt="" className="w-full h-full object-cover" />
                 ) : (
@@ -141,25 +187,21 @@ export default function SellerSettingsPage() {
                   </div>
                 )}
               </div>
-              <button onClick={() => logoRef.current?.click()} className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-brand-500 hover:bg-brand-600 flex items-center justify-center shadow-lg transition-all hover:scale-105 border-2 border-white dark:border-ink-900">
-                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
+              <button onClick={() => logoRef.current?.click()}
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-brand-500 hover:bg-brand-600 flex items-center justify-center shadow-lg transition-all hover:scale-105 border-2 border-white">
+                <Camera className="w-3.5 h-3.5 text-white" />
               </button>
               <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadImage(f, 'seller-logos', 'logo') }} />
             </div>
             <div className="pb-1 flex-1 min-w-0">
-              <h1 className="font-display font-bold text-lg text-ink-900 dark:text-white truncate">
-                {seller?.store_name ?? 'Your Store'}
-              </h1>
+              <h2 className="font-display font-bold text-lg text-ink-900 truncate">{seller?.store_name ?? 'Duka Langu'}</h2>
               {seller && (
                 <span className={`inline-flex items-center text-[11px] font-semibold mt-0.5 px-2 py-0.5 rounded-full ${
-                  seller.status === 'approved' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
-                  : seller.status === 'pending' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
-                  : 'text-red-600 bg-red-50 dark:bg-red-950/30'
+                  seller.status === 'approved' ? 'text-emerald-600 bg-emerald-50'
+                  : seller.status === 'pending' ? 'text-amber-600 bg-amber-50'
+                  : 'text-red-600 bg-red-50'
                 }`}>
-                  {seller.status}
+                  {seller.status === 'approved' ? '✓ Imeidhinishwa' : seller.status === 'pending' ? '⏳ Inasubiri' : '✕ Imesimamishwa'}
                 </span>
               )}
             </div>
@@ -169,160 +211,208 @@ export default function SellerSettingsPage() {
 
       {/* Onboarding banner */}
       {isOnboarding && !seller && (
-        <div className="mx-4 mb-4 px-4 py-3 bg-brand-50 dark:bg-brand-950/30 border border-brand-100 dark:border-brand-900/50 rounded-xl">
-          <p className="text-sm text-brand-800 dark:text-brand-200 font-medium">👋 Karibu! Jaza maelezo ya duka lako.</p>
+        <div className="mb-4 px-4 py-3 bg-brand-50 border border-brand-100 rounded-xl">
+          <p className="text-sm text-brand-800 font-medium">Karibu! Jaza maelezo ya duka lako ili kuanza kuuza.</p>
         </div>
       )}
 
-      {/* Info Section */}
-      <div className="px-4 space-y-3 pb-4">
-        {seller ? (
-          <>
-            <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden divide-y divide-ink-100 dark:divide-ink-800">
-              <ProfileRow
-                icon={
-                  <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
-                  </svg>
-                }
-                label="Store Name"
-                value={seller.store_name}
-                editing={editField === 'store_name'}
-                editValue={fieldValue}
-                onEditValue={setFieldValue}
-                onStartEdit={() => startEdit('store_name', seller.store_name)}
-                onSave={saveField}
-                onCancel={cancelEdit}
-                saving={saving}
-              />
-              <ProfileRow
-                icon={
-                  <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
-                  </svg>
-                }
-                label="Description"
-                value={seller.description || '—'}
-                editing={editField === 'description'}
-                editValue={fieldValue}
-                onEditValue={setFieldValue}
-                onStartEdit={() => startEdit('description', seller.description ?? '')}
-                onSave={saveField}
-                onCancel={cancelEdit}
-                saving={saving}
-              />
-              <ProfileRow
-                icon={
-                  <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-                  </svg>
-                }
-                label="WhatsApp"
-                value={seller.whatsapp_number}
-                editing={editField === 'whatsapp_number'}
-                editValue={fieldValue}
-                onEditValue={setFieldValue}
-                onStartEdit={() => startEdit('whatsapp_number', seller.whatsapp_number)}
-                onSave={saveField}
-                onCancel={cancelEdit}
-                saving={saving}
-              />
-            </div>
+      {seller ? (
+        <div className="space-y-3">
+          {/* Store Details */}
+          <SettingsSection
+            icon={<Store className="w-5 h-5" />}
+            title="Maelezo ya Duka"
+            isOpen={activeSection === 'details'}
+            onToggle={() => toggleSection('details')}
+          >
+            <SettingsRow label="Jina la Duka" value={seller.store_name}
+              editing={editField === 'store_name'} editValue={fieldValue}
+              onEditValue={setFieldValue} onStartEdit={() => startEdit('store_name', seller.store_name)}
+              onSave={saveField} onCancel={cancelEdit} saving={saving} />
+            <SettingsRow label="Maelezo" value={seller.description || '—'}
+              editing={editField === 'description'} editValue={fieldValue}
+              onEditValue={setFieldValue} onStartEdit={() => startEdit('description', seller.description ?? '')}
+              onSave={saveField} onCancel={cancelEdit} saving={saving} textarea />
+          </SettingsSection>
 
-            {/* Location */}
-            <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden">
-              <div className="px-4 py-3.5 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-ink-50 dark:bg-ink-800 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider">Location</p>
-                  <p className="text-sm font-medium text-ink-900 dark:text-white truncate">{locationLabel || 'Not set'}</p>
-                </div>
+          {/* Contact */}
+          <SettingsSection
+            icon={<Phone className="w-5 h-5" />}
+            title="Mawasiliano"
+            isOpen={activeSection === 'contact'}
+            onToggle={() => toggleSection('contact')}
+          >
+            <div className="px-4 py-3">
+              <label className="text-[11px] font-semibold text-ink-400 uppercase tracking-wider">WhatsApp</label>
+              <input value={whatsapp} onChange={e => setWhatsapp(e.target.value)}
+                className="input text-sm mt-1" placeholder="+255 7XX XXX XXX" />
+            </div>
+          </SettingsSection>
+
+          {/* Location */}
+          <SettingsSection
+            icon={<MapPin className="w-5 h-5" />}
+            title="Eneo"
+            isOpen={activeSection === 'location'}
+            onToggle={() => toggleSection('location')}
+          >
+            <div className="px-4 py-3 space-y-3">
+              <input value={locationLabel} onChange={(e) => setLocationLabel(e.target.value)}
+                className="input text-sm" placeholder="mf. Mji Mkongwe, Zanzibar" />
+              <div className="flex gap-2">
+                <button type="button" disabled={locating} onClick={() => {
+                  if (!navigator.geolocation) { toast.error('Geolocation haijaungwa'); return }
+                  setLocating(true)
+                  navigator.geolocation.getCurrentPosition(
+                    (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setLocating(false); toast.success('Eneo limepatikana') },
+                    () => { setLocating(false); toast.error('Imeshindwa kupata eneo') },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                  )
+                }} className="flex-1 btn-secondary text-xs justify-center py-2">
+                  {locating ? 'Inapata eneo...' : coords ? 'Badilisha eneo' : 'Tumia eneo langu'}
+                </button>
+                <button onClick={saveLocation} disabled={saving} className="btn-primary text-xs py-2 px-4 gap-1">
+                  <Save className="w-3 h-3" /> Hifadhi
+                </button>
               </div>
-              <div className="px-4 pb-4 space-y-3">
-                <input value={locationLabel} onChange={(e) => setLocationLabel(e.target.value)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" placeholder="e.g. Mji Mkongwe, Zanzibar" />
-                <div className="flex gap-2">
-                  <button type="button" disabled={locating} onClick={() => {
-                    if (!navigator.geolocation) { toast.error('Geolocation not supported'); return }
-                    setLocating(true)
-                    navigator.geolocation.getCurrentPosition(
-                      (pos) => { setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setLocating(false); toast.success('Location captured') },
-                      () => { setLocating(false); toast.error('Failed to get location') },
-                      { enableHighAccuracy: true, timeout: 10000 }
-                    )
-                  }} className="flex-1 btn-secondary text-xs justify-center py-2">
-                    {locating ? 'Getting location...' : coords ? 'Update location' : 'Use my location'}
+              {coords && <p className="text-[11px] text-brand-600">✓ {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>}
+            </div>
+          </SettingsSection>
+
+          {/* Delivery Zones */}
+          <SettingsSection
+            icon={<Globe className="w-5 h-5" />}
+            title="Maeneo ya Usafirishaji"
+            isOpen={activeSection === 'delivery'}
+            onToggle={() => toggleSection('delivery')}
+          >
+            <div className="px-4 py-3">
+              <p className="text-xs text-ink-500 mb-3">Chagua maeneo unayofikisha bidhaa:</p>
+              <div className="grid grid-cols-2 gap-2">
+                {DELIVERY_ZONES.map(z => (
+                  <button key={z.value} onClick={() => toggleDeliveryZone(z.value)}
+                    className={`text-left text-xs font-medium px-3 py-2 rounded-xl border transition-all ${
+                      deliveryZones.includes(z.value)
+                        ? 'border-brand-400 bg-brand-50 text-brand-700'
+                        : 'border-ink-200 text-ink-600 hover:border-ink-300'
+                    }`}>
+                    {deliveryZones.includes(z.value) && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                    {z.label}
                   </button>
-                  <button onClick={saveLocation} disabled={saving} className="btn-primary text-xs py-2 px-4">
-                    Save
-                  </button>
-                </div>
-                {coords && <p className="text-[11px] text-brand-600">✓ {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}</p>}
+                ))}
               </div>
             </div>
-          </>
-        ) : (
-          /* Create store form - simplified */
-          <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden">
-            <div className="px-4 py-4 space-y-3">
-              <p className="text-sm font-semibold text-ink-900 dark:text-white">What should we call your store?</p>
-              <input value={fieldValue} onChange={(e) => setFieldValue(e.target.value)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" placeholder="e.g. Spice Island Store" autoFocus />
-              <button onClick={handleCreateStore} disabled={saving || fieldValue.trim().length < 2} className="btn-primary w-full justify-center py-2.5 text-sm">
-                {saving ? 'Creating...' : 'Create Store'}
-              </button>
+          </SettingsSection>
+
+          {/* Operating Hours */}
+          <SettingsSection
+            icon={<Clock className="w-5 h-5" />}
+            title="Saa za Kazi"
+            isOpen={activeSection === 'hours'}
+            onToggle={() => toggleSection('hours')}
+          >
+            <div className="px-4 py-3 space-y-2">
+              {DAYS.map(day => {
+                const h = operatingHours[day] ?? { open: '08:00', close: '18:00', enabled: true }
+                return (
+                  <div key={day} className={`flex items-center gap-3 py-2 ${!h.enabled ? 'opacity-50' : ''}`}>
+                    <button onClick={() => setOperatingHours(prev => ({
+                      ...prev, [day]: { ...h, enabled: !h.enabled }
+                    }))} className={`w-10 h-5 rounded-full transition-colors relative ${h.enabled ? 'bg-brand-500' : 'bg-ink-200'}`}>
+                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${h.enabled ? 'left-5' : 'left-0.5'}`} />
+                    </button>
+                    <span className="text-xs font-medium text-ink-700 w-20">{day}</span>
+                    {h.enabled ? (
+                      <div className="flex items-center gap-1 text-xs">
+                        <input type="time" value={h.open}
+                          onChange={e => setOperatingHours(prev => ({ ...prev, [day]: { ...h, open: e.target.value } }))}
+                          className="input text-xs py-1 px-2 w-24" />
+                        <span className="text-ink-400">—</span>
+                        <input type="time" value={h.close}
+                          onChange={e => setOperatingHours(prev => ({ ...prev, [day]: { ...h, close: e.target.value } }))}
+                          className="input text-xs py-1 px-2 w-24" />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-ink-400">Imefungwa</span>
+                    )}
+                  </div>
+                )
+              })}
             </div>
+          </SettingsSection>
+
+          {/* Save All */}
+          <div className="pt-2">
+            <button onClick={saveDeliverySettings} disabled={saving} className="btn-primary w-full justify-center py-3 text-sm gap-1.5">
+              <Save className="w-4 h-4" /> {saving ? 'Inahifadhi...' : 'Hifadhi Mipangilio Yote'}
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        /* Create store form */
+        <div className="card rounded-2xl overflow-hidden">
+          <div className="px-4 py-4 space-y-3">
+            <p className="text-sm font-semibold text-ink-900">Jina gani la duka lako?</p>
+            <input value={fieldValue} onChange={(e) => setFieldValue(e.target.value)}
+              className="input text-sm" placeholder="mf. Spice Island Store" autoFocus />
+            <button onClick={handleCreateStore} disabled={saving || fieldValue.trim().length < 2}
+              className="btn-primary w-full justify-center py-2.5 text-sm">
+              {saving ? 'Inaunda...' : 'Unda Duka'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function ProfileRow({
-  icon, label, value, editing, editValue, onEditValue, onStartEdit, onSave, onCancel, saving,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  editing: boolean
-  editValue: string
-  onEditValue: (v: string) => void
-  onStartEdit: () => void
-  onSave: () => void
-  onCancel: () => void
-  saving: boolean
+function SettingsSection({ icon, title, isOpen, onToggle, children }: {
+  icon: React.ReactNode; title: string; isOpen: boolean; onToggle: () => void; children: React.ReactNode
+}) {
+  return (
+    <div className="card rounded-2xl overflow-hidden">
+      <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 transition-colors text-left">
+        <div className="w-8 h-8 rounded-xl bg-ink-50 flex items-center justify-center flex-shrink-0">
+          {icon}
+        </div>
+        <span className="flex-1 text-sm font-semibold text-ink-800">{title}</span>
+        <ChevronRight className={`w-4 h-4 text-ink-400 transition-transform ${isOpen ? 'rotate-90' : ''}`} />
+      </button>
+      {isOpen && <div className="border-t border-ink-100">{children}</div>}
+    </div>
+  )
+}
+
+function SettingsRow({ label, value, editing, editValue, onEditValue, onStartEdit, onSave, onCancel, saving, textarea }: {
+  label: string; value: string; editing: boolean; editValue: string; onEditValue: (v: string) => void
+  onStartEdit: () => void; onSave: () => void; onCancel: () => void; saving: boolean; textarea?: boolean
 }) {
   if (editing) {
     return (
-      <div className="px-4 py-3 bg-brand-50/50 dark:bg-brand-950/20">
-        <p className="text-[11px] font-semibold text-brand-600 dark:text-brand-400 uppercase tracking-wider mb-2">{label}</p>
-        <input value={editValue} onChange={(e) => onEditValue(e.target.value)} className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" autoFocus />
+      <div className="px-4 py-3 bg-brand-50/50">
+        <p className="text-[11px] font-semibold text-brand-600 uppercase tracking-wider mb-2">{label}</p>
+        {textarea ? (
+          <textarea value={editValue} onChange={(e) => onEditValue(e.target.value)}
+            className="input text-sm min-h-[80px]" autoFocus />
+        ) : (
+          <input value={editValue} onChange={(e) => onEditValue(e.target.value)} className="input text-sm" autoFocus />
+        )}
         <div className="flex gap-2 mt-2">
-          <button onClick={onSave} disabled={saving} className="text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/30 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors">
-            {saving ? 'Saving...' : 'Save'}
+          <button onClick={onSave} disabled={saving} className="text-xs font-semibold text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors">
+            {saving ? 'Inahifadhi...' : 'Hifadhi'}
           </button>
-          <button onClick={onCancel} className="text-xs font-semibold text-ink-500 bg-ink-50 dark:bg-ink-800 px-3 py-1.5 rounded-lg hover:bg-ink-100 transition-colors">Cancel</button>
+          <button onClick={onCancel} className="text-xs font-semibold text-ink-500 bg-ink-50 px-3 py-1.5 rounded-lg hover:bg-ink-100 transition-colors">Ghairi</button>
         </div>
       </div>
     )
   }
-
   return (
-    <button onClick={onStartEdit} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors text-left group">
-      <div className="w-8 h-8 rounded-xl bg-ink-50 dark:bg-ink-800 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-50 dark:group-hover:bg-brand-950/30 transition-colors">
-        {icon}
+    <button onClick={onStartEdit} className="w-full flex items-center justify-between px-4 py-3 hover:bg-ink-50 transition-colors text-left">
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold text-ink-400 uppercase tracking-wider">{label}</p>
+        <p className="text-sm font-medium text-ink-900 truncate">{value}</p>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider">{label}</p>
-        <p className="text-sm font-medium text-ink-900 dark:text-white truncate">{value}</p>
-      </div>
-      <svg className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
-      </svg>
+      <span className="text-xs text-brand-600 font-medium flex-shrink-0 ml-2">Badilisha</span>
     </button>
   )
 }
