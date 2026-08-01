@@ -7,6 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Mail, Lock, Eye, EyeOff, Store, Bike, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useLangStore } from '@/store'
+import { t, type Language } from '@/i18n/translations'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
@@ -41,18 +43,20 @@ const ROUTES = {
   [USER_ROLES.ADMIN]: '/admin/dashboard',
 } as const
 
-const schema = z.object({
-  email: z.string().trim().email('Barua pepe si sahihi'),
-  password: z.string().min(6, 'Nywila inahitaji angalau herufi 6'),
-})
-
-type FormData = z.infer<typeof schema>
+function makeLoginSchema(lang: Language) {
+  return z.object({
+    email: z.string().trim().email(t('invalidEmail', lang)),
+    password: z.string().min(6, t('passwordMinLength', lang)),
+  })
+}
+type FormData = z.infer<ReturnType<typeof makeLoginSchema>>
 
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectPath = searchParams.get('redirect') || ''
   const supabase = createClient()
+  const { lang } = useLangStore()
 
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -65,7 +69,7 @@ export default function LoginPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(makeLoginSchema(lang)),
     shouldFocusError: true,
   })
 
@@ -83,7 +87,7 @@ export default function LoginPage() {
     if (attempts >= 5) {
       setLockoutTimer(30)
       setAttempts(0)
-      toast.error('Majaribio yamezidi. Tafadhali subiri sekunde 30.')
+      toast.error(t('tooManyAttempts', lang).replace('{seconds}', '30'))
       return
     }
 
@@ -103,7 +107,7 @@ export default function LoginPage() {
         if (authError.message.includes('Invalid') || authError.status === 400) {
           toast.error('Barua pepe au nywila si sahihi')
         } else if (authError.message.includes('confirmed')) {
-          toast.error('Tafadhali thibitisha barua pepe yako kwanza')
+          toast.error(t('pleaseVerifyEmail', lang))
         } else {
           toast.error('Imeshindikana kuingia. Angalia mtandao wako.')
         }
@@ -125,21 +129,21 @@ export default function LoginPage() {
         .single()
 
       if (profileError || !profile) {
-        toast.error('Profile not found.')
+        toast.error(t('profileUpdateFailed', lang))
         await supabase.auth.signOut()
         setLoading(false)
         return
       }
 
       if (!(profile.role in ROUTES)) {
-        toast.error('Akaunti ina jukumu lisilofahamika.')
+        toast.error(t('unrecognizedRole', lang))
         await supabase.auth.signOut()
         setLoading(false)
         return
       }
 
       setSuccess(true)
-      toast.success('✓ Ingia imefaulu! Inaelekeza...')
+      toast.success(t('redirecting', lang))
 
       const destination =
         redirectPath && redirectPath.startsWith('/')
@@ -153,7 +157,7 @@ export default function LoginPage() {
       if (error instanceof Error) {
         toast.error(error.message)
       } else {
-        toast.error('Hitilafu ya mtandao imetokea. Tafadhali jaribu tena.')
+        toast.error('Network error. Please try again.')
       }
       setLoading(false)
     }
@@ -163,13 +167,13 @@ export default function LoginPage() {
     <div className="w-full max-w-sm">
       <div className={`card dark:bg-ink-900 dark:border-ink-800 p-6 sm:p-8 transition-all ${loading ? 'backdrop-blur animate-pulse opacity-70 pointer-events-none' : ''}`}>
         <div className="text-center mb-6">
-          <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-1">Karibu tena</h1>
-          <p className="text-sm text-ink-500 dark:text-ink-400">Ingia kwenye akaunti yako ya Duka Janja</p>
+          <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-1">{t('welcomeBack', lang)}</h1>
+          <p className="text-sm text-ink-500 dark:text-ink-400">{t('loginSubtitle', lang)}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <label className="label dark:text-ink-300">Barua pepe</label>
+            <label className="label dark:text-ink-300">{t('email', lang)}</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
               <input
@@ -180,7 +184,7 @@ export default function LoginPage() {
                 autoComplete="username"
                 disabled={loading || lockoutTimer > 0}
                 autoFocus
-                placeholder="mfano@barua.com"
+                placeholder={t('emailPlaceholder', lang)}
                 aria-invalid={!!errors.email}
                 aria-describedby={errors.email ? 'email-error' : undefined}
                 className={`input dark:bg-ink-800 dark:border-ink-700 dark:text-white pl-9 ${
@@ -197,9 +201,9 @@ export default function LoginPage() {
 
           <div>
             <div className="flex justify-between items-center mb-1.5">
-              <label className="label dark:text-ink-300 mb-0">Nywila</label>
+              <label className="label dark:text-ink-300 mb-0">{t('password', lang)}</label>
               <Link href="/forgot-password" className="text-xs text-brand-600 dark:text-brand-300 hover:underline">
-                Umesahau nywila?
+                {t('forgotPassword', lang)}
               </Link>
             </div>
             <div className="relative">
@@ -243,26 +247,26 @@ export default function LoginPage() {
             {loading || success ? (
               <>
                 <Loader2 className="animate-spin w-4 h-4" />
-                <span>{success ? 'Inaelekeza...' : 'Inaingia...'}</span>
+                <span>{success ? t('redirecting', lang) : t('loggingIn', lang)}</span>
               </>
             ) : lockoutTimer > 0 ? (
-              <span>Subiri sekunde {lockoutTimer}...</span>
+              <span>{t('pleaseWait', lang).replace('{seconds}', String(lockoutTimer))}</span>
             ) : (
-              'Ingia'
+              t('signInWith', lang)
             )}
           </button>
         </form>
 
         <p className="text-center text-sm text-ink-500 dark:text-ink-400 mt-4">
-          Huna akaunti?{' '}
+          {t('noAccount', lang)}{' '}
           <Link href="/register" className="text-brand-600 dark:text-brand-300 font-semibold hover:underline">
-            Fungua hapa
+            {t('createAccount', lang)}
           </Link>
         </p>
 
         <div className="flex items-center gap-2 my-4">
           <div className="h-px flex-1 bg-ink-100 dark:bg-ink-800" />
-          <span className="text-xs text-ink-400">au</span>
+          <span className="text-xs text-ink-400">{t('or', lang)}</span>
           <div className="h-px flex-1 bg-ink-100 dark:bg-ink-800" />
         </div>
 
@@ -272,14 +276,14 @@ export default function LoginPage() {
             className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
           >
             <Store className="w-4 h-4 text-brand-600 dark:text-brand-300" />
-            <span className="text-[11px] font-semibold text-ink-600 dark:text-ink-300">Fungua duka</span>
+            <span className="text-[11px] font-semibold text-ink-600 dark:text-ink-300">{t('openSellerAccount', lang)}</span>
           </Link>
           <Link
             href="/register?type=rider"
             className="flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
           >
             <Bike className="w-4 h-4 text-brand-600 dark:text-brand-300" />
-            <span className="text-[11px] font-semibold text-ink-600 dark:text-ink-300">Jiunge kama dereva</span>
+            <span className="text-[11px] font-semibold text-ink-600 dark:text-ink-300">{t('joinAsRider', lang)}</span>
           </Link>
         </div>
       </div>

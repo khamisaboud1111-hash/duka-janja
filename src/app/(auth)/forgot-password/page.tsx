@@ -3,11 +3,14 @@
 import { useState } from 'react'
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
 export default function ForgotPasswordPage() {
   const supabase = createClient()
+  const { lang } = useLangStore()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
@@ -30,11 +33,11 @@ export default function ForgotPasswordPage() {
         {sent ? (
           <div className="text-center py-4">
             <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-            <h2 className="font-bold text-lg text-ink-900 mb-2">Angalia barua pepe yako</h2>
+            <h2 className="font-bold text-lg text-ink-900 mb-2">{t('checkYourEmail', lang)}</h2>
             <p className="text-sm text-ink-500 mb-6">
-              Tumekutumia kiungo cha kubadilisha nywila kwenye <strong>{email}</strong>
+              {t('weSentResetLink', lang).replace('{email}', email)}
             </p>
-            <Link href="/login" className="btn-primary inline-flex">Rudi kuingia</Link>
+            <Link href="/login" className="btn-primary inline-flex">{t('goBackToLogin', lang)}</Link>
           </div>
         ) : (
           <>
@@ -42,8 +45,8 @@ export default function ForgotPasswordPage() {
               <Link href="/login" className="flex items-center gap-1.5 text-sm text-ink-500 hover:text-brand-600 mb-4">
                 <ArrowLeft className="w-4 h-4" /> Rudi
               </Link>
-              <h1 className="font-display font-black text-2xl text-ink-900 mb-1">Umesahau nywila?</h1>
-              <p className="text-sm text-ink-500">Tutakutumia kiungo cha kubadilisha nywila</p>
+              <h1 className="font-display font-black text-2xl text-ink-900 mb-1">{t('forgotPassword', lang)}</h1>
+              <p className="text-sm text-ink-500">{t('weWillSendResetLink', lang)}</p>
             </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
@@ -61,7 +64,7 @@ export default function ForgotPasswordPage() {
                 </div>
               </div>
               <button type="submit" disabled={loading} className="btn-primary w-full justify-center py-3">
-                {loading ? 'Inatuma...' : 'Tuma kiungo'}
+                {loading ? t('sending', lang) : t('sendResetLink', lang)}
               </button>
             </form>
           </>
