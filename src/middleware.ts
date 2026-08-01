@@ -1,9 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-const SELLER_ROUTES = ['/seller']
 const ADMIN_ROUTES = ['/admin']
-const PROTECTED_ROUTES = ['/orders', '/wishlist', '/notifications', '/checkout']
+const PUBLIC_ROUTES = ['/login', '/register', '/forgot-password', '/policies']
 
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req })
@@ -29,15 +28,16 @@ export async function middleware(req: NextRequest) {
   const { data: { session } } = await supabase.auth.getSession()
   const path = req.nextUrl.pathname
 
-  const isSellerRoute = SELLER_ROUTES.some((r) => path.startsWith(r))
   const isAdminRoute  = ADMIN_ROUTES.some((r) => path.startsWith(r))
-  const isProtected   = PROTECTED_ROUTES.some((r) => path.startsWith(r))
+  const isPublic      = PUBLIC_ROUTES.some((r) => path === r || path.startsWith(`${r}/`))
 
-  if ((isSellerRoute || isAdminRoute || isProtected) && !session) {
+  // First-time visitors land on the login page instead of the homepage.
+  if (!session && !isPublic) {
     const redirectUrl = new URL('/login', req.url)
     redirectUrl.searchParams.set('redirect', path)
     return NextResponse.redirect(redirectUrl)
   }
+
   if (isAdminRoute && session) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -55,5 +55,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/seller/:path*', '/admin/:path*', '/orders/:path*', '/wishlist/:path*', '/notifications/:path*', '/checkout/:path*'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }
