@@ -9,7 +9,8 @@ import { useLangStore } from '@/store'
 import { t, type Language } from '@/i18n/translations'
 import { createClient } from '@/lib/supabase/client'
 import { EmptyState } from '@/components/ui'
-import { Skeleton } from '@/components/ui/Card'
+import { MobileSheet } from '@/components/shared/MobileSheet'
+import { SkeletonGrid, Skeleton } from '@/components/shared/SkeletonComposites'
 import type { Category } from '@/types'
 
 const RECENT_KEY = 'dj_recent_searches'
@@ -100,6 +101,43 @@ export default function SearchPage() {
   }
 
   const hasFilters = !!(q || category || madeInZnz || sort !== 'newest')
+
+  // Shared filter controls — rendered inline on desktop and inside the mobile sheet.
+  const filterControls = (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t('type', lang)}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {categories.map((cat) => (
+            <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)}
+              className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-border text-muted-foreground hover:border-brand-300'}`}>
+              {cat.icon} {catName(cat, lang)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t('sortBy', lang)}</p>
+        <div className="flex flex-col gap-1.5">
+          {([['newest', t('sortNewest', lang)],['price_asc', t('sortPriceAsc', lang)],['price_desc', t('sortPriceDesc', lang)],['popular', t('sortPopular', lang)]] as [string, string][]).map(([v, label]) => (
+            <button key={v} onClick={() => setParam('sort', v)}
+              className={`text-xs text-left px-3 py-1.5 rounded-lg border transition-colors ${sort === v ? 'bg-brand-50 dark:bg-brand-500/15 border-brand-400 text-brand-700 dark:text-brand-300 font-semibold' : 'border-border text-muted-foreground hover:border-brand-300'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{t('special', lang)}</p>
+        <button onClick={() => setParam('made_in_zanzibar', madeInZnz ? null : 'true')}
+          className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${madeInZnz ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600' : 'border-border text-muted-foreground hover:border-amber-300'}`}>
+          {t('madeInZanzibar', lang)}
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
@@ -199,10 +237,12 @@ export default function SearchPage() {
 
           <button
             onClick={() => setFiltersOpen(!filtersOpen)}
+            aria-expanded={filtersOpen}
+            aria-haspopup="dialog"
             className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-colors ${
               filtersOpen
                 ? 'bg-brand-500 text-white border-brand-500'
-                : 'bg-white dark:bg-ink-900 border-ink-200 dark:border-ink-700 text-ink-700 dark:text-ink-200 hover:border-brand-300'
+                : 'bg-card border-border text-foreground hover:border-brand-300'
             }`}
           >
             <SlidersHorizontal className="w-4 h-4" />

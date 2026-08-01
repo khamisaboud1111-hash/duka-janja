@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
@@ -10,7 +11,6 @@ import ProductCard from '@/components/product/ProductCard'
 import LText from '@/components/shared/LText'
 import { SectionHeading } from '@/components/shared/SectionHeading'
 import { SkeletonGrid } from '@/components/shared/SkeletonComposites'
-import { Skeleton } from '@/components/ui/skeleton'
 import type { Product } from '@/types'
 import Link from 'next/link'
 import type { HomeStats } from '@/components/home/HeroSection'
@@ -75,6 +75,10 @@ async function getRecentProducts() {
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export default async function MarketplaceHomePage() {
+  const supabase = createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/register')
+
   const [stats, featuredSellers, recentProducts] = await Promise.all([
     getStats(),
     getFeaturedSellers(),

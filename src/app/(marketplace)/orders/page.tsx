@@ -11,7 +11,7 @@ import { formatTZS, formatDate } from '@/utils'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
 import { PageLoader, EmptyState } from '@/components/ui'
-import { Skeleton } from '@/components/ui/Card'
+import { Skeleton } from '@/components/shared/SkeletonComposites'
 
 export default function OrdersPage() {
   const { profile, loading: authLoading } = useUser()
