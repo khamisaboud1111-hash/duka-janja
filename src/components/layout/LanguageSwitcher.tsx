@@ -53,6 +53,8 @@ function Flag({ code }: { code: Language }) {
   )
 }
 
+const currentLabel = (code: Language) => LANGUAGES.find((l) => l.code === code)?.label ?? code
+
 export default function LanguageSwitcher({ variant = 'pill' }: { variant?: 'pill' | 'icon' }) {
   const lang = useLangStore((s) => s.lang)
   const setLang = useLangStore((s) => s.setLang)
@@ -67,12 +69,20 @@ export default function LanguageSwitcher({ variant = 'pill' }: { variant?: 'pill
         aria-haspopup="menu"
         aria-expanded={open}
         className={cn(
-          'flex items-center gap-2 rounded-xl text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800 hover:text-ink-700 dark:hover:text-ink-200 transition-colors',
-          variant === 'pill' ? 'px-3 py-2 border border-ink-100 dark:border-ink-800' : 'w-12 h-10 justify-center'
+          'flex items-center gap-2.5 rounded-xl font-semibold shadow-sm transition-colors',
+          variant === 'pill'
+            ? 'px-3.5 py-2.5 bg-brand-500 text-white border border-brand-600 hover:bg-brand-600'
+            : 'w-12 h-10 justify-center text-ink-500 dark:text-ink-400 hover:bg-ink-50 dark:hover:bg-ink-800'
         )}
       >
-        <Languages className="w-4 h-4" />
-        {variant === 'pill' && <span className="text-sm font-medium">{lang.toUpperCase()}</span>}
+        <Languages className="w-4 h-4 shrink-0" />
+        {variant === 'pill' && (
+          <span className="text-sm font-semibold flex items-center gap-1.5">
+            <Flag code={lang} />
+            <span className="hidden sm:inline">{currentLabel(lang)}</span>
+            <span className="sm:hidden uppercase">{lang}</span>
+          </span>
+        )}
       </button>
       {open && (
         <>
