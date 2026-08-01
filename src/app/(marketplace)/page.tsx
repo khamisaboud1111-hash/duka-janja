@@ -78,6 +78,7 @@ export default async function MarketplaceHomePage() {
   const supabase = createServerClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/register')
+  if (user.role === 'rider') redirect('/rider/dashboard')
 
   const [stats, featuredSellers, recentProducts] = await Promise.all([
     getStats(),

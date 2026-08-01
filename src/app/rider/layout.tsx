@@ -2,10 +2,13 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, Package, History, Wallet, User, ArrowLeft, Star, ChevronRight } from 'lucide-react'
+import { LayoutDashboard, Package, History, Wallet, User, ArrowLeft, Star, ChevronRight, Moon, Sun, Languages } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { PageLoader } from '@/components/ui'
 import { cn } from '@/utils'
+import { useLangStore } from '@/store'
+import { t, type Language } from '@/i18n/translations'
+import { useThemeStore } from '@/store'
 
 const NAV = [
   { href: '/rider/dashboard', label: 'Dashibodi', icon: LayoutDashboard },
@@ -14,9 +17,20 @@ const NAV = [
   { href: '/rider/profile', label: 'Wasifu', icon: User },
 ]
 
+const LANGUAGES: { code: Language; label: string }[] = [
+  { code: 'en', label: 'English' },
+  { code: 'sw', label: 'Kiswahili' },
+  { code: 'ar', label: 'العربية' },
+  { code: 'fr', label: 'Français' },
+]
+
 export default function RiderLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { profile, loading } = useUser()
+  const lang = useLangStore((s) => s.lang)
+  const setLang = useLangStore((s) => s.setLang)
+  const theme = useThemeStore((s) => s.theme)
+  const setTheme = useThemeStore((s) => s.setTheme)
 
   if (loading) return <PageLoader />
 
@@ -59,6 +73,22 @@ export default function RiderLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
+        {/* Sidebar footer — theme + language */}
+        <div className="p-3 border-t border-ink-100 space-y-2">
+          <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-900 transition-colors"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+          </button>
+          <div className="relative">
+            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-900 transition-colors"
+              aria-label="Change language">
+              <Languages className="w-4 h-4" />
+              {LANGUAGES.find((l) => l.code === lang)?.label}
+            </button>
+          </div>
+        </div>
       </aside>
 
       {/* Main */}
