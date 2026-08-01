@@ -21,7 +21,6 @@ const LANGUAGES: { code: Language; label: string }[] = [
   { code: 'en', label: 'English' },
   { code: 'sw', label: 'Kiswahili' },
   { code: 'ar', label: 'العربية' },
-  { code: 'fr', label: 'Français' },
 ]
 
 export default function RiderLayout({ children }: { children: React.ReactNode }) {
