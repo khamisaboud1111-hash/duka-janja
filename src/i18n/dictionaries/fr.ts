@@ -147,8 +147,7 @@ export const fr: Record<TranslationKey, string> = {
   zanzibarTopMarket: 'La meilleure place de marché de Zanzibar',
   heroTitlePart1: 'Achetez les meilleurs produits',
   heroTitlePart2: 'Depuis Zanzibar',
-  heroSubtitle:
-    "Découvrez des milliers de produits de vendeurs vérifiés, avec des paiements sécurisés et une livraison rapide.",
+  heroSubtitle: "Découvrez des milliers de produits de vendeurs vérifiés, avec des paiements sécurisés et une livraison rapide.",
   startShopping: 'Commencer vos achats',
   openStore: 'Ouvrir une boutique',
   products: 'Produits',
@@ -165,7 +164,7 @@ export const fr: Record<TranslationKey, string> = {
   trustRealReviewsDesc: "Notes de clients qui ont réellement acheté.",
   trustSupport: 'Service client',
   trustSupportDesc: "Nous sommes là pour vous aider en français et en anglais.",
-  trustPaymentMethods: 'M-Pesa, Tigo Pesa, Airtel Money.',
+  trustPaymentMethods: 'M-Pesa، Tigo Pesa، Airtel Money.',
   trustVerifiedSellersDesc: "Chaque boutique passe par une vérification d'identité.",
   trustFastDeliveryDesc: 'Suivi en direct partout à Zanzibar.',
 
@@ -280,8 +279,8 @@ export const fr: Record<TranslationKey, string> = {
   selectZoneRequired: 'Choisissez une zone',
   addressRequired: "L'adresse est requise",
   paymentMethodRequired: 'Choisissez un mode de paiement',
-  paymentInitError: "Échec du paiement. Votre commande est passée — vous pouvez payer plus tard sur la page de commande.",
-  networkError: "Erreur réseau. Votre commande est passée — vous pouvez payer plus tard sur la page de commande.",
+  paymentInitError: "Échec du paiement. Votre commande est passée — vous pouvez payer plus tard de la page de commande.",
+  networkError: "Erreur réseau. Votre commande est passée — vous pouvez payer plus tard de la page de commande.",
   willCallToConfirm: "Nous vous appellerons bientôt pour confirmer votre commande.",
   checkout: 'Paiement',
   yourName: 'Votre nom',
@@ -385,4 +384,6 @@ export const fr: Record<TranslationKey, string> = {
   // Seller store
   productsOf: 'Produits de',
   noProductsInStore: "Ce magasin n'a pas encore de produits",
-}
+} as const
+
+export type TranslationKey = keyof typeof en

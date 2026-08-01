@@ -1,6 +1,4 @@
-import type { TranslationKey } from './en'
-
-export const ar: Record<TranslationKey, string> = {
+export const ar = {
   // Navigation
   home: 'الرئيسية',
   shop: 'المتجر',
@@ -24,7 +22,7 @@ export const ar: Record<TranslationKey, string> = {
   fullName: 'الاسم الكامل',
   phone: 'رقم الهاتف',
   forgotPassword: 'نسيت كلمة المرور؟',
-  noAccount: 'ليس لديك حساب؟',
+  noAccount: "ليس لديك حساب؟",
   haveAccount: 'لديك حساب بالفعل؟',
   signInWith: 'تسجيل الدخول',
   createAccount: 'إنشاء حساب',
@@ -270,7 +268,7 @@ export const ar: Record<TranslationKey, string> = {
   sales: 'المبيعات',
   recentlyViewed: 'شاهدته مؤخرًا',
   addedToCart: 'أضيف إلى السلة',
-  waIntro: 'مرحبًا! رأيت منتجك على دوكا جانجا:',
+  waIntro: 'مرحب! رأيت منتجك على دوكا جانجا:',
   waAskStock: 'هل هو متوفر؟',
 
   // Checkout
@@ -384,4 +382,6 @@ export const ar: Record<TranslationKey, string> = {
   // Seller store
   productsOf: 'منتجات',
   noProductsInStore: 'لا توجد منتجات في هذا المتجر بعد',
-}
+} as const
+
+export type TranslationKey = keyof typeof ar
