@@ -6,6 +6,7 @@ interface StatCardProps {
   icon?: React.ReactNode
   trend?: { value: string; up: boolean }
   accent?: 'brand' | 'spice' | 'green' | 'gold'
+  subtitle?: string
 }
 
 const accents = {
@@ -22,7 +23,7 @@ const iconColors = {
   gold:  'text-amber-600 dark:text-amber-400',
 }
 
-export function StatCard({ label, value, icon, trend, accent = 'brand' }: StatCardProps) {
+export function StatCard({ label, value, icon, trend, accent = 'brand', subtitle }: StatCardProps) {
   return (
     <div className={cn(
       'rounded-2xl border border-border bg-card p-4 shadow-card border-l-4',
@@ -32,6 +33,9 @@ export function StatCard({ label, value, icon, trend, accent = 'brand' }: StatCa
         <div>
           <p className="text-xs text-muted-foreground font-medium mb-1">{label}</p>
           <p className="font-display font-black text-2xl text-foreground">{value}</p>
+          {subtitle && (
+            <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+          )}
           {trend && (
             <p className={cn('text-xs font-medium mt-1', trend.up ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400')}>
               {trend.up ? '↑' : '↓'} {trend.value}

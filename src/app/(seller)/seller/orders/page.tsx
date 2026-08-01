@@ -5,9 +5,9 @@ import Image from 'next/image'
 import { Search, Filter, Download, Archive, TrendingUp, Clock, CheckCircle, XCircle, Package, Truck, MapPin, User, Phone, FileText, PackageCheck, PackageX, AlertCircle, ChevronDown, Eye, Edit, Trash2 } from 'lucide-react'
 import { useSeller } from '@/hooks/useSeller'
 import { useSellerOrders } from '@/hooks/useOrders'
-import { OrderStatusBadge } from '@/components/ui/Badge'
+import { OrderStatusBadge, Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
-import { PageLoader, EmptyState, Badge } from '@/components/ui'
+import { PageLoader, EmptyState } from '@/components/ui'
 import { formatTZS, formatDate, ORDER_STATUS_STEPS } from '@/utils'
 import type { Order, OrderStatus } from '@/types'
 import toast from 'react-hot-toast'
@@ -319,7 +319,6 @@ export default function SellerOrdersPage() {
                         sellerAddress={seller!.store_name}
                         deliveryAddress={order.delivery_address}
                         suggestedFee={order.delivery_fee}
-                        size="sm"
                       />
                     ) : next ? (
                       <button

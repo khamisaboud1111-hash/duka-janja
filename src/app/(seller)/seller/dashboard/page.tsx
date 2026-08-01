@@ -2,11 +2,10 @@
 
 import Link from 'next/link'
 import { useEffect, useState, useCallback } from 'react'
-import { ShoppingBag, TrendingUp, Package, Star, AlertTriangle, Plus, DollarSign, Users, Wallet, Bell, MessageSquare, BarChart2, Activity, CreditCard, TrendingDown, Clock, CheckCircle, XCircle, Archive, Layers, Percent, Settings, PackagePlus, TrendingUp, TrendingDown, UsersRound, Store, PackageCheck, PackageX, Clock4, Gauge, Sparkles } from 'lucide-react'
+import { ShoppingBag, TrendingUp, TrendingDown, Package, Star, AlertTriangle, Plus, DollarSign, Users, Wallet, Bell, MessageSquare, BarChart2, Activity, CreditCard, Clock, CheckCircle, XCircle, Archive, Layers, Percent, Settings, PackagePlus, UsersRound, Store, PackageCheck, PackageX, Clock4, Gauge, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSeller } from '@/hooks/useSeller'
-import { StatCard, PageLoader, EmptyState, Badge } from '@/components/ui'
-import { OrderStatusBadge } from '@/components/ui/Badge'
+import { StatCard, PageLoader, EmptyState } from '@/components/ui'
 import { formatTZS, formatDate } from '@/utils'
 
 interface DashboardStats {
@@ -306,21 +305,21 @@ export default function SellerDashboardPage() {
             label="Products" 
             value={stats.totalProducts} 
             icon={<Package className="w-5 h-5" />} 
-            accent="emerald" 
+            accent="green"
             subtitle={`${stats.lowStockProducts} low stock`} 
           />
           <StatCard 
             label="Customers" 
             value={stats.totalCustomers} 
             icon={<Users className="w-5 h-5" />} 
-            accent="blue" 
+            accent="brand"
             subtitle={`${stats.conversionRate * 100}% conversion`} 
           />
           <StatCard 
             label="Wallet" 
             value={formatTZS(stats.walletBalance)} 
             icon={<Wallet className="w-5 h-5" />} 
-            accent="purple" 
+            accent="spice"
             subtitle={`${stats.pendingWithdrawals > 0 ? '$' + stats.pendingWithdrawals.toFixed(2) : 'Available for withdrawal'}`} 
           />
         </div>
