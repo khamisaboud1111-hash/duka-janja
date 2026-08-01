@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Search, Filter, Download, Star, MapPin, Navigation, Clock, ChevronDown, Package, ArrowUpDown } from 'lucide-react'
+import { Search, Filter, Download, Star, MapPin, Navigation, Clock, ChevronDown, Package, ArrowUpDown, Languages } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState, StatCard } from '@/components/ui'
 import { formatTZS, formatDate } from '@/utils'
+import { useLangStore } from '@/store'
 
 interface DeliveryRecord {
   id: string
@@ -26,9 +27,17 @@ interface DeliveryRecord {
 
 type FilterStatus = 'all' | 'delivered' | 'cancelled'
 
+const LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'sw', label: 'Kiswahili' },
+  { code: 'ar', label: 'العربية' },
+]
+
 export default function RiderDeliveriesPage() {
   const supabase = createClient()
   const { profile, loading: userLoading } = useUser()
+  const lang = useLangStore((s) => s.lang)
+  const setLang = useLangStore((s) => s.setLang)
   const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
