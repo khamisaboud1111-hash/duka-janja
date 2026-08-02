@@ -2,6 +2,7 @@ export const en = {
   // Navigation
   home: 'Home',
   shop: 'Shop',
+  backToShop: 'Back to shop',
   cart: 'Cart',
   wishlist: 'Wishlist',
   orders: 'My Orders',
@@ -139,6 +140,8 @@ export const en = {
   // Admin
   adminDashboard: 'Admin dashboard',
   riderDashboard: 'Rider dashboard',
+  riderDeliveries: 'Deliveries',
+  riderWallet: 'Wallet',
   messages: 'Messages',
   pendingSellers: 'Pending sellers',
   approveSeller: 'Approve',
@@ -415,6 +418,7 @@ export const en = {
   buyerRole: 'Buyer',
   sellerRole: 'Seller',
   riderRole: 'Rider',
+  rider: 'Rider',
   verified: 'Verified',
   notSetUp: 'Not set up',
   notApplied: 'Not applied',

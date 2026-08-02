@@ -2,6 +2,7 @@ export const ar = {
   // Navigation
   home: 'الرئيسية',
   shop: 'المتجر',
+  backToShop: 'ارجع للمتجر',
   cart: 'السلة',
   wishlist: 'المفضلة',
   orders: 'طلباتي',
@@ -138,6 +139,9 @@ export const ar = {
   // Admin
   adminDashboard: 'لوحة تحكم المدير',
   riderDashboard: 'لوحة التحكم للمندوب',
+  riderDeliveries: 'التوصيلات',
+  riderWallet: 'المحفظة',
+  riderOnlyPage: 'هذه الصفحة للمندوبين فقط',
   messages: 'الرسائل',
   pendingSellers: 'البائعون المعلقون',
   approveSeller: 'موافقة',
@@ -413,6 +417,7 @@ export const ar = {
   buyerRole: 'مشترٍ',
   sellerRole: 'بائع',
   riderRole: 'سائق توصيل',
+  rider: 'سائق توصيل',
   verified: 'موثق',
   notSetUp: 'لم يتم الإعداد',
   notApplied: 'لم يتقدم',

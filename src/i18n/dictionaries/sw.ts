@@ -4,6 +4,7 @@ export const sw: Record<TranslationKey, string> = {
   // Navigation
   home: 'Nyumbani',
   shop: 'Duka',
+  backToShop: 'Rudi dukani',
   cart: 'Kikapu',
   wishlist: 'Orodha ya Matamanio',
   orders: 'Maagizo Yangu',
@@ -141,6 +142,8 @@ export const sw: Record<TranslationKey, string> = {
   // Admin
   adminDashboard: 'Dashibodi ya msimamizi',
   riderDashboard: 'Dashibodi ya Rider',
+  riderDeliveries: 'Historia',
+  riderWallet: 'Pochi',
   messages: 'Ujumbe',
   pendingSellers: 'Wauzaji wanaosubiri',
   approveSeller: 'Idhinisha',
@@ -417,6 +420,7 @@ export const sw: Record<TranslationKey, string> = {
   buyerRole: 'Mnunuzi',
   sellerRole: 'Muuza',
   riderRole: 'Mtoa huduma',
+  rider: 'Mtoa huduma',
   verified: 'Imethibitishwa',
   notSetUp: 'Hajajisajili',
   notApplied: 'Hajaomba',
