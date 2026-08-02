@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Search, Filter, Navigation, MapPin, Clock, Package, Users, Calendar, Zap } from 'lucide-react'
+import { Search, Filter, Navigation, MapPin, Clock, Package, Users, Calendar, Zap, Star } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState, StatCard } from '@/components/ui'
