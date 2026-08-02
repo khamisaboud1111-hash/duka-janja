@@ -7,6 +7,8 @@ import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
 import ProductCard from '@/components/product/ProductCard'
 import { PageLoader, EmptyState } from '@/components/ui'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { SkeletonGrid } from '@/components/shared/SkeletonComposites'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
 import type { WishlistItem } from '@/types'
@@ -33,23 +35,29 @@ export default function WishlistPage() {
 
   if (authLoading) return <PageLoader />
   if (!profile) return (
-    <div className="page-container py-16 text-center">
-      <Link href="/login" className="btn-primary inline-flex">{t('loginToViewWishlist', lang)}</Link>
-    </div>
+    <main className="pb-20 sm:pb-8 min-h-screen">
+      <div className="page-container py-4 sm:py-8">
+        <PageHeader title={<span className="flex items-center gap-3"><Heart className="w-6 h-6 text-red-400 fill-red-400" />{t('savedItems', lang)}</span>} className="mb-6" />
+        <EmptyState
+          icon={<Heart className="w-10 h-10" />}
+          title={t('loginToViewWishlist', lang)}
+          action={<Link href="/login" className="btn-primary">{t('login', lang)}</Link>}
+        />
+      </div>
+    </main>
   )
 
   return (
-    <main className="pb-20 sm:pb-8">
+    <main className="pb-20 sm:pb-8 min-h-screen">
       <div className="page-container py-4 sm:py-8">
-        <h1 className="font-display font-black text-2xl text-ink-900 mb-6 flex items-center gap-3">
-          <Heart className="w-6 h-6 text-red-400 fill-red-400" />
-          {t('savedItems', lang)} ({items.length})
-        </h1>
+        <PageHeader
+          title={<span className="flex items-center gap-3"><Heart className="w-6 h-6 text-red-400 fill-red-400" />{t('savedItems', lang)}</span>}
+          subtitle={<span className="text-muted-foreground">{items.length} {t('items', lang)}</span>}
+          className="mb-6"
+        />
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {[1,2,3,4].map(i => <div key={i} className="card aspect-square animate-pulse bg-ink-50" />)}
-          </div>
+          <SkeletonGrid count={8} />
         ) : items.length === 0 ? (
           <EmptyState
             icon={<Heart className="w-10 h-10" />}

@@ -320,7 +320,7 @@ export default function SearchPage() {
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-8">
             <button onClick={() => setParam('page', String(page - 1))} disabled={page <= 1} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">← {t('previous', lang)}</button>
-            <span className="text-sm text-ink-600 dark:text-ink-300 px-2">{t('page', lang)} {page} / {totalPages}</span>
+            <span className="text-sm text-muted-foreground px-2">{t('page', lang)} {page} / {totalPages}</span>
             <button onClick={() => setParam('page', String(page + 1))} disabled={page >= totalPages} className="btn-secondary py-2 px-3 text-sm disabled:opacity-40">{t('next', lang)} →</button>
           </div>
         )}
@@ -343,15 +343,14 @@ function sortLabel(sort: string, lang: Language) {
   return map[sort] ?? sort
 }
 
-function ProductCardSkeleton() {
-  return (
-    <div className="card dark:bg-ink-900 dark:border-ink-800 overflow-hidden">
-      <Skeleton className="aspect-square w-full rounded-none" />
-      <div className="p-3 space-y-2">
-        <Skeleton className="h-3 w-2/3" />
-        <Skeleton className="h-3 w-full" />
-        <Skeleton className="h-4 w-1/2" />
-      </div>
-    </div>
-  )
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 1023px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+  return isMobile
 }

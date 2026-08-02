@@ -1,12 +1,13 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Search, Filter, Download, Star, MapPin, Navigation, Clock, ChevronDown, Package, ArrowUpDown, Languages } from 'lucide-react'
+import { Search, Filter, Download, Star, MapPin, Navigation, Clock, ChevronDown, Package, ArrowUpDown } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState, StatCard } from '@/components/ui'
 import { formatTZS, formatDate } from '@/utils'
 import { useLangStore } from '@/store'
+import { t, type Language } from '@/i18n/translations'
 
 interface DeliveryRecord {
   id: string
@@ -26,12 +27,6 @@ interface DeliveryRecord {
 }
 
 type FilterStatus = 'all' | 'delivered' | 'cancelled'
-
-const LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'sw', label: 'Kiswahili' },
-  { code: 'ar', label: 'العربية' },
-]
 
 export default function RiderDeliveriesPage() {
   const supabase = createClient()
@@ -120,20 +115,20 @@ export default function RiderDeliveriesPage() {
     <div className="p-4 sm:p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white">Historia ya Safari</h1>
-          <p className="text-sm text-ink-500 mt-0.5">{stats.total} safari jumla</p>
+          <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-6">{t('deliveryHistory', lang)}</h1>
+          <p className="text-sm text-ink-500 mt-0.5">{stats.total} {t('totalTrips', lang)}</p>
         </div>
         <button onClick={exportCSV} className="btn-secondary text-sm gap-1.5">
-          <Download className="w-4 h-4" /> Pakua
+          <Download className="w-4 h-4" /> {t('download', lang)}
         </button>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Jumla" value={stats.total} icon={<Package className="w-5 h-5" />} accent="brand" />
-        <StatCard label="Zimekamilika" value={stats.delivered} icon={<Star className="w-5 h-5" />} accent="green" />
-        <StatCard label="Mapato" value={formatTZS(stats.totalEarnings)} icon={<Clock className="w-5 h-5" />} accent="gold" />
-        <StatCard label="Wastani Umbali" value={`${stats.avgDistance} km`} icon={<Navigation className="w-5 h-5" />} accent="spice" />
+        <StatCard label={t('total', lang)} value={stats.total} icon={<Package className="w-5 h-5" />} accent="brand" />
+        <StatCard label={t('completed', lang)} value={stats.delivered} icon={<Star className="w-5 h-5" />} accent="green" />
+        <StatCard label={t('earnings', lang)} value={formatTZS(stats.totalEarnings)} icon={<Clock className="w-5 h-5" />} accent="gold" />
+        <StatCard label={t('avgDistance', lang)} value={`${stats.avgDistance} km`} icon={<Navigation className="w-5 h-5" />} accent="spice" />
       </div>
 
       {/* Search & Filters */}
@@ -141,10 +136,10 @@ export default function RiderDeliveriesPage() {
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
-            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Tafuta safari..." className="input pl-9 text-sm w-full" />
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder={t('searchTrips', lang)} className="input pl-9 text-sm w-full" />
           </div>
           <button onClick={() => setShowFilters(!showFilters)} className={`btn-secondary text-sm gap-1.5 ${showFilters ? 'bg-brand-50 text-brand-600' : ''}`}>
-            <Filter className="w-4 h-4" /> Vichujio
+            <Filter className="w-4 h-4" /> {t('filters', lang)}
           </button>
         </div>
         {showFilters && (
@@ -152,7 +147,7 @@ export default function RiderDeliveriesPage() {
             {(['all', 'delivered', 'cancelled'] as const).map(s => (
               <button key={s} onClick={() => setStatusFilter(s)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${statusFilter === s ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}>
-                {s === 'all' ? 'Zote' : s === 'delivered' ? 'Zimekamilika' : 'Zimefutwa'}
+                {s === 'all' ? t('allDeliveries', lang) : s === 'delivered' ? t('completed', lang) : t('cancelled', lang)}
               </button>
             ))}
           </div>
@@ -161,7 +156,7 @@ export default function RiderDeliveriesPage() {
 
       {/* Delivery List */}
       {filtered.length === 0 ? (
-        <EmptyState icon={<Package className="w-10 h-10" />} title="Hakuna safari" description="Safari zako zitaonekana hapa" />
+        <EmptyState icon={<Package className="w-10 h-10" />} title={t('noTrips', lang)} description={t('noTripsDesc', lang)} />
       ) : (
         <div className="space-y-2">
           {filtered.map(d => (
@@ -171,7 +166,7 @@ export default function RiderDeliveriesPage() {
                   <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
                     d.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
                   }`}>
-                    {d.status === 'delivered' ? 'Imekamilika' : 'Imefutwa'}
+                    {d.status === 'delivered' ? t('completedStatus', lang) : t('cancelledStatus', lang)}
                   </span>
                   {d.rider_rating && (
                     <span className="text-[10px] font-bold text-amber-600 flex items-center gap-0.5">

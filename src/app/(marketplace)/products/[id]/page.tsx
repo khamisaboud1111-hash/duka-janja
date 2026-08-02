@@ -71,23 +71,23 @@ export default async function ProductPage({ params }: Props) {
   const isVerifiedSeller = seller?.national_id_verified ?? false
 
   return (
-    <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
+    <main className="pb-20 sm:pb-8 min-h-screen">
       <TrackView productId={product.id} />
       <div className="page-container py-4 sm:py-6">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs text-ink-500 dark:text-ink-400 mb-4">
+        <nav className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
           <Link href="/" className="hover:text-brand-600 dark:hover:text-brand-300"><LText k="home" /></Link>
           <span>/</span>
           <Link href={`/search?category=${product.category?.slug}`} className="hover:text-brand-600 dark:hover:text-brand-300">{product.category?.name_sw}</Link>
           <span>/</span>
-          <span className="text-ink-700 dark:text-ink-300 line-clamp-1">{product.name}</span>
+          <span className="text-foreground line-clamp-1">{product.name}</span>
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10">
           {/* Images */}
           <div className="space-y-3">
             {/* Main image — zoom on hover */}
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-ink-100 dark:bg-ink-800 group cursor-zoom-in">
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted group cursor-zoom-in">
               {primaryImage ? (
                 <Image
                   src={primaryImage.url}
@@ -99,7 +99,7 @@ export default async function ProductPage({ params }: Props) {
                 />
               ) : (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Package className="w-16 h-16 text-ink-300 dark:text-ink-600" />
+                  <Package className="w-16 h-16 text-muted-foreground" />
                 </div>
               )}
               {product.is_made_in_zanzibar && (
@@ -113,7 +113,7 @@ export default async function ProductPage({ params }: Props) {
             {images.length > 1 && (
               <div className="grid grid-cols-5 gap-2">
                 {images.map((img: any, idx: number) => (
-                  <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-transparent dark:border-ink-800 cursor-pointer hover:border-brand-400 transition-colors">
+                  <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-transparent cursor-pointer hover:border-brand-400 transition-colors">
                     <Image src={img.url} alt={`${product.name} ${idx + 1}`} fill sizes="80px" className="object-cover" />
                   </div>
                 ))}
@@ -124,7 +124,7 @@ export default async function ProductPage({ params }: Props) {
             {videos.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {videos.map((vid: any) => (
-                  <video key={vid.id} src={vid.url} controls className="w-full aspect-video rounded-xl bg-ink-100 dark:bg-ink-800 object-cover" />
+                  <video key={vid.id} src={vid.url} controls className="w-full aspect-video rounded-xl bg-muted object-cover" />
                 ))}
               </div>
             )}
@@ -137,7 +137,7 @@ export default async function ProductPage({ params }: Props) {
                 {seller?.store_name}
                 {isVerifiedSeller && <BadgeCheck className="w-3.5 h-3.5" />}
               </Link>
-              <h1 className="font-display font-black text-2xl sm:text-3xl text-ink-900 dark:text-white mt-1 leading-tight">
+              <h1 className="font-display font-black text-2xl sm:text-3xl text-foreground mt-1 leading-tight">
                 {product.name}
               </h1>
             </div>
@@ -147,20 +147,20 @@ export default async function ProductPage({ params }: Props) {
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <Star key={n} className={`w-4 h-4 ${n <= Math.round(product.average_rating) ? 'fill-amber-400 text-amber-400' : 'text-ink-200 dark:text-ink-700'}`} />
+                    <Star key={n} className={`w-4 h-4 ${n <= Math.round(product.average_rating) ? 'fill-amber-400 text-amber-400' : 'text-muted'}`} />
                   ))}
                 </div>
-                <span className="text-sm font-semibold text-ink-700 dark:text-ink-200">{product.average_rating.toFixed(1)}</span>
-                <span className="text-sm text-ink-500 dark:text-ink-400">({product.review_count} <LText k="reviews" />)</span>
+                <span className="text-sm font-semibold text-foreground">{product.average_rating.toFixed(1)}</span>
+                <span className="text-sm text-muted-foreground">({product.review_count} <LText k="reviews" />)</span>
               </div>
             )}
 
             {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span className="font-black text-3xl text-ink-900 dark:text-white">{formatTZS(product.price)}</span>
+              <span className="font-black text-3xl text-foreground">{formatTZS(product.price)}</span>
               {product.compare_at_price && (
                 <>
-                  <span className="text-ink-400 dark:text-ink-500 line-through text-lg">{formatTZS(product.compare_at_price)}</span>
+                  <span className="text-muted-foreground line-through text-lg">{formatTZS(product.compare_at_price)}</span>
                   <span className="badge-orange">
                     -{Math.round((1 - product.price / product.compare_at_price) * 100)}%
                   </span>
@@ -171,7 +171,7 @@ export default async function ProductPage({ params }: Props) {
             {/* Stock */}
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${product.stock_quantity > 0 ? 'bg-emerald-500' : 'bg-red-500'}`} />
-              <span className="text-sm text-ink-700 dark:text-ink-200">
+              <span className="text-sm text-foreground">
                 {product.stock_quantity > 0 ? (
                   <><LText k="inStock" /> — {product.stock_quantity} <LText k="pieces" /></>
                 ) : (
@@ -194,16 +194,16 @@ export default async function ProductPage({ params }: Props) {
 
             {/* Description */}
             <div>
-              <h3 className="font-semibold text-sm text-ink-700 dark:text-ink-200 mb-2"><LText k="description" /></h3>
-              <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed whitespace-pre-wrap">
+              <h3 className="font-semibold text-sm text-foreground mb-2"><LText k="description" /></h3>
+              <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
                 {product.description || <LText k="noDescription" />}
               </p>
             </div>
 
             {/* Seller card */}
             {seller && (
-              <div className="card dark:bg-ink-900 dark:border-ink-800 p-4">
-                <p className="text-xs text-ink-500 dark:text-ink-400 font-semibold mb-3 uppercase tracking-wide"><LText k="aboutStore" /></p>
+              <div className="bg-card border border-border p-4">
+                <p className="text-xs text-muted-foreground font-semibold mb-3 uppercase tracking-wide"><LText k="aboutStore" /></p>
                 <Link href={`/sellers/${seller.store_slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                   {seller.logo_url ? (
                     <img src={seller.logo_url} alt={seller.store_name} className="w-12 h-12 rounded-xl object-cover" />
@@ -214,10 +214,10 @@ export default async function ProductPage({ params }: Props) {
                   )}
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <p className="font-bold text-ink-900 dark:text-white">{seller.store_name}</p>
+                      <p className="font-bold text-foreground">{seller.store_name}</p>
                       {isVerifiedSeller && <BadgeCheck className="w-4 h-4 text-brand-500" />}
                     </div>
-                    <p className="text-xs text-ink-500 dark:text-ink-400">
+                    <p className="text-xs text-muted-foreground">
                       ⭐ {seller.average_rating.toFixed(1)} · {seller.review_count} <LText k="reviews" /> · <LText k="sales" /> {seller.total_sales}
                     </p>
                   </div>
@@ -229,42 +229,42 @@ export default async function ProductPage({ params }: Props) {
 
         {/* Reviews */}
         <section className="mt-10">
-          <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-4">
+          <h2 className="font-display font-bold text-xl text-foreground mb-4">
             <LText k="customerReviews" /> ({product.review_count})
           </h2>
           {reviews.length === 0 ? (
-            <div className="card dark:bg-ink-900 dark:border-ink-800 p-8 text-center">
-              <p className="text-ink-500 dark:text-ink-400 text-sm"><LText k="noReviewsPrompt" /></p>
+            <div className="bg-card border border-border p-8 text-center">
+              <p className="text-muted-foreground text-sm"><LText k="noReviewsPrompt" /></p>
             </div>
           ) : (
             <div className="space-y-4">
               {reviews.map((review: any) => (
-                <div key={review.id} className="card dark:bg-ink-900 dark:border-ink-800 p-4">
+                <div key={review.id} className="bg-card border border-border p-4">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
                       {review.buyer?.avatar_url ? (
                         <img src={review.buyer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-ink-100 dark:bg-ink-800 flex items-center justify-center text-sm font-bold text-ink-600 dark:text-ink-300">
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
                           {review.buyer?.full_name?.charAt(0) ?? 'M'}
                         </div>
                       )}
                       <div>
-                        <p className="text-sm font-semibold text-ink-800 dark:text-ink-100">{review.buyer?.full_name ?? <LText k="customer" />}</p>
-                        <p className="text-xs text-ink-400 dark:text-ink-500">{formatDate(review.created_at)}</p>
+                        <p className="text-sm font-semibold text-foreground">{review.buyer?.full_name ?? <LText k="customer" />}</p>
+                        <p className="text-xs text-muted-foreground">{formatDate(review.created_at)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((n) => (
-                        <Star key={n} className={`w-3.5 h-3.5 ${n <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-ink-200 dark:text-ink-700'}`} />
+                        <Star key={n} className={`w-3.5 h-3.5 ${n <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-muted'}`} />
                       ))}
                     </div>
                   </div>
-                  {review.comment && <p className="text-sm text-ink-700 dark:text-ink-200">{review.comment}</p>}
+                  {review.comment && <p className="text-sm text-foreground">{review.comment}</p>}
                   {review.seller_reply && (
                     <div className="mt-3 p-3 bg-brand-50 dark:bg-brand-500/10 rounded-xl border border-brand-100 dark:border-brand-800">
                       <p className="text-xs text-brand-700 dark:text-brand-300 font-semibold mb-1"><LText k="sellerReply" /></p>
-                      <p className="text-sm text-ink-700 dark:text-ink-200">{review.seller_reply}</p>
+                      <p className="text-sm text-foreground">{review.seller_reply}</p>
                     </div>
                   )}
                 </div>
@@ -276,7 +276,7 @@ export default async function ProductPage({ params }: Props) {
         {/* Related products */}
         {related.length > 0 && (
           <section className="mt-10">
-            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-4"><LText k="relatedProducts" /></h2>
+            <h2 className="font-display font-bold text-xl text-foreground mb-4"><LText k="relatedProducts" /></h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {related.map((p: any) => <ProductCard key={p.id} product={p} />)}
             </div>

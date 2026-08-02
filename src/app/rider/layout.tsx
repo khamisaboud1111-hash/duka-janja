@@ -72,29 +72,29 @@ export default function RiderLayout({ children }: { children: React.ReactNode })
             </Link>
           ))}
         </nav>
-        {/* Sidebar footer — theme + language */}
-        <div className="p-3 border-t border-ink-100 space-y-2">
-          <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-900 transition-colors"
-            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            {theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          </button>
-          <div className="relative">
-            <button
-              onClick={() => {
-                const available = ['en', 'sw']
-                const currentIndex = available.indexOf(lang)
-                const nextIndex = (currentIndex + 1) % available.length
-                setLang(available[nextIndex] as Language)
-              }}
+          {/* Sidebar footer — theme + language */}
+          <div className="p-3 border-t border-ink-100 space-y-2">
+            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-900 transition-colors"
-              aria-label="Change language">
-              <Languages className="w-4 h-4" />
-              {LANGUAGES.find((l) => l.code === lang)?.label}
+              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === 'dark' ? 'Light mode' : 'Dark mode'}
             </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  const available = LANGUAGES.map(l => l.code)
+                  const currentIndex = available.indexOf(lang)
+                  const nextIndex = (currentIndex + 1) % available.length
+                  setLang(available[nextIndex] as Language)
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-900 transition-colors"
+                aria-label="Change language">
+                <Languages className="w-4 h-4" />
+                {LANGUAGES.find((l) => l.code === lang)?.label}
+              </button>
+            </div>
           </div>
-        </div>
       </aside>
 
       {/* Main */}

@@ -12,6 +12,7 @@ import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
 import { PageLoader, EmptyState } from '@/components/ui'
 import { Skeleton } from '@/components/shared/SkeletonComposites'
+import { PageHeader } from '@/components/shared/PageHeader'
 
 export default function OrdersPage() {
   const { profile, loading: authLoading } = useUser()
@@ -22,9 +23,9 @@ export default function OrdersPage() {
   if (!profile) { redirect('/login'); return null }
 
   return (
-    <main className="pb-20 sm:pb-8 dark:bg-ink-950 min-h-screen">
+    <main className="pb-20 sm:pb-8 min-h-screen">
       <div className="page-container py-4 sm:py-8 max-w-2xl">
-        <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white mb-6">{t('orders', lang)}</h1>
+        <PageHeader title={t('orders', lang)} className="mb-6" />
 
         {loading ? (
           <div className="space-y-3">
@@ -46,9 +47,9 @@ export default function OrdersPage() {
 
               return (
                 <Link key={order.id} href={`/orders/${order.id}`}
-                  className="card dark:bg-ink-900 dark:border-ink-800 p-4 flex items-center gap-3 hover:shadow-card-hover hover:-translate-y-0.5 transition-all">
+                  className="bg-card border border-border p-4 flex items-center gap-3 hover:shadow-card-hover hover:-translate-y-0.5 transition-all">
                   {/* Thumbnail */}
-                  <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-ink-100 dark:bg-ink-800 flex-shrink-0">
+                  <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-muted flex-shrink-0">
                     {img ? (
                       <Image src={img.url} alt="" fill sizes="56px" className="object-cover" />
                     ) : (
@@ -64,21 +65,21 @@ export default function OrdersPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-semibold text-sm text-ink-900 dark:text-white truncate">
+                        <p className="font-semibold text-sm text-foreground truncate">
                           {firstItem?.product?.name ?? t('product', lang)}
-                          {extraCount > 0 && <span className="text-ink-500 dark:text-ink-400"> +{extraCount} {t('more', lang)}</span>}
+                          {extraCount > 0 && <span className="text-muted-foreground"> +{extraCount} {t('more', lang)}</span>}
                         </p>
-                        <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5">#{order.id.slice(-8).toUpperCase()}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">#{order.id.slice(-8).toUpperCase()}</p>
                       </div>
                       <OrderStatusBadge status={order.status} />
                     </div>
                     <div className="flex items-center justify-between mt-1.5">
-                      <span className="font-bold text-sm text-ink-900 dark:text-white">{formatTZS(order.total_amount)}</span>
-                      <span className="text-xs text-ink-400 dark:text-ink-500">{formatDate(order.created_at)}</span>
+                      <span className="font-bold text-sm text-foreground">{formatTZS(order.total_amount)}</span>
+                      <span className="text-xs text-muted-foreground">{formatDate(order.created_at)}</span>
                     </div>
                   </div>
 
-                  <ChevronRight className="w-4 h-4 text-ink-400 dark:text-ink-500 flex-shrink-0" />
+                  <ChevronRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                 </Link>
               )
             })}
@@ -91,7 +92,7 @@ export default function OrdersPage() {
 
 function OrderSkeleton() {
   return (
-    <div className="card dark:bg-ink-900 dark:border-ink-800 p-4 flex items-center gap-3">
+    <div className="bg-card border border-border p-4 flex items-center gap-3">
       <Skeleton className="w-14 h-14 flex-shrink-0" />
       <div className="flex-1 space-y-2">
         <Skeleton className="h-3 w-3/4" />

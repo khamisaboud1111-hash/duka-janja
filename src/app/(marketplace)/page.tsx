@@ -131,7 +131,7 @@ export default async function MarketplaceHomePage() {
       )}
 
       <FadeInView>
-        <Suspense fallback={<div className="h-64 w-full rounded-2xl bg-ink-100 animate-pulse" />}>
+        <Suspense fallback={<div className="h-64 w-full rounded-2xl bg-muted animate-pulse" />}>
           <FeaturedSellersShowcase sellers={featuredSellers} />
         </Suspense>
       </FadeInView>
