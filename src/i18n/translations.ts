@@ -10,5 +10,5 @@ export const translations = { en, sw, ar, fr } as const
 export type { TranslationKey }
 
 export function t(key: TranslationKey, lang: Language): string {
-  return translations[lang][key] ?? translations.en[key] ?? key
+  return (translations[lang] as Record<TranslationKey, string>)[key] ?? translations.en[key] ?? key
 }
