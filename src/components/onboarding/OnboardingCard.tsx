@@ -18,12 +18,14 @@ import toast from 'react-hot-toast'
 import { cn } from '@/utils'
 
 export type OnboardingMode = 'signup' | 'signin'
-export type AccountRole = 'buyer' | 'seller' | 'rider'
+export type AccountRole = 'buyer' | 'seller' | 'rider' | 'admin'
+type SignupRole = 'buyer' | 'seller' | 'rider'
 
 const ROUTES: Record<AccountRole, string> = {
   buyer: '/',
   seller: '/seller/dashboard',
   rider: '/rider/dashboard',
+  admin: '/admin/dashboard',
 } as const
 
 /* ── Validation schemas (mirror the originals in the old auth pages) ─── */
@@ -48,7 +50,7 @@ function makeSignUpSchema(lang: Language) {
 type SignUpData = z.infer<ReturnType<typeof makeSignUpSchema>>
 
 const ROLES: {
-  id: AccountRole
+  id: SignupRole
   labelKey: 'buyerRole' | 'sellerRole' | 'rider'
   taglineKey: 'roleBuyerTagline' | 'roleSellerTagline' | 'roleRiderTagline'
   icon: typeof ShoppingBag
@@ -277,7 +279,7 @@ function SignInForm({ onSwitch }: { onSwitch: () => void }) {
 
 /* ── Sign Up form — single card, role as segmented control ───────────── */
 
-function SignUpForm({ onSwitch, initialType }: { onSwitch: () => void; initialType?: AccountRole }) {
+function SignUpForm({ onSwitch, initialType }: { onSwitch: () => void; initialType?: SignupRole }) {
   const router = useRouter()
   const { lang } = useLangStore()
   const [showPassword, setShowPassword] = useState(false)
@@ -447,7 +449,7 @@ function SignUpForm({ onSwitch, initialType }: { onSwitch: () => void; initialTy
 
 interface Props {
   initialMode?: OnboardingMode
-  initialType?: AccountRole
+  initialType?: SignupRole
 }
 
 const formVariants = {

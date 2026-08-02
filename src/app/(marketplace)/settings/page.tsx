@@ -145,7 +145,7 @@ export default function SettingsPage() {
       <div className="bg-white dark:bg-ink-900">
         <div className="relative pt-12 pb-6 flex flex-col items-center">
           <div className="relative group mb-4">
-            <div className="w-28 h-28 rounded-full overflow-hidden bg-ink-100 dark:bg-ink-800 ring-4 ring-white dark:ring-ink-900 shadow-lg">
+            <div className="w-28 h-28 rounded-full overflow-hidden bg-ink-100 dark:bg-ink-800 ring-4 ring-card shadow-lg">
               {avatar ? (
                 <img src={avatar} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -167,7 +167,7 @@ export default function SettingsPage() {
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={uploadAvatar} />
           </div>
           {uploading && <p className="text-xs text-brand-500 mb-1">{t('uploadingLabel', lang)}</p>}
-          <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white">{profile.full_name}</h1>
+          <h1 className="font-display font-bold text-xl text-foreground">{profile.full_name}</h1>
           <div className="flex items-center gap-2 mt-1">
             <span className={`text-[10px] font-bold uppercase tracking-wider text-white px-2 py-0.5 rounded-full ${roleBadge.color}`}>
               {profile.email}
@@ -181,7 +181,7 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden divide-y divide-ink-100 dark:divide-ink-800">
           <ProfileRow
             icon={
-              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
               </svg>
             }
@@ -197,7 +197,7 @@ export default function SettingsPage() {
           />
           <ProfileRow
             icon={
-              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
               </svg>
             }
@@ -213,7 +213,7 @@ export default function SettingsPage() {
           />
           <ProfileRow
             icon={
-              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
               </svg>
@@ -232,7 +232,7 @@ export default function SettingsPage() {
           />
           <ProfileRow
             icon={
-              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
               </svg>
             }
@@ -255,7 +255,7 @@ export default function SettingsPage() {
         <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden divide-y divide-ink-100 dark:divide-ink-800">
           <SectionRow
             icon={
-              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
             }
@@ -273,7 +273,7 @@ export default function SettingsPage() {
           </SectionRow>
           <SectionRow
             icon={
-              <svg className="w-5 h-5 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="w-5 h-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
               </svg>
             }
@@ -282,7 +282,7 @@ export default function SettingsPage() {
             onToggle={() => setChangingEmail(!changingEmail)}
           >
             <div className="px-4 pb-4 space-y-3">
-              <p className="text-xs text-ink-400">{t('currentLabel', lang)} {profile.email}</p>
+              <p className="text-xs text-muted-foreground">{t('currentLabel', lang)} {profile.email}</p>
               <input value={emailValue} onChange={(e) => setEmailValue(e.target.value)} type="email" placeholder="new@example.com" className="input dark:bg-ink-800 dark:border-ink-700 dark:text-white text-sm" />
               <button onClick={handleChangeEmail} disabled={changingEmail} className="btn-secondary w-full justify-center py-2.5 text-sm">
                 {changingEmail ? t('sendingLabel', lang) : t('sendConfirmation', lang)}
@@ -311,7 +311,7 @@ export default function SettingsPage() {
       </div>
 
       <Modal open={deleteOpen} onClose={() => { setDeleteOpen(false); setDeleteText('') }} title={t('deleteAccount', lang)} size="sm">
-        <p className="text-sm text-ink-600 dark:text-ink-300 mb-4">{t('deleteConfirmDesc', lang)}</p>
+        <p className="text-sm text-muted-foreground mb-4">{t('deleteConfirmDesc', lang)}</p>
         <input value={deleteText} onChange={(e) => setDeleteText(e.target.value)} placeholder="DELETE" className="input mb-4 dark:bg-ink-800 dark:border-ink-700 dark:text-white" />
         <div className="flex gap-3 justify-end">
           <button onClick={() => { setDeleteOpen(false); setDeleteText('') }} className="btn-secondary text-sm">{t('cancel', lang)}</button>
@@ -360,7 +360,7 @@ function ProfileRow({
           <button onClick={onSave} disabled={saving} className="text-xs font-semibold text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-950/30 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors">
             {saving ? t('savingLabel', lang) : t('save', lang)}
           </button>
-          <button onClick={onCancel} className="text-xs font-semibold text-ink-500 bg-ink-50 dark:bg-ink-800 px-3 py-1.5 rounded-lg hover:bg-ink-100 transition-colors">{t('cancel', lang)}</button>
+          <button onClick={onCancel} className="text-xs font-semibold text-muted-foreground bg-muted px-3 py-1.5 rounded-lg hover:bg-ink-100 transition-colors">{t('cancel', lang)}</button>
         </div>
       </div>
     )
@@ -368,14 +368,14 @@ function ProfileRow({
 
   return (
     <button onClick={onStartEdit} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors text-left group">
-      <div className="w-8 h-8 rounded-xl bg-ink-50 dark:bg-ink-800 flex items-center justify-center flex-shrink-0 group-hover:bg-brand-50 dark:group-hover:bg-brand-950/30 transition-colors">
+      <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 group-hover:bg-brand-50 dark:group-hover:bg-brand-950/30 transition-colors">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider">{label}</p>
-        <p className="text-sm font-medium text-ink-900 dark:text-white truncate">{value}</p>
+        <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
+        <p className="text-sm font-medium text-foreground truncate">{value}</p>
       </div>
-      <svg className="w-4 h-4 text-ink-300 dark:text-ink-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <svg className="w-4 h-4 text-muted-foreground flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
       </svg>
     </button>
@@ -394,11 +394,11 @@ function SectionRow({
   return (
     <div>
       <button onClick={onToggle} className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors text-left">
-        <div className="w-8 h-8 rounded-xl bg-ink-50 dark:bg-ink-800 flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
           {icon}
         </div>
-        <span className="flex-1 text-sm font-semibold text-ink-800 dark:text-ink-100">{label}</span>
-        <svg className={`w-4 h-4 text-ink-300 dark:text-ink-600 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <span className="flex-1 text-sm font-semibold text-foreground">{label}</span>
+        <svg className={`w-4 h-4 text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
         </svg>
       </button>
@@ -494,16 +494,16 @@ function RoleRow({ icon, label, status, statusLabel, active, onClick, loading, d
   const statusColor = status === 'active' || status === 'approved' ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30'
     : status === 'pending' ? 'text-amber-600 bg-amber-50 dark:bg-amber-950/30'
     : status === 'suspended' ? 'text-red-600 bg-red-50 dark:bg-red-950/30'
-    : 'text-ink-400 bg-ink-50 dark:bg-ink-800'
+    : 'text-muted-foreground bg-muted'
 
   return (
     <button onClick={onClick} disabled={disabled || loading} className={`w-full flex items-center gap-3 px-4 py-3.5 hover:bg-ink-50 dark:hover:bg-ink-800/50 transition-colors text-left ${active ? 'bg-brand-50/50 dark:bg-brand-950/20' : ''}`}>
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${active ? 'bg-brand-500 text-white' : 'bg-ink-50 dark:bg-ink-800 text-ink-500 dark:text-ink-300'}`}>
+      <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${active ? 'bg-brand-500 text-white' : 'bg-muted text-muted-foreground'}`}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-ink-800 dark:text-ink-100">{label}</span>
+          <span className="text-sm font-semibold text-foreground">{label}</span>
           {active && <span className="text-[10px] font-bold text-brand-600 dark:text-brand-400 bg-brand-100 dark:bg-brand-900/50 px-1.5 py-0.5 rounded-full">{t('activeStatus', lang)}</span>}
         </div>
         <span className={`inline-flex items-center text-[11px] font-medium mt-0.5 px-1.5 py-0.5 rounded-md ${statusColor}`}>
