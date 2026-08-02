@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
+import { MessageCircle } from 'lucide-react'
+import Link from 'next/link'
 import { useUser } from '@/hooks/useUser'
 import { useChat } from '@/hooks/useChat'
 import { createClient } from '@/lib/supabase/client'
-import { PageLoader } from '@/components/ui'
-import { Button } from '@/components/ui/Button'
+import { PageLoader, EmptyState } from '@/components/ui'
+import { PageHeader } from '@/components/shared/PageHeader'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 import BuyerSellerChat from '@/components/chat/BuyerSellerChat'
 
 export default function BuyerMessagePage() {
@@ -15,10 +18,11 @@ export default function BuyerMessagePage() {
   const router = useRouter()
   const supabase = createClient()
   const { profile, loading: userLoading } = useUser()
-  const [storeName, setStoreName] = useState('Muuzaji')
+  const { lang } = useLangStore()
+  const [storeName, setStoreName] = useState('')
   const [loadingStore, setLoadingStore] = useState(true)
 
-  const { room, messages, loading, sending, sendMessage, markRead } = useChat(profile?.id, params.sellerId)
+  const { messages, loading, sending, sendMessage, markRead } = useChat(profile?.id, params.sellerId)
 
   useEffect(() => {
     supabase
@@ -36,29 +40,43 @@ export default function BuyerMessagePage() {
 
   if (!profile) {
     return (
-      <div className="page-container py-16 text-center">
-        <p className="text-ink-600 mb-4">Tafadhali ingia ili kuongea na muuzaji.</p>
-        <Button onClick={() => router.push(`/login?redirect=/messages/${params.sellerId}`)}>Ingia</Button>
-      </div>
+      <main className="pb-20 sm:pb-8 min-h-screen">
+        <div className="page-container py-4 sm:py-8">
+          <PageHeader
+            title={<span className="flex items-center gap-3"><MessageCircle className="w-6 h-6 text-brand-500" />{t('messages', lang)}</span>}
+            className="mb-6"
+          />
+          <EmptyState
+            icon={<MessageCircle className="w-10 h-10" />}
+            title={t('loginToChat', lang)}
+            action={<Link href={`/login?redirect=/messages/${params.sellerId}`} className="btn-primary">{t('login', lang)}</Link>}
+          />
+        </div>
+      </main>
     )
   }
 
   return (
-    <div className="page-container py-4 sm:py-6 max-w-lg mx-auto h-[calc(100vh-80px)] flex flex-col">
-      <button onClick={() => router.back()} className="flex items-center gap-1.5 text-sm text-ink-500 mb-3">
-        <ArrowLeft className="w-4 h-4" /> Rudi
-      </button>
-      <div className="flex-1">
-        <BuyerSellerChat
-          messages={messages}
-          currentUserId={profile.id}
-          otherPartyName={storeName}
-          loading={loading}
-          sending={sending}
-          onSend={(body) => sendMessage(body, profile.id).then(() => {})}
-          onMarkRead={() => markRead(profile.id)}
+    <main className="pb-20 sm:pb-8 min-h-screen">
+      <div className="page-container py-4 sm:py-6 max-w-lg mx-auto h-[calc(100vh-88px)] flex flex-col">
+        <PageHeader
+          title={storeName || t('messages', lang)}
+          onBack={() => router.back()}
+          backLabel={t('back', lang)}
+          className="mb-4"
         />
+        <div className="flex-1 min-h-0">
+          <BuyerSellerChat
+            messages={messages}
+            currentUserId={profile.id}
+            otherPartyName={storeName || t('messages', lang)}
+            loading={loading}
+            sending={sending}
+            onSend={async (body) => { await sendMessage(body, profile.id) }}
+            onMarkRead={() => markRead(profile.id)}
+          />
+        </div>
       </div>
-    </div>
+    </main>
   )
 }
