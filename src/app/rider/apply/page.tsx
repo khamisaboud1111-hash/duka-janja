@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { CheckCircle2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
-import { Input, Select } from '@/components/ui/Input'
+import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { PageLoader } from '@/components/ui'
 import RiderDocumentUploader from '@/components/rider/RiderDocumentUploader'
+import { useLangStore } from '@/store'
+import { t, type Language } from '@/i18n/translations'
 
 interface FormState {
   full_name: string
@@ -33,6 +33,7 @@ const STEPS = [
 export default function RiderApplyPage() {
   const router = useRouter()
   const { profile, loading } = useUser()
+  const lang = useLangStore((s) => s.lang)
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -53,9 +54,11 @@ export default function RiderApplyPage() {
 
   if (!profile) {
     return (
-      <div className="page-container py-16 text-center">
-        <p className="text-ink-600 mb-4">Tafadhali ingia kwanza kabla ya kujiunga kama dereva.</p>
-        <Button onClick={() => router.push('/login?redirect=/rider/apply')}>Ingia</Button>
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="bg-neutral-900 rounded-2xl p-8 text-center max-w-sm border border-neutral-800">
+          <p className="text-neutral-300 mb-4">Tafadhali ingia kwanza kabla ya kujiunga kama dereva.</p>
+          <button onClick={() => router.push('/login?redirect=/rider/apply')} className="bg-white text-black font-semibold px-6 py-3 rounded-full text-sm hover:bg-neutral-200 transition-colors">Ingia</button>
+        </div>
       </div>
     )
   }
@@ -122,16 +125,13 @@ export default function RiderApplyPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       })
-
       const json = await res.json()
-
       if (!res.ok) {
         toast.error(json.error ?? 'Imeshindikana kutuma maombi')
         if (json.details?.length) console.error(json.details)
         setSubmitting(false)
         return
       }
-
       setSubmitted(true)
     } catch {
       toast.error('Hitilafu ya mtandao')
@@ -141,144 +141,84 @@ export default function RiderApplyPage() {
 
   if (submitted) {
     return (
-      <div className="page-container py-20 text-center max-w-lg mx-auto">
-        <div className="w-16 h-16 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-5">
-          <svg className="w-8 h-8 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="bg-neutral-900 rounded-2xl p-8 text-center max-w-sm border border-neutral-800">
+          <div className="w-16 h-16 mx-auto rounded-full bg-emerald-500/20 flex items-center justify-center mb-5">
+            <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+          </div>
+          <h1 className="font-display font-bold text-2xl text-white mb-2">Maombi Yamepokelewa!</h1>
+          <p className="text-neutral-400 text-sm mb-6">
+            Asante kwa kujiunga na Duka Janja kama dereva. Msimamizi atahakiki vyeti vyako ndani ya saa 24-48.
+            Utapokea taarifa pindi utakapothibitishwa.
+          </p>
+          <button onClick={() => router.push('/')} className="bg-white text-black font-semibold px-6 py-3 rounded-full text-sm hover:bg-neutral-200 transition-colors">Rudi Nyumbani</button>
         </div>
-        <h1 className="font-display font-bold text-2xl text-ink-900 mb-2">Maombi Yamepokelewa!</h1>
-        <p className="text-ink-600 mb-6">
-          Asante kwa kujiunga na Duka Janja kama dereva. Msimamizi atahakiki vyeti vyako ndani ya saa 24-48.
-          Utapokea taarifa pindi utakapothibitishwa.
-        </p>
-        <Button onClick={() => router.push('/')}>Rudi Nyumbani</Button>
       </div>
     )
   }
 
   return (
-    <div className="max-w-lg mx-auto py-0">
-      {/* Header */}
-      <div className="bg-white dark:bg-ink-900 pt-8 pb-6 px-4">
-        <div className="flex flex-col items-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center mb-4 shadow-lg">
-            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-            </svg>
-          </div>
-          <h1 className="font-display font-bold text-xl text-ink-900 dark:text-white">Jiunge kama Dereva</h1>
-          <p className="text-sm text-ink-500 mt-1">Pata kipato kwa kusafirisha bidhaa Zanzibar</p>
-        </div>
-
-        {/* Progress stepper */}
-        <div className="flex items-center justify-center gap-2 mt-6">
-          {STEPS.map((s, i) => (
-            <div key={s.key} className="flex items-center">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${
-                i < step ? 'bg-emerald-500 text-white'
-                : i === step ? 'bg-brand-500 text-white'
-                : 'bg-ink-100 dark:bg-ink-800 text-ink-400'
-              }`}>
-                {i < step ? <CheckCircle2 className="w-3.5 h-3.5" /> : i + 1}
+    <div className="min-h-screen bg-black">
+      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-neutral-800">
+        <div className="max-w-lg mx-auto px-4 py-4">
+          <h1 className="font-display font-black text-xl text-white text-center">{t('joinAsRider', lang)}</h1>
+          <p className="text-sm text-neutral-500 text-center mt-1">Pata kipato kwa kusafirisha bidhaa Zanzibar</p>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            {STEPS.map((s, i) => (
+              <div key={s.key} className="flex items-center">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                  i < step ? 'bg-emerald-500 text-white'
+                  : i === step ? 'bg-brand-500 text-white'
+                  : 'bg-neutral-800 text-neutral-500'
+                }`}>
+                  {i < step ? <CheckCircle2 className="w-3.5 h-3.5" /> : i + 1}
+                </div>
+                {i < STEPS.length - 1 && (
+                  <div className={`w-8 h-0.5 mx-1 ${i < step ? 'bg-emerald-400' : 'bg-neutral-800'}`} />
+                )}
               </div>
-              {i < STEPS.length - 1 && (
-                <div className={`w-8 h-0.5 mx-1 ${i < step ? 'bg-emerald-400' : 'bg-ink-100 dark:bg-ink-800'}`} />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
+          <p className="text-center text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mt-2">
+            {STEPS[step].label}
+          </p>
         </div>
-        <p className="text-center text-[11px] font-semibold text-ink-400 dark:text-ink-500 uppercase tracking-wider mt-2">
-          {STEPS[step].label}
-        </p>
-      </div>
+      </header>
 
-      {/* Form Content */}
-      <div className="px-4 pb-4">
-        <div className="bg-white dark:bg-ink-900 rounded-2xl shadow-sm border border-ink-100 dark:border-ink-800 overflow-hidden p-4 space-y-3">
+      <div className="max-w-lg mx-auto px-4 py-4">
+        <div className="bg-neutral-900 rounded-2xl border border-neutral-800 p-4 space-y-3">
           {step === 0 && (
             <>
-              <Input
-                label="Jina Kamili"
-                value={form.full_name}
-                onChange={(e) => update('full_name', e.target.value)}
-                placeholder="Juma Hassan Ali"
-              />
-              <Input
-                label="Namba ya Simu"
-                value={form.phone_number}
-                onChange={(e) => updatePhone('phone_number', e.target.value)}
-                placeholder="0712 345 678"
-              />
-              <Input
-                label="Namba ya Dharura"
-                value={form.emergency_contact}
-                onChange={(e) => updatePhone('emergency_contact', e.target.value)}
-                placeholder="Namba ya jamaa/rafiki"
-                hint="Tutawasiliana naye tu wakati wa dharura"
-              />
+              <FormInput label="Jina Kamili" value={form.full_name} onChange={(v) => update('full_name', v)} placeholder="Juma Hassan Ali" />
+              <FormInput label="Namba ya Simu" value={form.phone_number} onChange={(v) => updatePhone('phone_number', v)} placeholder="0712 345 678" />
+              <FormInput label="Namba ya Dharura" value={form.emergency_contact} onChange={(v) => updatePhone('emergency_contact', v)} placeholder="Namba ya jamaa/rafiki" hint="Tutawasiliana naye tu wakati wa dharura" />
             </>
           )}
-
           {step === 1 && (
             <>
-              <Input
-                label="Namba ya Kitambulisho cha Taifa/Zanzibar"
-                value={form.national_id}
-                onChange={(e) => update('national_id', e.target.value)}
-              />
-              <Input
-                label="Namba ya Leseni ya Udereva"
-                value={form.driving_license}
-                onChange={(e) => update('driving_license', e.target.value)}
-              />
-              <Input
-                label="Namba ya Usajili wa Pikipiki"
-                value={form.motorcycle_registration}
-                onChange={(e) => update('motorcycle_registration', e.target.value)}
-                placeholder="T123 ABC"
-              />
+              <FormInput label="Namba ya Kitambulisho" value={form.national_id} onChange={(v) => update('national_id', v)} />
+              <FormInput label="Namba ya Leseni" value={form.driving_license} onChange={(v) => update('driving_license', v)} />
+              <FormInput label="Namba ya Usajili wa Pikipiki" value={form.motorcycle_registration} onChange={(v) => update('motorcycle_registration', v)} placeholder="T123 ABC" />
               <div className="grid grid-cols-2 gap-3 pt-1">
-                <RiderDocumentUploader
-                  userId={profile.id}
-                  docType="selfie"
-                  value={form.selfie_url}
-                  onChange={(path) => update('selfie_url', path)}
-                  label="Selfie"
-                />
-                <RiderDocumentUploader
-                  userId={profile.id}
-                  docType="license"
-                  value={form.license_scan_url}
-                  onChange={(path) => update('license_scan_url', path)}
-                  label="License"
-                />
+                <RiderDocumentUploader userId={profile.id} docType="selfie" value={form.selfie_url} onChange={(path) => update('selfie_url', path)} label="Selfie" />
+                <RiderDocumentUploader userId={profile.id} docType="license" value={form.license_scan_url} onChange={(path) => update('license_scan_url', path)} label="License" />
               </div>
             </>
           )}
-
           {step === 2 && (
             <>
-              <Select
-                label="Njia ya Malipo"
-                value={form.payout_method}
-                onChange={(e) => update('payout_method', e.target.value as FormState['payout_method'])}
-              >
-                <option value="mpesa">M-Pesa</option>
-                <option value="tigo_pesa">Tigo Pesa</option>
-                <option value="airtel_money">Airtel Money</option>
-                <option value="halopesa">Halopesa</option>
-              </Select>
-              <Input
-                label="Namba ya Akaunti ya Malipo"
-                value={form.payout_account_number}
-                onChange={(e) => updatePhone('payout_account_number', e.target.value)}
-                placeholder="0712 345 678"
-                hint="Mapato yako yatatumwa hapa"
-              />
+              <div>
+                <label className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5 block">Njia ya Malipo</label>
+                <select value={form.payout_method} onChange={(e) => update('payout_method', e.target.value as FormState['payout_method'])} className="bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-brand-500 w-full">
+                  <option value="mpesa">M-Pesa</option>
+                  <option value="tigo_pesa">Tigo Pesa</option>
+                  <option value="airtel_money">Airtel Money</option>
+                  <option value="halopesa">Halopesa</option>
+                </select>
+              </div>
+              <FormInput label="Namba ya Akaunti" value={form.payout_account_number} onChange={(v) => updatePhone('payout_account_number', v)} placeholder="0712 345 678" hint="Mapato yako yatatumwa hapa" />
             </>
           )}
-
           {step === 3 && (
             <div className="space-y-3 text-sm">
               <ReviewRow label="Jina" value={form.full_name} />
@@ -287,7 +227,7 @@ export default function RiderApplyPage() {
               <ReviewRow label="Leseni" value={form.driving_license} />
               <ReviewRow label="Pikipiki" value={form.motorcycle_registration} />
               <ReviewRow label="Malipo" value={`${form.payout_method.replace('_', ' ')} — ${form.payout_account_number}`} />
-              <p className="text-xs text-ink-500 pt-2">
+              <p className="text-xs text-neutral-500 pt-2">
                 Kwa kutuma, unakubali vyeti vyako vitahakikiwa na msimamizi kabla ya kuanza kupokea safari.
               </p>
             </div>
@@ -296,24 +236,18 @@ export default function RiderApplyPage() {
 
         <div className="flex gap-3 mt-4">
           {step > 0 && (
-            <Button variant="secondary" onClick={back} disabled={submitting} className="flex-1">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-              Rudi
-            </Button>
+            <button onClick={back} disabled={submitting} className="bg-neutral-800 text-neutral-300 font-semibold flex-1 py-3 rounded-full text-sm inline-flex items-center justify-center gap-2 hover:bg-neutral-700 transition-colors disabled:opacity-60">
+              <ChevronLeft className="w-4 h-4" /> Rudi
+            </button>
           )}
           {step < STEPS.length - 1 ? (
-            <Button onClick={next} fullWidth>
-              Endelea
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </Button>
+            <button onClick={next} className="bg-white text-black font-semibold flex-1 py-3 rounded-full text-sm inline-flex items-center justify-center gap-2 hover:bg-neutral-200 transition-colors">
+              Endelea <ChevronRight className="w-4 h-4" />
+            </button>
           ) : (
-            <Button onClick={submit} loading={submitting} fullWidth>
-              Tuma Maombi
-            </Button>
+            <button onClick={submit} disabled={submitting} className="bg-white text-black font-semibold flex-1 py-3 rounded-full text-sm inline-flex items-center justify-center gap-2 hover:bg-neutral-200 transition-colors disabled:opacity-60">
+              {submitting ? 'Inatuma...' : 'Tuma Maombi'}
+            </button>
           )}
         </div>
       </div>
@@ -321,11 +255,23 @@ export default function RiderApplyPage() {
   )
 }
 
+function FormInput({ label, value, onChange, placeholder, hint }: {
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; hint?: string
+}) {
+  return (
+    <div>
+      <label className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5 block">{label}</label>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className="bg-neutral-800 border border-neutral-700 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-500 w-full" />
+      {hint && <p className="text-[10px] text-neutral-600 mt-1">{hint}</p>}
+    </div>
+  )
+}
+
 function ReviewRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between border-b border-ink-100 dark:border-ink-800 pb-2">
-      <span className="text-ink-500 dark:text-ink-400">{label}</span>
-      <span className="font-medium text-ink-800 dark:text-ink-100 text-right">{value || '—'}</span>
+    <div className="flex justify-between border-b border-neutral-800 pb-2">
+      <span className="text-neutral-500">{label}</span>
+      <span className="font-medium text-white text-right">{value || '—'}</span>
     </div>
   )
 }

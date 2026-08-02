@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { LayoutDashboard, History, Wallet, User, ArrowLeft, Star, ChevronRight, ChevronDown, Moon, Sun, Languages, Check } from 'lucide-react'
+import { LayoutDashboard, Package, History, Wallet, User, ArrowLeft, Star, ChevronDown, Moon, Sun, Languages, Check, Map, Clock, CreditCard, Settings, ChevronRight } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { PageLoader } from '@/components/ui'
 import { cn } from '@/utils'
@@ -11,11 +11,12 @@ import { t, type Language, type TranslationKey } from '@/i18n/translations'
 import { useThemeStore } from '@/store'
 import { useState } from 'react'
 
-const NAV: { href: string; labelKey: TranslationKey; icon: React.ElementType }[] = [
-  { href: '/rider/dashboard', labelKey: 'riderDashboard', icon: LayoutDashboard },
-  { href: '/rider/deliveries', labelKey: 'riderDeliveries', icon: History },
-  { href: '/rider/wallet', labelKey: 'riderWallet', icon: Wallet },
-  { href: '/rider/profile', labelKey: 'profile', icon: User },
+const NAV: { href: string; labelKey: TranslationKey; icon: React.ElementType; label: string }[] = [
+  { href: '/rider/dashboard', labelKey: 'riderDashboard', icon: LayoutDashboard, label: 'Dashibodi' },
+  { href: '/rider/available', labelKey: 'riderDeliveries', icon: Package, label: 'Historia' },
+  { href: '/rider/deliveries', labelKey: 'riderDeliveries', icon: History, label: 'Historia' },
+  { href: '/rider/wallet', labelKey: 'riderWallet', icon: Wallet, label: 'Pochi' },
+  { href: '/rider/profile', labelKey: 'profile', icon: User, label: 'Wasifu' },
 ]
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -77,75 +78,87 @@ export default function RiderLayout({ children }: { children: React.ReactNode })
 
   if (!profile || (profile.role !== 'rider' && profile.role !== 'admin')) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="card p-8 text-center max-w-sm">
-          <p className="font-semibold text-ink-700 mb-4">{t('riderOnlyPage', lang)}</p>
-          <Link href="/rider/apply" className="btn-primary inline-flex">{t('joinAsRider', lang)}</Link>
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="bg-neutral-900 rounded-2xl p-8 text-center max-w-sm border border-neutral-800">
+          <div className="w-16 h-16 rounded-full bg-neutral-800 flex items-center justify-center mx-auto mb-4">
+            <Map className="w-8 h-8 text-neutral-400" />
+          </div>
+          <p className="font-semibold text-neutral-200 mb-4">{t('riderOnlyPage', lang)}</p>
+          <Link href="/rider/apply" className="bg-white text-black font-semibold px-6 py-3 rounded-full text-sm inline-flex items-center gap-2 hover:bg-neutral-200 transition-colors">
+            {t('joinAsRider', lang)}
+          </Link>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-black text-white">
       {/* Sidebar — desktop */}
-      <aside className="hidden sm:flex flex-col w-56 bg-card border-r border-border sticky top-0 h-screen overflow-y-auto">
-        <div className="p-4 border-b border-ink-100">
-          <Link href="/" className="flex items-center gap-1.5 text-xs text-ink-500 hover:text-brand-600 mb-3">
-            <ArrowLeft className="w-3.5 h-3.5" /> {t('backToShop', lang)}
+      <aside className="hidden sm:flex flex-col w-64 bg-neutral-950 border-r border-neutral-800 sticky top-0 h-screen overflow-y-auto">
+        <div className="p-5 border-b border-neutral-800">
+          <Link href="/" className="flex items-center gap-2 text-xs text-neutral-400 hover:text-white mb-4 transition-colors">
+            <ArrowLeft className="w-4 h-4" /> Rudi dukani
           </Link>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center">
-              <span className="text-brand-700 font-bold text-sm">{profile.full_name?.charAt(0)?.toUpperCase() ?? 'D'}</span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white font-bold text-sm">
+              {profile.full_name?.charAt(0)?.toUpperCase() ?? 'D'}
             </div>
             <div className="min-w-0">
-              <p className="font-semibold text-sm text-ink-900 dark:text-white truncate">{profile.full_name ?? 'Dereva'}</p>
-              <p className="text-xs text-emerald-600">● {t('rider', lang)}</p>
+              <p className="font-semibold text-sm text-white truncate">{profile.full_name ?? 'Dereva'}</p>
+              <p className="text-xs text-emerald-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                Online
+              </p>
             </div>
           </div>
         </div>
-        <nav className="flex-1 p-3">
-          {NAV.map(({ href, labelKey, icon: Icon }) => (
+        <nav className="flex-1 p-3 space-y-1">
+          {NAV.map(({ href, labelKey, icon: Icon, label }) => (
             <Link key={href} href={href}
-              className={cn('flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-0.5 transition-colors',
-                pathname.startsWith(href) ? 'bg-brand-50 text-brand-700' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900')}>
-              <Icon className="w-4 h-4 flex-shrink-0" />
-              {t(labelKey, lang)}
+              className={cn(
+                'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all',
+                pathname.startsWith(href)
+                  ? 'bg-white text-black'
+                  : 'text-neutral-400 hover:bg-neutral-900 hover:text-white'
+              )}>
+              <Icon className="w-5 h-5" />
+              <span>{t(labelKey, lang)}</span>
+              {pathname.startsWith(href) && <ChevronRight className="w-4 h-4 ml-auto" />}
             </Link>
           ))}
         </nav>
-        {/* Sidebar footer — theme + language */}
-        <div className="p-3 border-t border-ink-100 space-y-2">
+        <div className="p-4 border-t border-neutral-800 space-y-3">
           <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-900 transition-colors"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-neutral-400 hover:bg-neutral-900 hover:text-white transition-all"
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             {theme === 'dark' ? 'Light mode' : 'Dark mode'}
           </button>
           <div className="relative">
             <button
               onClick={() => setLangOpen((v) => !v)}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-ink-600 hover:bg-ink-50 hover:text-ink-900 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-neutral-400 hover:bg-neutral-900 hover:text-white transition-all"
               aria-label="Change language"
               aria-haspopup="menu"
               aria-expanded={langOpen}>
-              <Languages className="w-4 h-4" />
+              <Languages className="w-5 h-5" />
               <span className="flex-1 text-left">{t('language', lang)}</span>
               <ChevronDown className={cn('w-4 h-4 transition-transform', langOpen && 'rotate-180')} />
             </button>
             {langOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setLangOpen(false)} />
-                <div className="absolute left-0 bottom-full mb-2 w-full bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 rounded-xl shadow-xl p-1.5 z-50">
+                <div className="absolute left-0 bottom-full mb-2 w-full bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl p-2 z-50">
                   {LANGUAGES.map((l) => (
                     <button
                       key={l.code}
                       onClick={() => { setLang(l.code); setLangOpen(false) }}
                       className={cn(
-                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors',
+                        'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all',
                         lang === l.code
-                          ? 'bg-teal-50 dark:bg-teal-900/30 text-teal-600 dark:text-teal-300 font-semibold'
-                          : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
+                          ? 'bg-white text-black font-semibold'
+                          : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'
                       )}>
                       <Flag code={l.code} />
                       <span className="flex-1 text-left">{l.label}</span>
@@ -160,19 +173,21 @@ export default function RiderLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main */}
-      <div className="flex-1 overflow-hidden">
+      <main className="flex-1 min-h-screen pb-20 sm:pb-0">
         {children}
-      </div>
+      </main>
 
       {/* Bottom nav — mobile */}
-      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-card border-t border-border safe-bottom">
-        <div className="flex items-center justify-around h-14">
+      <nav className="sm:hidden fixed bottom-0 inset-x-0 z-50 bg-neutral-950 border-t border-neutral-800 safe-bottom">
+        <div className="flex items-center justify-around h-16 px-2">
           {NAV.map(({ href, labelKey, icon: Icon }) => (
             <Link key={href} href={href}
-              className={cn('flex flex-col items-center gap-0.5 px-2 py-1.5 rounded-xl text-xs font-medium transition-colors',
-                pathname.startsWith(href) ? 'text-brand-600' : 'text-ink-500')}>
+              className={cn(
+                'flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium transition-all min-w-[56px]',
+                pathname.startsWith(href) ? 'text-white' : 'text-neutral-500 hover:text-neutral-300'
+              )}>
               <Icon className="w-5 h-5" />
-              {t(labelKey, lang)}
+              <span className="truncate">{t(labelKey, lang)}</span>
             </Link>
           ))}
         </div>

@@ -1,11 +1,14 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Search, Filter, Navigation, MapPin, Clock, Package, Users, Calendar, Zap, Star } from 'lucide-react'
+import { Search, Navigation, MapPin, Clock, Package, Zap, Star, Filter, X, Users } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
-import { PageLoader, EmptyState, StatCard } from '@/components/ui'
+import { PageLoader, EmptyState } from '@/components/ui'
+import { cn } from '@/utils'
 import { formatTZS, formatDate } from '@/utils'
+import { useLangStore } from '@/store'
+import { t, type Language } from '@/i18n/translations'
 
 interface AvailableDelivery {
   id: string
@@ -26,6 +29,7 @@ type FilterType = 'all' | 'express' | 'standard' | 'nearest'
 export default function RiderAvailablePage() {
   const supabase = createClient()
   const { profile, loading: userLoading } = useUser()
+  const lang = useLangStore((s) => s.lang)
   const [deliveries, setDeliveries] = useState<AvailableDelivery[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -99,7 +103,7 @@ export default function RiderAvailablePage() {
   }
 
   function getDistanceDisplay(distance: number | null): string {
-    if (!distance) return 'Distance unknown'
+    if (!distance) return '—'
     if (distance < 1000) return `${distance}m`
     return `${(distance / 1000).toFixed(1)} km`
   }
@@ -107,185 +111,123 @@ export default function RiderAvailablePage() {
   if (userLoading || loading) return <PageLoader />
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-display font-black text-2xl text-ink-900 dark:text-white">Available Deliveries</h1>
-          <p className="text-sm text-ink-500 mt-0.5">{stats.total} deliveries available</p>
+    <div className="min-h-screen bg-black">
+      <header className="sticky top-0 z-40 bg-black/80 backdrop-blur-xl border-b border-neutral-800">
+        <div className="max-w-3xl mx-auto px-4 py-4">
+          <h1 className="font-display font-black text-2xl text-white">{t('availableDeliveries', lang)}</h1>
+          <p className="text-sm text-neutral-500 mt-1">{stats.total} {t('deliveriesAvailable', lang)}</p>
         </div>
-        {userLocation && (
-          <button
-            onClick={() => setFilter('nearest')}
-            className={`btn-secondary text-sm gap-1.5 ${filter === 'nearest' ? 'bg-brand-50 text-brand-600' : ''}`}
-          >
-            <Navigation className="w-4 h-4" /> Nearest
-          </button>
-        )}
-      </div>
+      </header>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Total Available" value={stats.total} icon={<Package className="w-5 h-5" />} accent="brand" />
-        <StatCard label="Express" value={stats.express} icon={<Zap className="w-5 h-5" />} accent="spice" />
-        <StatCard label="Standard" value={stats.standard} icon={<Clock className="w-5 h-5" />} accent="green" />
-        <StatCard label="Today" value={stats.today} icon={<Calendar className="w-5 h-5" />} accent="gold" />
-      </div>
-
-      <div className="card p-4 mb-6 rounded-2xl">
-        <div className="flex flex-col sm:flex-row gap-3 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by pickup or delivery address..."
-              className="input pl-9 text-sm w-full"
-            />
-          </div>
-          <div className="flex gap-2">
-            {(['all', 'express', 'standard', 'nearest'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${filter === f ? 'bg-brand-500 text-white' : 'bg-ink-100 text-ink-600 hover:bg-ink-200'}`}
-              >
-                {f === 'all' ? 'All' : f === 'express' ? 'Express' : f === 'standard' ? 'Standard' : 'Nearest'}
-              </button>
-            ))}
+      <div className="max-w-3xl mx-auto px-4 py-4 space-y-4">
+        <div className="bg-neutral-900 rounded-2xl border border-neutral-800 p-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={t('searchPickupDelivery', lang)}
+                className="bg-neutral-800 border border-neutral-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-brand-500 w-full"
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {(['all', 'express', 'standard', 'nearest'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={cn(
+                    'px-4 py-2 rounded-full text-xs font-semibold transition-colors',
+                    filter === f ? 'bg-white text-black' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                  )}>
+                  {f === 'all' ? t('all', lang) : f === 'express' ? 'Express' : f === 'standard' ? 'Standard' : 'Nearest'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {userLocation && (
-          <div className="flex items-center gap-2 text-xs text-ink-500">
-            <MapPin className="w-3.5 h-3.5" />
-            Your location: {userLocation.lat.toFixed(4)}, {userLocation.lng.toFixed(4)}
-          </div>
-        )}
-      </div>
-
-      {filtered.length === 0 ? (
-        <EmptyState
-          icon={<Package className="w-10 h-10" />}
-          title="No deliveries available"
-          description="No deliveries match your current filters. Try adjusting your search or check back later."
-          action={search || filter !== 'all' ? (
-            <button
-              onClick={() => {
-                setSearch('')
-                setFilter('all')
-              }}
-              className="btn-outline"
-            >
-              Clear filters
-            </button>
-          ) : undefined}
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(delivery => (
-            <div key={delivery.id} className="card rounded-2xl overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="p-3 bg-gradient-to-r from-ink-50 to-ink-100 dark:from-ink-800 dark:to-ink-900">
-                <div className="flex items-center justify-between mb-2">
-                  <span
-                    className={`text-xs font-bold uppercase px-2 py-0.5 rounded-full ${delivery.delivery_type === 'express' ? 'bg-spice-100 text-spice-700' : 'bg-green-100 text-green-700'}`}
-                  >
-                    {delivery.delivery_type === 'express' ? 'EXPRESS' : 'STANDARD'}
-                  </span>
-                  <span className="text-xs text-ink-500 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {delivery.estimated_arrival || 'Soon'}
-                  </span>
-                </div>
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={<Package className="w-10 h-10" />}
+            title={t('noDeliveries', lang)}
+            description={t('noDeliveriesDesc', lang)}
+          />
+        ) : (
+          <div className="space-y-3">
+            {filtered.map(delivery => (
+              <div key={delivery.id} className="bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden hover:border-neutral-700 transition-colors">
                 <div className="p-4">
-                  <h3 className="font-semibold text-ink-900 dark:text-white mb-1 truncate">
-                    {delivery.delivery_type === 'express' ? 'Express Delivery' : 'Standard Delivery'}
-                  </h3>
-                  <p className="text-xs text-ink-500 mb-3">ID: {delivery.id.slice(0, 8)}...</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full ${delivery.delivery_type === 'express' ? 'bg-brand-500/20 text-brand-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                      {delivery.delivery_type === 'express' ? 'Express' : 'Standard'}
+                    </span>
+                    <span className="text-xs text-neutral-500 flex items-center gap-1">
+                      <Clock className="w-3 h-3" /> {delivery.estimated_arrival || 'Soon'}
+                    </span>
+                  </div>
 
-                  <div className="space-y-2 mb-3">
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <MapPin className="w-3 h-3 text-emerald-600" />
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <MapPin className="w-3 h-3 text-emerald-400" />
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-ink-700 dark:text-ink-300">Pickup</p>
-                        <p className="text-sm text-ink-900 dark:text-white truncate">{delivery.pickup_address}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-neutral-500 font-semibold uppercase">{t('pickup', lang)}</p>
+                        <p className="text-sm font-medium text-white truncate">{delivery.pickup_address}</p>
                       </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Navigation className="w-3 h-3 text-red-600" />
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Navigation className="w-3 h-3 text-red-400" />
                       </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-ink-700 dark:text-ink-300">Delivery</p>
-                        <p className="text-sm text-ink-900 dark:text-white truncate">{delivery.delivery_address}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] text-neutral-500 font-semibold uppercase">{t('delivery', lang)}</p>
+                        <p className="text-sm font-medium text-white truncate">{delivery.delivery_address}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    {delivery.distance_meters && (
-                      <div className="flex items-center justify-between text-xs text-ink-500">
-                        <span className="flex items-center gap-1">
-                          <Navigation className="w-3 h-3" /> Distance
+                  <div className="mt-4 pt-3 border-t border-neutral-800 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      {delivery.distance_meters && (
+                        <span className="text-xs text-neutral-500 flex items-center gap-1">
+                          <Navigation className="w-3 h-3" /> {getDistanceDisplay(delivery.distance_meters)}
                         </span>
-                        <span className="font-medium text-ink-700 dark:text-ink-300">
-                          {delivery.distance_meters < 1000
-                            ? `${delivery.distance_meters}m`
-                            : `${(delivery.distance_meters / 1000).toFixed(1)} km`
-                          }
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-ink-500">Fee</span>
-                      <span className="font-display font-bold text-sm text-brand-600 dark:text-brand-400">
-                        {formatTZS(delivery.delivery_fee)}
-                      </span>
+                      )}
                     </div>
-                    {delivery.customer_name && (
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="flex items-center gap-1 text-ink-500">
-                          <Users className="w-3 h-3" /> Customer
-                        </span>
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium text-ink-700 dark:text-ink-300">
-                            {delivery.customer_name}
-                          </span>
-                          {delivery.customer_rating && (
-                            <span className="flex items-center gap-0.5 text-amber-600">
-                              <Star className="w-3 h-3 fill-current" />
-                              <span className="text-xs font-medium">{delivery.customer_rating}</span>
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    )}
+                    <span className="font-display font-bold text-brand-400">{formatTZS(delivery.delivery_fee)}</span>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-ink-100 dark:border-ink-800">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => requestDelivery(delivery.id)}
-                        className="btn-primary flex-1 justify-center py-2.5 text-sm gap-1.5"
-                      >
-                        <Zap className="w-4 h-4" /> Request
-                      </button>
-                      <button
-                        onClick={() => {
-                          console.log('View delivery:', delivery.id)
-                        }}
-                        className="btn-outline text-sm px-3"
-                      >
-                        Details
-                      </button>
+                  {delivery.customer_name && (
+                    <div className="mt-3 flex items-center gap-2 text-xs text-neutral-400">
+                      <Users className="w-3 h-3" />
+                      <span>{delivery.customer_name}</span>
+                      {delivery.customer_rating && (
+                        <span className="flex items-center gap-0.5 text-amber-400">
+                          <Star className="w-3 h-3 fill-current" /> {delivery.customer_rating}
+                        </span>
+                      )}
                     </div>
+                  )}
+
+                  <div className="mt-4 flex gap-2">
+                    <button
+                      onClick={() => requestDelivery(delivery.id)}
+                      className="bg-white text-black font-semibold flex-1 justify-center py-3 rounded-full text-sm gap-1.5 hover:bg-neutral-200 transition-colors flex items-center"
+                    >
+                      <Zap className="w-4 h-4" /> {t('accept', lang)}
+                    </button>
+                    <button className="bg-neutral-800 text-neutral-300 font-semibold px-4 py-3 rounded-full text-sm hover:bg-neutral-700 transition-colors">
+                      {t('details', lang)}
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
