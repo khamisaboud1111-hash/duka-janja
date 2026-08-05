@@ -22,7 +22,7 @@ export function useBuyerOrders() {
 
     setOrders(data ?? [])
     setLoading(false)
-  }, [])
+  }, [supabase])
 
   useEffect(() => { fetch() }, [fetch])
   return { orders, loading, refetch: fetch }
@@ -37,7 +37,6 @@ export function useSellerOrders(sellerId: string | null) {
     if (!sellerId) return
     setLoading(true)
 
-    // Get orders that contain items from this seller
     const { data: items } = await supabase
       .from('order_items')
       .select('order_id')
@@ -54,7 +53,7 @@ export function useSellerOrders(sellerId: string | null) {
 
     setOrders(data ?? [])
     setLoading(false)
-  }, [sellerId])
+  }, [sellerId, supabase])
 
   useEffect(() => { fetch() }, [fetch])
 

@@ -8,6 +8,44 @@ import { useSeller } from '@/hooks/useSeller'
 import { StatCard, PageLoader, EmptyState } from '@/components/ui'
 import { formatTZS, formatDate } from '@/utils'
 
+interface OrderItemRow {
+  order_id: string
+  total_price: number
+  quantity: number
+  created_at: string
+  seller_id: string
+  order: { status: string; created_at: string; buyer_id: string }[]
+}
+
+interface AggregatedOrder {
+  status?: string
+  created_at?: string
+  buyer_id?: string
+  total: number
+  quantity: number
+  items: OrderItemRow[]
+}
+
+interface ProductRow {
+  id: string
+  name: string
+  price: number
+  stock_quantity: number
+  total_sold: number
+  status: string
+  category_id: string
+}
+
+interface CommissionRow {
+  commission_amount: number
+  is_paid: boolean
+  created_at: string
+}
+
+interface CustomerRow {
+  buyer_id: string
+}
+
 interface DashboardStats {
   totalRevenue: number
   totalOrders: number
@@ -140,46 +178,47 @@ export default function SellerDashboardPage() {
       const items = ordersData ?? []
       const products = productsData ?? []
       const commissions = commissionsData ?? []
-      const customers = (customersData ?? []).filter((c: any, i: number, arr: any[]) =>
-        arr.findIndex((x: any) => x.buyer_id === c.buyer_id) === i
+      const customers = (customersData ?? []).filter((c: CustomerRow, i: number, arr: CustomerRow[]) =>
+        arr.findIndex((x: CustomerRow) => x.buyer_id === c.buyer_id) === i
       )
       
       // Order aggregation
-      const orderMap = new Map<string, any>()
-      items.forEach((item: any) => {
+      const orderMap = new Map<string, AggregatedOrder>()
+      items.forEach((item: OrderItemRow) => {
         if (!orderMap.has(item.order_id)) {
           orderMap.set(item.order_id, {
-            ...item.order,
+            ...item.order?.[0],
             total: 0,
             quantity: 0,
             items: []
           })
         }
         const order = orderMap.get(item.order_id)
+        if (!order) return
         order.total += item.total_price
         order.quantity += item.quantity
         order.items.push(item)
       })
       
       const allOrders = Array.from(orderMap.values())
-      const totalRevenue = items.reduce((s: number, i: any) => s + i.total_price, 0)
+      const totalRevenue = items.reduce((s: number, i: OrderItemRow) => s + i.total_price, 0)
       const totalOrders = orderMap.size
-      const completedOrders = allOrders.filter((o: any) => o.status === 'delivered').length
-      const pendingOrders = allOrders.filter((o: any) => ['pending','confirmed','packed'].includes(o?.status)).length
+      const completedOrders = allOrders.filter((o: AggregatedOrder) => o.status === 'delivered').length
+      const pendingOrders = allOrders.filter((o: AggregatedOrder) => ['pending','confirmed','packed'].includes(o?.status ?? '')).length
       const totalProducts = products.length
-      const lowStockProducts = products.filter((p: any) => p.stock_quantity > 0 && p.stock_quantity <= 5).length
-      const unpaidCommissions = commissions.reduce((s: number, c: any) => s + c.commission_amount, 0)
+      const lowStockProducts = products.filter((p: ProductRow) => p.stock_quantity > 0 && p.stock_quantity <= 5).length
+      const unpaidCommissions = commissions.reduce((s: number, c: CommissionRow) => s + c.commission_amount, 0)
       const totalCustomers = customers.length
-      const totalUnits = items.reduce((s: number, i: any) => s + i.quantity, 0)
+      const totalUnits = items.reduce((s: number, i: OrderItemRow) => s + i.quantity, 0)
       const averageOrderValue = totalOrders ? Math.round(totalRevenue / totalOrders) : 0
       
       // Recent revenue (last 7 days)
       const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString()
-      const weekItems = items.filter((i: any) => i.created_at >= weekAgo)
-      const recentRevenue = weekItems.reduce((s: number, i: any) => s + i.total_price, 0)
+      const weekItems = items.filter((i: OrderItemRow) => i.created_at >= weekAgo)
+      const recentRevenue = weekItems.reduce((s: number, i: OrderItemRow) => s + i.total_price, 0)
       
       // Inventory value
-      const inventoryValue = products.reduce((s: number, p: any) => s + (p.price * p.stock_quantity), 0)
+      const inventoryValue = products.reduce((s: number, p: ProductRow) => s + (p.price * p.stock_quantity), 0)
       
       // Wallet balance (mock - would come from payment processor)
       const calculatedWalletBalance = totalRevenue * 0.9 - unpaidCommissions // 90% payout minus unpaid commissions
@@ -223,7 +262,7 @@ export default function SellerDashboardPage() {
         <div className="card dark:bg-ink-900 dark:border-ink-800 p-6 border-l-4 border-amber-400">
           <h2 className="font-bold text-lg text-ink-900 dark:text-white mb-2">Store Verification Pending</h2>
           <p className="text-sm text-ink-600 dark:text-ink-300 mb-4">
-            Your store is under review. You'll receive an email notification once approved (usually 24-48 hours).
+            Your store is under review. You&apos;ll receive an email notification once approved (usually 24-48 hours).
           </p>
           <Link href="/seller/settings" className="btn-outline text-sm">Complete Store Setup →</Link>
         </div>

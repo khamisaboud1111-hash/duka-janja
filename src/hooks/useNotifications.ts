@@ -24,7 +24,7 @@ export function useNotifications() {
     setNotifications(data ?? [])
     setUnreadCount((data ?? []).filter((n: Notification) => !n.is_read).length)
     setLoading(false)
-  }, [])
+  }, [supabase])
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null
@@ -35,12 +35,8 @@ export function useNotifications() {
       if (!user) { setLoading(false); return }
       if (cancelled) return
 
-      // Load existing notifications on mount
       await fetch()
 
-      // Realtime subscription scoped to this user only. A global 'notifications'
-      // channel would make every connected client re-fetch on every insert for
-      // any user — O(users × events) load.
       channel = supabase
         .channel(`notifications-${user.id}`)
         .on('postgres_changes', {
@@ -62,12 +58,11 @@ export function useNotifications() {
       cancelled = true
       if (channel) supabase.removeChannel(channel)
     }
-  }, [fetch])
+  }, [fetch, supabase])
 
   async function markRead(id: string) {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id)
     setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n))
-    // NOTE: If a notification was already read elsewhere, this may decrement below the true count. Acceptable for a client-side optimistic update.
     setUnreadCount((c) => Math.max(0, c - 1))
   }
 

@@ -85,7 +85,7 @@ export default function DeliveryRating({
             <StarRating value={rating} readonly size="sm" />
             <span className="text-xs text-emerald-700">({rating}/5)</span>
           </div>
-          {comment && <p className="text-xs text-emerald-700 mt-1.5 italic">"{comment}"</p>}
+          {comment && <p className="text-xs text-emerald-700 mt-1.5 italic">&quot;{comment}&quot;</p>}
         </div>
       </div>
     )

@@ -18,7 +18,7 @@ export function useProductReviews(productId: string) {
       .order('created_at', { ascending: false })
     setReviews(data ?? [])
     setLoading(false)
-  }, [productId])
+  }, [productId, supabase])
 
   useEffect(() => { fetch() }, [fetch])
   return { reviews, loading, refetch: fetch }
@@ -54,7 +54,7 @@ export function useReviewableOrders() {
       setLoading(false)
     }
     load()
-  }, [])
+  }, [supabase])
 
   return { reviewable, loading }
 }

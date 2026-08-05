@@ -22,8 +22,9 @@ interface FeaturedSeller {
 }
 
 export default function FeaturedSellersShowcase({ sellers }: { sellers: FeaturedSeller[] }) {
-  if (sellers.length === 0) return null
   const lang = useLangStore((s) => s.lang)
+
+  if (sellers.length === 0) return null
 
   return (
     <section className="section bg-ink-50/50 dark:bg-ink-900/40">

@@ -69,7 +69,7 @@ export function useWishlist(productId: string) {
     } finally {
       setLoading(false)
     }
-  }, [isWishlisted, productId, supabase])
+  }, [isWishlisted, productId, supabase, lang])
 
   // Check initial wishlist status on mount
   useEffect(() => {

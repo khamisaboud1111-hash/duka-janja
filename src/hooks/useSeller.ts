@@ -22,7 +22,7 @@ export function useSeller() {
 
     setSeller(data)
     setLoading(false)
-  }, [])
+  }, [supabase])
 
   useEffect(() => { fetch() }, [fetch])
   return { seller, loading, refetch: fetch }
@@ -37,8 +37,8 @@ export function useSellerAnalytics(sellerId: string | null) {
     totalProducts: number
     lowStockProducts: number
     unpaidCommissions: number
-    recentOrders: any[]
-    topProducts: any[]
+    recentOrders: { status?: string; created_at?: string }[]
+    topProducts: { id: string; name: string; stock_quantity: number; total_sold: number; status: string }[]
   } | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -70,18 +70,18 @@ export function useSellerAnalytics(sellerId: string | null) {
       const products = productsRes.data ?? []
       const commissions = commissionsRes.data ?? []
 
-      const orderMap = new Map<string, any>()
-      items.forEach((item: any) => {
-        if (!orderMap.has(item.order_id)) orderMap.set(item.order_id, item.order)
+      const orderMap = new Map<string, { status?: string; created_at?: string }>()
+      items.forEach((item: { order_id: string; total_price: number; order: { status: string; created_at: string }[] }) => {
+        if (!orderMap.has(item.order_id)) orderMap.set(item.order_id, item.order?.[0])
       })
 
       const allOrders = Array.from(orderMap.values())
-      const totalRevenue = items.reduce((s: number, i: any) => s + i.total_price, 0)
-      const pendingOrders = allOrders.filter((o: any) => ['pending','confirmed','packed'].includes(o?.status)).length
-      const unpaidCommissions = commissions.reduce((s: number, c: any) => s + c.commission_amount, 0)
+      const totalRevenue = items.reduce((s: number, i: { total_price: number }) => s + i.total_price, 0)
+      const pendingOrders = allOrders.filter((o: { status?: string }) => ['pending','confirmed','packed'].includes(o?.status ?? '')).length
+      const unpaidCommissions = commissions.reduce((s: number, c: { commission_amount: number }) => s + c.commission_amount, 0)
 
       const topProducts = [...products]
-        .sort((a: any, b: any) => b.total_sold - a.total_sold)
+        .sort((a: { total_sold: number }, b: { total_sold: number }) => b.total_sold - a.total_sold)
         .slice(0, 5)
 
       setAnalytics({
@@ -89,7 +89,7 @@ export function useSellerAnalytics(sellerId: string | null) {
         totalOrders: orderMap.size,
         pendingOrders,
         totalProducts: products.length,
-        lowStockProducts: products.filter((p: any) => p.stock_quantity > 0 && p.stock_quantity <= 5).length,
+        lowStockProducts: products.filter((p: { stock_quantity: number }) => p.stock_quantity > 0 && p.stock_quantity <= 5).length,
         unpaidCommissions,
         recentOrders: allOrders.slice(0, 5),
         topProducts,
@@ -98,7 +98,7 @@ export function useSellerAnalytics(sellerId: string | null) {
     }
 
     load()
-  }, [sellerId])
+  }, [sellerId, supabase])
 
   return { analytics, loading }
 }

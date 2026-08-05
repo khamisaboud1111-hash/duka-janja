@@ -18,7 +18,7 @@ interface OrderItemAnalytics {
   created_at: string
   product_id: string
   buyer_id: string
-  product: { name: string; category: { name_sw: string }[] | null } | null
+  product: { name: string; category: { name_sw: string }[] }[]
 }
 
 interface PrevOrderItem {
@@ -113,7 +113,7 @@ export default function SellerAnalyticsPage() {
       // Category breakdown
       const catMap: Record<string, CategoryBreakdown> = {}
       items.forEach((item: OrderItemAnalytics) => {
-        const cat = item.product?.category?.[0]?.name_sw ?? 'Nyingine'
+        const cat = item.product?.[0]?.category?.[0]?.name_sw ?? 'Nyingine'
         if (!catMap[cat]) catMap[cat] = { name: cat, revenue: 0, count: 0, avgPrice: 0 }
         catMap[cat].revenue += item.total_price
         catMap[cat].count += item.quantity
@@ -124,7 +124,7 @@ export default function SellerAnalyticsPage() {
       // Top products
       const prodMap: Record<string, TopProduct> = {}
       items.forEach((item: OrderItemAnalytics) => {
-        const name = item.product?.name ?? 'Unknown'
+        const name = item.product?.[0]?.name ?? 'Unknown'
         if (!prodMap[name]) prodMap[name] = { name, revenue: 0, quantity: 0, avgRating: 0 }
         prodMap[name].revenue += item.total_price
         prodMap[name].quantity += item.quantity
@@ -167,12 +167,6 @@ export default function SellerAnalyticsPage() {
     toast.success('CSV imetolewa')
   }
 
-  if (sellerLoading) return <PageLoader />
-
-  const maxRevenue = Math.max(...daily.map(d => d.revenue), 1)
-  const revenueChange = summary.prevRevenue > 0 ? ((summary.revenue - summary.prevRevenue) / summary.prevRevenue * 100) : 0
-  const ordersChange = summary.prevOrders > 0 ? ((summary.orders - summary.prevOrders) / summary.prevOrders * 100) : 0
-
   // Fill in missing days for chart continuity
   const chartData = useMemo(() => {
     if (daily.length === 0) return []
@@ -185,6 +179,12 @@ export default function SellerAnalyticsPage() {
     }
     return result
   }, [daily, period])
+
+  if (sellerLoading) return <PageLoader />
+
+  const maxRevenue = Math.max(...daily.map(d => d.revenue), 1)
+  const revenueChange = summary.prevRevenue > 0 ? ((summary.revenue - summary.prevRevenue) / summary.prevRevenue * 100) : 0
+  const ordersChange = summary.prevOrders > 0 ? ((summary.orders - summary.prevOrders) / summary.prevOrders * 100) : 0
 
   return (
     <div className="p-4 sm:p-6 max-w-5xl">

@@ -17,7 +17,7 @@ export function useTrackRecentlyViewed(productId: string | undefined) {
       await supabase.rpc('track_recently_viewed', { p_user_id: user.id, p_product_id: productId })
     })()
     return () => { active = false }
-  }, [productId])
+  }, [productId, supabase])
 }
 
 /** Fetch the current buyer's recently-viewed products (newest first), excluding one product if given. */
@@ -49,7 +49,7 @@ export function useRecentlyViewed(excludeProductId?: string, limit = 10) {
 
     setProducts(items)
     setLoading(false)
-  }, [excludeProductId, limit])
+  }, [excludeProductId, limit, supabase])
 
   useEffect(() => { fetch() }, [fetch])
 

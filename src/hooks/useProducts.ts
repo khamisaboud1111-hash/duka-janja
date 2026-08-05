@@ -77,7 +77,7 @@ export function useProducts(filters: ProductFilters = {}) {
     if (err) setError(err.message)
     else { setProducts(data ?? []); setCount(c ?? 0) }
     setLoading(false)
-  }, [category, search, madeInZanzibar, sort, page, pageSize])
+  }, [category, search, madeInZanzibar, sort, page, pageSize, supabase])
 
   useEffect(() => { fetch() }, [fetch])
 

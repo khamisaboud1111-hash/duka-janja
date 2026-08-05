@@ -25,7 +25,7 @@ export function useUser() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(() => load())
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   return { profile, loading, isAdmin: profile?.role === 'admin', isSeller: profile?.role === 'seller' || profile?.role === 'admin' }
 }
