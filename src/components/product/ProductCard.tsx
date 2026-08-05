@@ -3,25 +3,22 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, ShoppingCart, Star, BadgeCheck, Eye, PlayCircle, Truck, Check } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useCartStore, useLangStore } from '@/store'
-import { createClient } from '@/lib/supabase/client'
 import { formatTZS, cn } from '@/utils'
 import { t } from '@/i18n/translations'
 import type { Product } from '@/types'
 import toast from 'react-hot-toast'
+import { useWishlist } from '@/hooks/useWishlist'
 
 interface ProductCardProps {
   product: Product
-  wishlisted?: boolean
 }
 
-export default function ProductCard({ product, wishlisted: initialWishlisted = false }: ProductCardProps) {
+export default function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCartStore()
   const { lang } = useLangStore()
-  const supabase = useMemo(() => createClient(), [])
-  const [wishlisted, setWishlisted] = useState(initialWishlisted)
-  const [wishlistLoading, setWishlistLoading] = useState(false)
+  const { isWishlisted, toggleWishlist, loading: wishlistLoading } = useWishlist(product.id)
   const [justAdded, setJustAdded] = useState(false)
   const [justLiked, setJustLiked] = useState(false)
 
@@ -29,25 +26,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
   const discount = product.compare_at_price
     ? Math.round((1 - product.price / product.compare_at_price) * 100)
     : null
-
-  async function toggleWishlist(e: React.MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { toast.error(t('loginFirst', lang)); return }
-
-    setWishlistLoading(true)
-    if (wishlisted) {
-      await supabase.from('wishlists').delete().eq('user_id', user.id).eq('product_id', product.id)
-      setWishlisted(false)
-    } else {
-      await supabase.from('wishlists').insert({ user_id: user.id, product_id: product.id })
-      setWishlisted(true)
-      setJustLiked(true)
-      setTimeout(() => setJustLiked(false), 450)
-    }
-    setWishlistLoading(false)
-  }
 
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault()
@@ -59,10 +37,17 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
     toast.success(`${product.name} ${t('addedToCart', lang)}`)
   }
 
+  function handleWishlistClick(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isWishlisted) setJustLiked(true)
+    toggleWishlist()
+    if (!isWishlisted) setTimeout(() => setJustLiked(false), 450)
+  }
+
   return (
     <Link href={`/products/${product.slug}`} className="group block">
       <div className="bg-card border border-border overflow-hidden shadow-card hover:shadow-card-hover transition-shadow duration-200">
-        {/* Image */}
         <div className="relative aspect-square overflow-hidden bg-muted">
           {primaryImage ? (
             <Image
@@ -78,7 +63,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             </div>
           )}
 
-          {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {discount && (
               <span className="badge bg-spice-500 text-white text-xs">-{discount}%</span>
@@ -91,20 +75,18 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             )}
           </div>
 
-          {/* Wishlist button */}
           <button
-            onClick={toggleWishlist}
+            onClick={handleWishlistClick}
             disabled={wishlistLoading}
             className={cn(
               'absolute top-2 right-2 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all',
-              wishlisted ? 'bg-red-500 text-white' : 'bg-background/90 text-muted-foreground hover:bg-background opacity-0 group-hover:opacity-100',
+              isWishlisted ? 'bg-red-500 text-white' : 'bg-background/90 text-muted-foreground hover:bg-background opacity-0 group-hover:opacity-100',
               justLiked && 'animate-pop'
             )}
           >
-            <Heart className={cn('w-4 h-4', wishlisted && 'fill-current')} />
+            <Heart className={cn('w-4 h-4', isWishlisted && 'fill-current')} />
           </button>
 
-          {/* Quick view */}
           <Link
             href={`/products/${product.slug}`}
             onClick={(e) => e.stopPropagation()}
@@ -113,7 +95,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             <Eye className="w-3.5 h-3.5" /> {t('view', lang)}
           </Link>
 
-          {/* Video / gallery indicators */}
           <div className="absolute bottom-2 right-2 flex items-center gap-1">
             {(product as any).videos?.length > 0 && (
               <span className="w-6 h-6 rounded-full bg-black/55 flex items-center justify-center" aria-label={t('videoAvailable', lang)}>
@@ -127,7 +108,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             )}
           </div>
 
-          {/* Out of stock overlay */}
           {product.stock_quantity === 0 && (
             <div className="absolute inset-0 bg-background/70 dark:bg-background/80 flex items-center justify-center">
               <span className="badge-gray text-xs font-bold">{t('outOfStock', lang)}</span>
@@ -135,7 +115,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
           )}
         </div>
 
-        {/* Info */}
         <div className="p-3">
           <p className="text-xs text-ink-500 dark:text-ink-400 mb-0.5 truncate">
             {product.seller?.store_name}
@@ -147,7 +126,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             {product.name}
           </h3>
 
-          {/* Rating */}
           {product.review_count > 0 && (
             <div className="flex items-center gap-1 mb-1.5">
               <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
@@ -156,7 +134,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             </div>
           )}
 
-          {/* Stock + delivery availability */}
           <div className="flex items-center gap-1.5 mb-2">
             {product.stock_quantity > 0 ? (
               <span className={cn('text-xs font-medium', product.stock_quantity <= 5 ? 'text-spice-600' : 'text-brand-600 dark:text-brand-300')}>
@@ -170,7 +147,6 @@ export default function ProductCard({ product, wishlisted: initialWishlisted = f
             </span>
           </div>
 
-          {/* Price & cart */}
           <div className="flex items-center justify-between gap-2">
             <div>
               <span className="font-bold text-sm text-ink-900 dark:text-white">{formatTZS(product.price)}</span>

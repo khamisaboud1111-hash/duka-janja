@@ -12,6 +12,11 @@ import ContactSellerButtons from './ContactSellerButtons'
 import { formatTZS, formatDate } from '@/utils'
 import type { Metadata } from 'next'
 
+import type { Product, ProductImage, ProductVideo, Review, Seller, Category } from '@/types'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ProductPageData = any
+
 interface Props {
   params: { id: string }
 }
@@ -31,7 +36,7 @@ async function getProduct(slug: string) {
     .eq('slug', slug)
     .eq('status', 'active')
     .single()
-  return data
+  return data as unknown as ProductPageData | null
 }
 
 async function getRelated(categoryId: string, productId: string) {
@@ -50,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(params.id)
   if (!product) return { title: 'Product not found' }
 
-  const productData = product as any
+  const productData = product as ProductPageData
 
   return {
     title: `${productData.name} - Duka Janja`,
@@ -59,13 +64,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = (await getProduct(params.id)) as any
+  const product = (await getProduct(params.id)) as ProductPageData | null
   if (!product) notFound()
 
-  const related = await getRelated(product.category_id, product.id)
+  const related = product.category_id ? await getRelated(product.category_id, product.id) : []
   const images = product.images ?? []
   const videos = product.videos ?? []
-  const primaryImage = images.find((i: any) => i.is_primary) ?? images[0]
+  const primaryImage = images.find((i: ProductImage) => i.is_primary) ?? images[0]
   const seller = product.seller
   const reviews = product.reviews ?? []
   const isVerifiedSeller = seller?.national_id_verified ?? false
@@ -112,7 +117,7 @@ export default async function ProductPage({ params }: Props) {
             {/* Thumbnails */}
             {images.length > 1 && (
               <div className="grid grid-cols-5 gap-2">
-                {images.map((img: any, idx: number) => (
+                {images.map((img: ProductImage, idx: number) => (
                   <div key={img.id} className="relative aspect-square rounded-xl overflow-hidden border-2 border-transparent cursor-pointer hover:border-brand-400 transition-colors">
                     <Image src={img.url} alt={`${product.name} ${idx + 1}`} fill sizes="80px" className="object-cover" />
                   </div>
@@ -123,7 +128,7 @@ export default async function ProductPage({ params }: Props) {
             {/* Videos */}
             {videos.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
-                {videos.map((vid: any) => (
+                {videos.map((vid: ProductVideo) => (
                   <video key={vid.id} src={vid.url} controls className="w-full aspect-video rounded-xl bg-muted object-cover" />
                 ))}
               </div>
@@ -147,7 +152,7 @@ export default async function ProductPage({ params }: Props) {
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <Star key={n} className={`w-4 h-4 ${n <= Math.round(product.average_rating) ? 'fill-amber-400 text-amber-400' : 'text-muted'}`} />
+                    <Star key={n} className={`w-4 h-4 ${n <= Math.round(product.average_rating ?? 0) ? 'fill-amber-400 text-amber-400' : 'text-muted'}`} />
                   ))}
                 </div>
                 <span className="text-sm font-semibold text-foreground">{(product.average_rating ?? 0).toFixed(1)}</span>
@@ -238,7 +243,7 @@ export default async function ProductPage({ params }: Props) {
             </div>
           ) : (
             <div className="space-y-4">
-              {reviews.map((review: any) => (
+              {reviews.map((review: Review & { buyer?: { full_name: string; avatar_url: string | null } | null }) => (
                 <div key={review.id} className="bg-card border border-border p-4">
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
@@ -278,7 +283,7 @@ export default async function ProductPage({ params }: Props) {
           <section className="mt-10">
             <h2 className="font-display font-bold text-xl text-foreground mb-4"><LText k="relatedProducts" /></h2>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-              {related.map((p: any) => <ProductCard key={p.id} product={p} />)}
+              {related.map((p: Product) => <ProductCard key={p.id} product={p} />)}
             </div>
           </section>
         )}

@@ -12,6 +12,26 @@ interface DayRevenue { date: string; revenue: number; orders: number; units: num
 interface CategoryBreakdown { name: string; revenue: number; count: number; avgPrice: number }
 interface TopProduct { name: string; revenue: number; quantity: number; avgRating: number }
 
+interface OrderItemAnalytics {
+  total_price: number
+  quantity: number
+  created_at: string
+  product_id: string
+  buyer_id: string
+  product: { name: string; category: { name_sw: string }[] | null } | null
+}
+
+interface PrevOrderItem {
+  total_price: number
+  quantity: number
+  created_at: string
+}
+
+interface ReviewRow {
+  rating: number
+  created_at: string
+}
+
 export default function SellerAnalyticsPage() {
   const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
@@ -41,7 +61,7 @@ export default function SellerAnalyticsPage() {
         .from('products')
         .select('id')
         .eq('seller_id', seller!.id)
-      const productIds = (sellerProducts ?? []).map((p: any) => p.id)
+      const productIds = (sellerProducts ?? []).map((p: { id: string }) => p.id)
 
       const [itemsRes, prevItemsRes, reviewsRes] = await Promise.all([
         supabase
@@ -61,7 +81,7 @@ export default function SellerAnalyticsPage() {
               .select('rating, created_at')
               .in('product_id', productIds)
               .gte('created_at', since)
-          : Promise.resolve({ data: [] as any[] }),
+          : Promise.resolve({ data: [] as ReviewRow[] }),
       ])
 
       const items = itemsRes.data ?? []
@@ -69,7 +89,7 @@ export default function SellerAnalyticsPage() {
 
       // Daily revenue aggregation
       const dayMap: Record<string, DayRevenue> = {}
-      items.forEach((item: any) => {
+      items.forEach((item: OrderItemAnalytics) => {
         const date = item.created_at.slice(0, 10)
         if (!dayMap[date]) dayMap[date] = { date, revenue: 0, orders: 0, units: 0 }
         dayMap[date].revenue += item.total_price
@@ -81,7 +101,7 @@ export default function SellerAnalyticsPage() {
 
       // Previous period for comparison
       const prevDayMap: Record<string, DayRevenue> = {}
-      prevItems.forEach((item: any) => {
+      prevItems.forEach((item: PrevOrderItem) => {
         const date = item.created_at.slice(0, 10)
         if (!prevDayMap[date]) prevDayMap[date] = { date, revenue: 0, orders: 0, units: 0 }
         prevDayMap[date].revenue += item.total_price
@@ -92,8 +112,8 @@ export default function SellerAnalyticsPage() {
 
       // Category breakdown
       const catMap: Record<string, CategoryBreakdown> = {}
-      items.forEach((item: any) => {
-        const cat = (item.product as any)?.category?.name_sw ?? 'Nyingine'
+      items.forEach((item: OrderItemAnalytics) => {
+        const cat = item.product?.category?.[0]?.name_sw ?? 'Nyingine'
         if (!catMap[cat]) catMap[cat] = { name: cat, revenue: 0, count: 0, avgPrice: 0 }
         catMap[cat].revenue += item.total_price
         catMap[cat].count += item.quantity
@@ -103,7 +123,7 @@ export default function SellerAnalyticsPage() {
 
       // Top products
       const prodMap: Record<string, TopProduct> = {}
-      items.forEach((item: any) => {
+      items.forEach((item: OrderItemAnalytics) => {
         const name = item.product?.name ?? 'Unknown'
         if (!prodMap[name]) prodMap[name] = { name, revenue: 0, quantity: 0, avgRating: 0 }
         prodMap[name].revenue += item.total_price
@@ -111,12 +131,12 @@ export default function SellerAnalyticsPage() {
       })
       setTopProducts(Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5))
 
-      const totalRevenue = items.reduce((s: number, i: any) => s + i.total_price, 0)
-      const totalUnits = items.reduce((s: number, i: any) => s + i.quantity, 0)
-      const prevRevenue = prevItems.reduce((s: number, i: any) => s + i.total_price, 0)
+      const totalRevenue = items.reduce((s: number, i: OrderItemAnalytics) => s + i.total_price, 0)
+      const totalUnits = items.reduce((s: number, i: OrderItemAnalytics) => s + i.quantity, 0)
+      const prevRevenue = prevItems.reduce((s: number, i: PrevOrderItem) => s + i.total_price, 0)
       const prevOrders = prevItems.length
       const reviews = reviewsRes.data ?? []
-      const uniqueBuyers = new Set(items.map((i: any) => i.buyer_id)).size
+      const uniqueBuyers = new Set(items.map((i: OrderItemAnalytics) => i.buyer_id)).size
 
       setSummary({
         revenue: totalRevenue,
@@ -124,7 +144,7 @@ export default function SellerAnalyticsPage() {
         units: totalUnits,
         avgOrder: items.length ? Math.round(totalRevenue / items.length) : 0,
         reviewCount: reviews.length,
-        avgRating: reviews.length ? reviews.reduce((s: number, r: any) => s + r.rating, 0) / reviews.length : 0,
+        avgRating: reviews.length ? reviews.reduce((s: number, r: ReviewRow) => s + r.rating, 0) / reviews.length : 0,
         prevRevenue,
         prevOrders,
         conversionRate: uniqueBuyers > 0 ? Math.min((items.length / (uniqueBuyers * 3)) * 100, 100) : 0,
