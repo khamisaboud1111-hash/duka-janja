@@ -54,7 +54,7 @@ export default function SellerOrdersPage() {
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.buyer?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.delivery_address.toLowerCase().includes(searchQuery.toLowerCase())
+      (order.delivery_address ?? '').toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter
     return matchesSearch && matchesStatus
   })

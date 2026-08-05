@@ -84,7 +84,7 @@ export default async function SellerStorePage({ params }: Props) {
               <div className="flex items-center gap-3 text-sm text-ink-500 dark:text-ink-400 mt-0.5 flex-wrap">
                 <span className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                  {seller.average_rating.toFixed(1)} ({seller.review_count} <LText k="reviews" />)
+                  {(seller.average_rating ?? 0).toFixed(1)} ({seller.review_count} <LText k="reviews" />)
                 </span>
                 <span className="flex items-center gap-1">
                   <Package className="w-3.5 h-3.5" />
@@ -116,8 +116,8 @@ export default async function SellerStorePage({ params }: Props) {
         <div className="grid grid-cols-3 gap-3 mb-6">
           {[
             { label: <LText k="products" />, value: products.length, icon: Package },
-            { label: <LText k="sales" />, value: seller.total_sales.toLocaleString(), icon: TrendingUp },
-            { label: <LText k="rating" />, value: `${seller.average_rating.toFixed(1)} ★`, icon: Star },
+            { label: <LText k="sales" />, value: (seller.total_sales ?? 0).toLocaleString(), icon: TrendingUp },
+            { label: <LText k="rating" />, value: `${(seller.average_rating ?? 0).toFixed(1)} ★`, icon: Star },
           ].map((s, i) => (
             <div key={i} className="card dark:bg-ink-900 dark:border-ink-800 p-3 text-center">
               <p className="font-black text-lg text-ink-900 dark:text-white">{s.value}</p>

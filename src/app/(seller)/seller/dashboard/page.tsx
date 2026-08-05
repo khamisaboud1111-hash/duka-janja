@@ -45,9 +45,12 @@ export default function SellerDashboardPage() {
   useEffect(() => {
     if (seller?.id) {
       loadDashboardData()
-      loadAlerts()
     }
   }, [seller])
+
+  useEffect(() => {
+    loadAlerts()
+  }, [stats])
 
   async function loadDashboardData() {
     if (!seller) return
@@ -82,7 +85,7 @@ export default function SellerDashboardPage() {
       // Get unique customers
       const { data: customersData } = await supabase
         .from('order_items')
-        .select(' DISTINCT buyer_id')
+        .select('buyer_id')
         .eq('seller_id', seller.id)
         .gte('created_at', since)
       
@@ -90,7 +93,9 @@ export default function SellerDashboardPage() {
       const items = ordersData ?? []
       const products = productsData ?? []
       const commissions = commissionsData ?? []
-      const customers = customersData ?? []
+      const customers = (customersData ?? []).filter((c: any, i: number, arr: any[]) =>
+        arr.findIndex((x: any) => x.buyer_id === c.buyer_id) === i
+      )
       
       // Order aggregation
       const orderMap = new Map<string, any>()
@@ -418,7 +423,7 @@ export default function SellerDashboardPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs text-ink-500 dark:text-ink-400">Inventory Efficiency</p>
-                    <p className="text-xs font-medium text-ink-900 dark:text-white">{((stats.totalProducts - stats.lowStockProducts) / stats.totalProducts * 100).toFixed(0)}%</p>
+                    <p className="text-xs font-medium text-ink-900 dark:text-white">{stats.totalProducts > 0 ? ((stats.totalProducts - stats.lowStockProducts) / stats.totalProducts * 100).toFixed(0) : '100'}%</p>
                   </div>
                   <div className="h-2 bg-ink-100 dark:bg-ink-800 rounded-full overflow-hidden">
                     <div className="h-full bg-purple-400 rounded-full" style={{ width: stats.totalProducts ? ((stats.totalProducts - stats.lowStockProducts) / stats.totalProducts * 100) : 0 }}></div>

@@ -13,7 +13,7 @@ import { useState } from 'react'
 
 const NAV: { href: string; labelKey: TranslationKey; icon: React.ElementType; label: string }[] = [
   { href: '/rider/dashboard', labelKey: 'riderDashboard', icon: LayoutDashboard, label: 'Dashibodi' },
-  { href: '/rider/available', labelKey: 'riderDeliveries', icon: Package, label: 'Historia' },
+  { href: '/rider/available', labelKey: 'availableDeliveries', icon: Package, label: 'Zinapatikana' },
   { href: '/rider/deliveries', labelKey: 'riderDeliveries', icon: History, label: 'Historia' },
   { href: '/rider/wallet', labelKey: 'riderWallet', icon: Wallet, label: 'Pochi' },
   { href: '/rider/profile', labelKey: 'profile', icon: User, label: 'Wasifu' },

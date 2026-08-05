@@ -150,7 +150,7 @@ export default async function ProductPage({ params }: Props) {
                     <Star key={n} className={`w-4 h-4 ${n <= Math.round(product.average_rating) ? 'fill-amber-400 text-amber-400' : 'text-muted'}`} />
                   ))}
                 </div>
-                <span className="text-sm font-semibold text-foreground">{product.average_rating.toFixed(1)}</span>
+                <span className="text-sm font-semibold text-foreground">{(product.average_rating ?? 0).toFixed(1)}</span>
                 <span className="text-sm text-muted-foreground">({product.review_count} <LText k="reviews" />)</span>
               </div>
             )}
@@ -218,7 +218,7 @@ export default async function ProductPage({ params }: Props) {
                       {isVerifiedSeller && <BadgeCheck className="w-4 h-4 text-brand-500" />}
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      ⭐ {seller.average_rating.toFixed(1)} · {seller.review_count} <LText k="reviews" /> · <LText k="sales" /> {seller.total_sales}
+                      ⭐ {(seller.average_rating ?? 0).toFixed(1)} · {seller.review_count} <LText k="reviews" /> · <LText k="sales" /> {seller.total_sales ?? 0}
                     </p>
                   </div>
                 </Link>

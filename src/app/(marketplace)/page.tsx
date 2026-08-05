@@ -23,15 +23,16 @@ async function getStats(): Promise<HomeStats> {
   const empty: HomeStats = { active_sellers: 0, verified_stores: 0, products_available: 0, orders_delivered: 0, active_riders: 0 }
   try {
     const supabase = createServerClient()
-    const [sellersRes, productsRes, ordersRes, ridersRes] = await Promise.all([
-      supabase.from('sellers').select('id, national_id_verified', { count: 'exact', head: true }).eq('status', 'approved'),
+    const [sellersRes, verifiedRes, productsRes, ordersRes, ridersRes] = await Promise.all([
+      supabase.from('sellers').select('id', { count: 'exact', head: true }).eq('status', 'approved'),
+      supabase.from('sellers').select('id', { count: 'exact', head: true }).eq('status', 'approved').eq('national_id_verified', true),
       supabase.from('products').select('id', { count: 'exact', head: true }).eq('status', 'active'),
       supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'delivered'),
       supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'rider'),
     ])
     return {
       active_sellers: sellersRes.count ?? 0,
-      verified_stores: 0,
+      verified_stores: verifiedRes.count ?? 0,
       products_available: productsRes.count ?? 0,
       orders_delivered: ordersRes.count ?? 0,
       active_riders: ridersRes.count ?? 0,

@@ -48,7 +48,11 @@ export default function AdminRidersPage() {
     if (filter === 'verified') q = q.eq('is_verified', true).eq('account_status', 'active')
     if (filter === 'suspended') q = q.eq('account_status', 'suspended')
 
-    const { data } = await q
+    const { data, error } = await q
+    if (error) {
+      console.error('Failed to load riders:', error.message)
+      toast.error('Imeshindikana kupakia madereva')
+    }
     setRiders((data as any) ?? [])
     setLoading(false)
   }
@@ -147,7 +151,7 @@ export default function AdminRidersPage() {
                   {rider.total_deliveries > 0 && (
                     <div className="flex items-center gap-1 mt-2 text-xs text-amber-600">
                       <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      {rider.rating_average.toFixed(1)} · {rider.total_deliveries} safari
+                      {(rider.rating_average ?? 0).toFixed(1)} · {rider.total_deliveries} safari
                     </div>
                   )}
                 </div>

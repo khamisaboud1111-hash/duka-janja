@@ -11,12 +11,28 @@ import toast from 'react-hot-toast'
 import { useLangStore } from '@/store'
 import { t, type Language } from '@/i18n/translations'
 
+interface RiderProfile {
+  id: string
+  is_verified: boolean
+  is_online: boolean
+  account_status: string
+  wallet_balance: number
+  rating_average: number
+  total_ratings: number
+  total_deliveries: number
+  payout_method?: string
+  payout_account_number?: string
+  vehicle_type?: string
+  zone?: string
+  created_at: string
+}
+
 export default function RiderProfilePage() {
   const supabase = createClient()
   const router = useRouter()
   const { profile, loading: userLoading } = useUser()
   const lang = useLangStore((s) => s.lang)
-  const [riderProfile, setRiderProfile] = useState<any>(null)
+  const [riderProfile, setRiderProfile] = useState<RiderProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editField, setEditField] = useState<string | null>(null)
@@ -46,13 +62,13 @@ export default function RiderProfilePage() {
   async function saveField() {
     if (!editField || !profile) return
     setSaving(true)
-    const updateData: any = {}
+    const updateData: Record<string, string | null> = {}
     updateData[editField] = fieldValue || null
     const { error } = await supabase.from('rider_profiles').update(updateData).eq('id', profile.id)
     if (error) {
       toast.error('Imeshindikana kusasisha')
     } else {
-      setRiderProfile((prev: any) => prev ? { ...prev, [editField]: fieldValue } : prev)
+      setRiderProfile((prev) => prev ? { ...prev, [editField]: fieldValue } : prev)
       toast.success('Imesasishwa')
     }
     setSaving(false)

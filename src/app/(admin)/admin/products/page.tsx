@@ -23,7 +23,11 @@ export default function AdminProductsPage() {
       .select(`*, seller:sellers(store_name, user_id), category:categories(name_sw), images:product_images(*)`)
       .order('created_at', { ascending: false })
     if (filter !== 'all') q = q.eq('status', filter)
-    const { data } = await q
+    const { data, error } = await q
+    if (error) {
+      console.error('Failed to load products:', error.message)
+      toast.error('Imeshindikana kupakia bidhaa')
+    }
     setProducts(data ?? [])
     setLoading(false)
   }

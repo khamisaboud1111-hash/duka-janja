@@ -22,7 +22,11 @@ export default function AdminSellersPage() {
     setLoading(true)
     let q = supabase.from('sellers').select(`*, profile:profiles(full_name, email, phone, created_at)`).order('created_at', { ascending: false })
     if (filter !== 'all') q = q.eq('status', filter)
-    const { data } = await q
+    const { data, error } = await q
+    if (error) {
+      console.error('Failed to load sellers:', error.message)
+      toast.error('Imeshindikana kupakia wauuzaji')
+    }
     setSellers(data ?? [])
     setLoading(false)
   }

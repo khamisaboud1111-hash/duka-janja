@@ -35,6 +35,8 @@ export default function RiderWalletPage() {
   const [balance, setBalance] = useState(0)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [withdrawals, setWithdrawals] = useState<WithdrawalRequest[]>([])
+  const [payoutMethod, setPayoutMethod] = useState('')
+  const [payoutAccountNumber, setPayoutAccountNumber] = useState('')
   const [loading, setLoading] = useState(true)
   const [withdrawing, setWithdrawing] = useState(false)
   const [withdrawAmount, setWithdrawAmount] = useState('')
@@ -49,7 +51,11 @@ export default function RiderWalletPage() {
         supabase.from('rider_transactions').select('*').eq('rider_id', profile!.id).order('created_at', { ascending: false }).limit(100),
         supabase.from('rider_withdrawals').select('*').eq('rider_id', profile!.id).order('created_at', { ascending: false }).limit(20),
       ])
-      if (profileRes.data) setBalance(profileRes.data.wallet_balance || 0)
+      if (profileRes.data) {
+        setBalance(profileRes.data.wallet_balance || 0)
+        setPayoutMethod(profileRes.data.payout_method || '')
+        setPayoutAccountNumber(profileRes.data.payout_account_number || '')
+      }
       setTransactions((transRes.data ?? []) as Transaction[])
       setWithdrawals((withdrawalRes.data ?? []) as WithdrawalRequest[])
       setLoading(false)
@@ -58,8 +64,8 @@ export default function RiderWalletPage() {
   }, [profile, supabase])
 
   const stats = useMemo(() => {
-    const earned = transactions.filter(t => t.type === 'earning').reduce((s, t) => s + t.amount, 0)
-    const withdrawn = transactions.filter(t => t.type === 'withdrawal').reduce((s, t) => s + Math.abs(t.amount), 0)
+    const earned = transactions.filter(txn => txn.type === 'earning').reduce((s, txn) => s + txn.amount, 0)
+    const withdrawn = transactions.filter(txn => txn.type === 'withdrawal').reduce((s, txn) => s + Math.abs(txn.amount), 0)
     const pending = withdrawals.filter(w => w.status === 'pending').reduce((s, w) => s + w.amount, 0)
     return { earned, withdrawn, pending }
   }, [transactions, withdrawals])
@@ -76,8 +82,8 @@ export default function RiderWalletPage() {
         rider_id: profile!.id,
         amount,
         status: 'pending',
-        method: 'mpesa',
-        account_number: '',
+        method: payoutMethod || 'mpesa',
+        account_number: payoutAccountNumber || '',
       })
       if (error) throw error
       toast.success('Ombi la kutoa pesa limetumwa')

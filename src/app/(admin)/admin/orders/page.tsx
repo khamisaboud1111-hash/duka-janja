@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ShoppingBag, ChevronRight } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { OrderStatusBadge } from '@/components/ui/Badge'
 import { PageLoader, EmptyState } from '@/components/ui'
 import { formatTZS, formatDate } from '@/utils'
 import type { Order, OrderStatus } from '@/types'
+import toast from 'react-hot-toast'
 
 export default function AdminOrdersPage() {
   const supabase = createClient()
@@ -24,7 +25,11 @@ export default function AdminOrdersPage() {
         .order('created_at', { ascending: false })
         .limit(100)
       if (filter !== 'all') q = q.eq('status', filter)
-      const { data } = await q
+      const { data, error } = await q
+      if (error) {
+        console.error('Failed to load orders:', error.message)
+        toast.error('Imeshindikana kupakia maagizo')
+      }
       setOrders(data ?? [])
       setLoading(false)
     }
@@ -60,7 +65,6 @@ export default function AdminOrdersPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-ink-600 uppercase hidden sm:table-cell">Mteja</th>
                   <th className="text-right px-4 py-3 text-xs font-semibold text-ink-600 uppercase">Jumla</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-ink-600 uppercase">Hali</th>
-                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-ink-100">
@@ -76,9 +80,6 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-ink-900">{formatTZS(order.total_amount)}</td>
                     <td className="px-4 py-3 text-center"><OrderStatusBadge status={order.status} /></td>
-                    <td className="px-4 py-3 text-right">
-                      <ChevronRight className="w-4 h-4 text-ink-400 inline" />
-                    </td>
                   </tr>
                 ))}
               </tbody>

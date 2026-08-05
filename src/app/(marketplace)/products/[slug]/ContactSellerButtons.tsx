@@ -28,11 +28,13 @@ export default function ContactSellerButtons({ seller, productName, priceLabel }
         <MessageCircle className="w-4 h-4" />
         WhatsApp
       </a>
-      <Link href={`/messages/${seller.id}`}
-        className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-brand-500 text-brand-600 dark:text-brand-300 font-semibold hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors text-sm">
-        <MessageCircle className="w-4 h-4" />
-        {t('chatHere', lang)}
-      </Link>
+      {seller.id && (
+        <Link href={`/messages/${seller.id}`}
+          className="flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-brand-500 text-brand-600 dark:text-brand-300 font-semibold hover:bg-brand-50 dark:hover:bg-brand-500/10 transition-colors text-sm">
+          <MessageCircle className="w-4 h-4" />
+          {t('chatHere', lang)}
+        </Link>
+      )}
     </div>
   )
 }

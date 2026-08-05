@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { StatCard, PageLoader } from '@/components/ui'
 import { OrderStatusBadge, SellerStatusBadge } from '@/components/ui/Badge'
 import { formatTZS, formatDate } from '@/utils'
+import toast from 'react-hot-toast'
 
 export default function AdminDashboardPage() {
   const supabase = createClient()
@@ -43,6 +44,12 @@ export default function AdminDashboardPage() {
       const orders = ordersRes.data ?? []
       const commissions = commissionsRes.data ?? []
 
+      if (sellersRes.error) console.error('Failed to load sellers:', sellersRes.error.message)
+      if (productsRes.error) console.error('Failed to load products:', productsRes.error.message)
+      if (ordersRes.error) console.error('Failed to load orders:', ordersRes.error.message)
+      if (commissionsRes.error) console.error('Failed to load commissions:', commissionsRes.error.message)
+      if (recentOrdersRes.error) console.error('Failed to load recent orders:', recentOrdersRes.error.message)
+
       setStats({
         totalSellers: sellersRes.count ?? 0,
         pendingSellers: pendingSellersRes.count ?? 0,
@@ -59,7 +66,7 @@ export default function AdminDashboardPage() {
       setLoading(false)
     }
     load()
-  }, [])
+  }, [supabase])
 
   if (loading) return <PageLoader />
 

@@ -285,7 +285,7 @@ export const ar = {
   allProducts: 'جميع المنتجات',
   selling: 'البيع',
   support: 'الدعم',
-  copyright: '© 2024 دوكا جانجا. جميع الحقوق محفوظة.',
+  copyright: '© {year} دوكا جانجا. جميع الحقوق محفوظة.',
   newsletterTitle: 'احصل على عروض حصرية في بريدك',
   newsletterDesc: 'انضم إلى آلاف المشتركين واحصل على أفضل عروض زنجبار.',
   subscribe: 'اشترك',

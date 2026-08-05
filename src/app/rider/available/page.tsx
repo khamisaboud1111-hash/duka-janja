@@ -6,9 +6,10 @@ import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
 import { cn } from '@/utils'
-import { formatTZS, formatDate } from '@/utils'
+import { formatTZS } from '@/utils'
 import { useLangStore } from '@/store'
 import { t, type Language } from '@/i18n/translations'
+import toast from 'react-hot-toast'
 
 interface AvailableDelivery {
   id: string
@@ -50,7 +51,7 @@ export default function RiderAvailablePage() {
 
       const { data } = await supabase
         .from('deliveries')
-        .select('id, pickup_address, delivery_address, delivery_fee, distance_meters, created_at, status')
+        .select('id, pickup_address, delivery_address, delivery_fee, distance_meters, created_at, status, delivery_type, customer_name, customer_rating')
         .eq('status', 'available')
         .order('created_at', { ascending: false })
         .limit(50)
@@ -63,7 +64,7 @@ export default function RiderAvailablePage() {
   const filtered = useMemo(() => {
     let result = deliveries
 
-    if (filter !== 'all') {
+    if (filter !== 'all' && filter !== 'nearest') {
       result = result.filter(d => d.delivery_type === filter)
     }
 
@@ -98,8 +99,20 @@ export default function RiderAvailablePage() {
     }
   }, [deliveries])
 
-  function requestDelivery(deliveryId: string) {
-    console.log('Requesting delivery:', deliveryId)
+  async function requestDelivery(deliveryId: string) {
+    if (!profile) return
+    try {
+      const { error } = await supabase
+        .from('deliveries')
+        .update({ status: 'accepted', rider_id: profile.id, accepted_at: new Date().toISOString() })
+        .eq('id', deliveryId)
+        .eq('status', 'available')
+      if (error) throw error
+      setDeliveries(prev => prev.filter(d => d.id !== deliveryId))
+      toast.success(t('deliveryAccepted', lang))
+    } catch {
+      toast.error(t('failedToAcceptDelivery', lang))
+    }
   }
 
   function getDistanceDisplay(distance: number | null): string {

@@ -107,7 +107,7 @@ export default function OnboardingShell({ children }: { children: React.ReactNod
 
         {/* ── Footer ───────────────────────────────────────────────────── */}
         <footer className="relative z-10 pb-6 pt-2 text-center text-xs text-white/40">
-          © 2024 Duka Janja · Zanzibar, Tanzania
+          © {new Date().getFullYear()} Duka Janja · Zanzibar, Tanzania
         </footer>
       </div>
     </MotionConfig>

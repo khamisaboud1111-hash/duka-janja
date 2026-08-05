@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { Upload, X, Loader2, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/utils'
@@ -35,6 +35,12 @@ export default function RiderDocumentUploader({
   const [uploading, setUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
+    }
+  }, [previewUrl])
+
   async function uploadFile(file: File) {
     const allowed = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
     if (!allowed.includes(file.type)) {
@@ -64,6 +70,7 @@ export default function RiderDocumentUploader({
 
     onChange(data.path)
     if (file.type.startsWith('image/')) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl)
       setPreviewUrl(URL.createObjectURL(file))
     }
     setUploading(false)
@@ -97,7 +104,7 @@ export default function RiderDocumentUploader({
             </span>
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onChange(''); setPreviewUrl(null) }}
+              onClick={(e) => { e.stopPropagation(); onChange(''); if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null) }}
               className="absolute top-2 right-2 w-7 h-7 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 shadow-sm z-10"
             >
               <X className="w-3.5 h-3.5" />

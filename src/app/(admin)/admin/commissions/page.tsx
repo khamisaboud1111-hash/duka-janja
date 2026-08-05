@@ -23,7 +23,11 @@ export default function AdminCommissionsPage() {
       .order('created_at', { ascending: false })
     if (filter === 'unpaid') q = q.eq('is_paid', false)
     if (filter === 'paid') q = q.eq('is_paid', true)
-    const { data } = await q
+    const { data, error } = await q
+    if (error) {
+      console.error('Failed to load commissions:', error.message)
+      toast.error('Imeshindikana kupakia kamisheni')
+    }
     setCommissions(data ?? [])
     setLoading(false)
   }

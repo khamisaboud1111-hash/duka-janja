@@ -145,7 +145,7 @@ export default function SettingsPage() {
       <div className="bg-white dark:bg-ink-900">
         <div className="relative pt-12 pb-6 flex flex-col items-center">
           <div className="relative group mb-4">
-            <div className="w-28 h-28 rounded-full overflow-hidden bg-ink-100 dark:bg-ink-800 ring-4 ring-card shadow-lg">
+            <div className="w-28 h-28 rounded-full overflow-hidden bg-muted ring-4 ring-card shadow-lg">
               {avatar ? (
                 <img src={avatar} alt="" className="w-full h-full object-cover" />
               ) : (

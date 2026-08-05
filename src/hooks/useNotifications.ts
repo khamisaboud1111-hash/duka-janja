@@ -67,6 +67,7 @@ export function useNotifications() {
   async function markRead(id: string) {
     await supabase.from('notifications').update({ is_read: true }).eq('id', id)
     setNotifications((prev) => prev.map((n) => n.id === id ? { ...n, is_read: true } : n))
+    // NOTE: If a notification was already read elsewhere, this may decrement below the true count. Acceptable for a client-side optimistic update.
     setUnreadCount((c) => Math.max(0, c - 1))
   }
 

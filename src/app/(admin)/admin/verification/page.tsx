@@ -30,7 +30,11 @@ export default function AdminVerificationQueuePage() {
       .select('*, seller:sellers(id, store_name)')
       .order('created_at', { ascending: false })
     if (filter !== 'all') q = q.eq('status', filter)
-    const { data } = await q
+    const { data, error } = await q
+    if (error) {
+      console.error('Failed to load verification docs:', error.message)
+      toast.error('Imeshindikana kupakia hati za uthibitisho')
+    }
     setDocs((data as DocRow[]) ?? [])
     setLoading(false)
   }

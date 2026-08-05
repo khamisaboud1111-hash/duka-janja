@@ -53,6 +53,8 @@ export default function SellerMessagesPage() {
       .select('id, buyer_id, buyer:profiles(full_name, avatar_url)')
       .eq('seller_id', seller!.id)
 
+    // NOTE: N+1 query problem — two queries per room (last message + unread count).
+    // A more optimal approach would batch these into a single query or use a DB view/rpc.
     const previews: RoomPreview[] = []
     for (const r of roomRows ?? []) {
       const { data: lastMsg } = await supabase

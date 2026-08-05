@@ -22,15 +22,23 @@ export default function WishlistPage() {
 
   useEffect(() => {
     if (!profile) return
-    supabase
-      .from('wishlists')
-      .select(`*, product:products(*, seller:sellers(store_name, status, national_id_verified), images:product_images(*))`)
-      .eq('user_id', profile.id)
-      .order('created_at', { ascending: false })
-      .then(({ data }) => {
+    ;(async () => {
+      try {
+        const { data, error } = await supabase
+          .from('wishlists')
+          .select(`*, product:products(*, seller:sellers(store_name, status, national_id_verified), images:product_images(*))`)
+          .eq('user_id', profile.id)
+          .order('created_at', { ascending: false })
+        if (error) {
+          console.error('Failed to load wishlist:', error.message)
+        }
         setItems(data ?? [])
+      } catch (err) {
+        console.error('Wishlist fetch failed:', err)
+      } finally {
         setLoading(false)
-      })
+      }
+    })()
   }, [profile])
 
   if (authLoading) return <PageLoader />

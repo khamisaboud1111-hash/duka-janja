@@ -5,6 +5,7 @@ import { Truck, Star, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
 import LiveDeliveryMap from '@/components/delivery/LiveDeliveryMap'
+import toast from 'react-hot-toast'
 
 interface OnlineRider {
   rider_id: string
@@ -39,19 +40,27 @@ export default function AdminDeliveriesPage() {
   }, [])
 
   async function load() {
-    const { data } = await supabase.rpc('list_online_riders')
+    const { data, error } = await supabase.rpc('list_online_riders')
+    if (error) {
+      console.error('Failed to load online riders:', error.message)
+      toast.error('Imeshindikana kupakia madereva mtandaoni')
+    }
     setRiders((data as OnlineRider[]) ?? [])
     setLoading(false)
   }
 
   async function viewDelivery(deliveryId: string) {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('deliveries')
       .select('id, pickup_location, delivery_location')
       .eq('id', deliveryId)
       .single()
 
-    if (!data) return
+    if (error || !data) {
+      console.error('Failed to load delivery:', error?.message)
+      toast.error('Imeshindikana kupakia maelezo ya usafirishaji')
+      return
+    }
 
     // pickup_location/delivery_location come back as GeoJSON via PostgREST.
     const pickupCoords = (data.pickup_location as any)?.coordinates
@@ -111,7 +120,7 @@ export default function AdminDeliveriesPage() {
                   <div>
                     <p className="font-semibold text-sm text-ink-900">{r.full_name}</p>
                     <p className="text-xs text-ink-500 flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {r.rating_average.toFixed(1)} · {r.total_deliveries} safari
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" /> {(r.rating_average ?? 0).toFixed(1)} · {r.total_deliveries} safari
                     </p>
                   </div>
                 </div>

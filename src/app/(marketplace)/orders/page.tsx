@@ -1,6 +1,6 @@
 'use client'
 
-import { redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Package, ChevronRight } from 'lucide-react'
@@ -15,12 +15,13 @@ import { Skeleton } from '@/components/shared/SkeletonComposites'
 import { PageHeader } from '@/components/shared/PageHeader'
 
 export default function OrdersPage() {
+  const router = useRouter()
   const { profile, loading: authLoading } = useUser()
   const { orders, loading } = useBuyerOrders()
   const lang = useLangStore((s) => s.lang)
 
   if (authLoading) return <PageLoader />
-  if (!profile) { redirect('/login'); return null }
+  if (!profile) { router.push('/login'); return null }
 
   return (
     <main className="pb-20 sm:pb-8 min-h-screen">

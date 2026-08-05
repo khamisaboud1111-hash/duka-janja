@@ -134,7 +134,7 @@ export default function SellerSettingsPage() {
   }
 
   async function handleCreateStore() {
-    if (!editField || !profile) return
+    if (!profile || fieldValue.trim().length < 2) return
     setSaving(true)
     const slug = slugify(fieldValue) + '-' + Date.now().toString(36).slice(-4)
     const { error } = await supabase.from('sellers').insert({

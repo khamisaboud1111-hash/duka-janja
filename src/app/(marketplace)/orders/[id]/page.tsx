@@ -25,7 +25,7 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
     `)
     .eq('id', params.id)
     .eq('buyer_id', user.id)
-    .single() as any
+    .single() as { data: any }
 
   if (!order) notFound()
 

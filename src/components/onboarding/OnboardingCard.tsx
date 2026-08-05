@@ -206,6 +206,10 @@ function SignInForm({ onSwitch }: { onSwitch: () => void }) {
       setSuccess(true)
       toast.success(t('redirecting', lang))
 
+      // NOTE: The ?redirect= param is lost if the user navigates away from the
+      // onboarding shell (e.g. to email confirmation) and returns. This is a known
+      // limitation of the current auth flow — the redirect is only preserved within
+      // a single page load.
       const redirectPath = new URLSearchParams(window.location.search).get('redirect') ?? ''
       const destination =
         redirectPath && redirectPath.startsWith('/')

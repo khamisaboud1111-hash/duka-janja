@@ -342,15 +342,3 @@ function sortLabel(sort: string, lang: Language) {
   const map: Record<string, string> = { price_asc: t('sortPriceAsc', lang), price_desc: t('sortPriceDesc', lang), popular: t('sortPopular', lang) }
   return map[sort] ?? sort
 }
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 1023px)')
-    const update = () => setIsMobile(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
-  return isMobile
-}

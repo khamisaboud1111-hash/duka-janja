@@ -15,18 +15,6 @@ import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 
-const schema = z.object({
-  delivery_name:    z.string(),
-  delivery_phone:   z.string(),
-  delivery_zone:    z.string(),
-  delivery_address: z.string(),
-  payment_method:   z.string(),
-  payment_reference: z.string().optional(),
-  notes:            z.string().optional(),
-})
-
-type FormData = z.infer<typeof schema>
-
 function makeSchema(lang: Language) {
   return z.object({
     delivery_name:    z.string().min(2, t('nameRequired', lang)),
@@ -38,6 +26,8 @@ function makeSchema(lang: Language) {
     notes:            z.string().optional(),
   })
 }
+
+type FormData = z.infer<ReturnType<typeof makeSchema>>
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -51,8 +41,8 @@ export default function CheckoutPage() {
     defaultValues: { payment_method: 'mpesa' }
   })
 
-  const selectedZone = watch('delivery_zone') as DeliveryZone
-  const deliveryFee = selectedZone ? DELIVERY_ZONES[selectedZone]?.fee ?? 0 : 0
+  const selectedZone = watch('delivery_zone') as string
+  const deliveryFee = selectedZone ? DELIVERY_ZONES[selectedZone as DeliveryZone]?.fee ?? 0 : 0
   const total = subtotal() + deliveryFee
 
   async function onSubmit(data: FormData) {
@@ -192,7 +182,6 @@ export default function CheckoutPage() {
       toast.error(t('networkError', lang))
     }
 
-    setSuccess(order.id)
     setSubmitting(false)
   }
 

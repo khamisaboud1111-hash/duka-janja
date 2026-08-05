@@ -12,6 +12,7 @@ export function usePullToRefresh() {
   const [refreshing, setRefreshing] = useState(false)
   const startY = useRef(0)
   const active = useRef(false)
+  const pullDistanceRef = useRef(0)
 
   useEffect(() => {
     function onTouchStart(e: TouchEvent) {
@@ -26,14 +27,16 @@ export function usePullToRefresh() {
       const delta = e.touches[0].clientY - startY.current
       if (delta > 0 && window.scrollY <= 0) {
         setPulling(true)
-        setPullDistance(Math.min(delta * 0.5, 100))
+        const d = Math.min(delta * 0.5, 100)
+        pullDistanceRef.current = d
+        setPullDistance(d)
       }
     }
 
     async function onTouchEnd() {
       if (!active.current) return
       active.current = false
-      if (pullDistance > THRESHOLD) {
+      if (pullDistanceRef.current > THRESHOLD) {
         setRefreshing(true)
         setPullDistance(THRESHOLD)
         await new Promise((r) => setTimeout(r, 600))
@@ -42,6 +45,7 @@ export function usePullToRefresh() {
         setRefreshing(false)
       }
       setPulling(false)
+      pullDistanceRef.current = 0
       setPullDistance(0)
     }
 
@@ -54,8 +58,7 @@ export function usePullToRefresh() {
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('touchend', onTouchEnd)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pullDistance])
+  }, [])
 
   return { pulling, pullDistance, refreshing }
 }

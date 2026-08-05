@@ -6,7 +6,10 @@ import { createServerClient } from '@/lib/supabase/server'
 
 export default async function MarketplaceLayout({ children }: { children: React.ReactNode }) {
   const supabase = createServerClient()
-  const { data: categories } = await supabase.from('categories').select('*').order('sort_order')
+  const { data: categories, error } = await supabase.from('categories').select('*').order('sort_order')
+  if (error) {
+    console.error('Failed to load categories:', error.message)
+  }
 
   return (
     <>

@@ -36,10 +36,17 @@ export default function SellerAnalyticsPage() {
       const since = new Date(Date.now() - days * 86400000).toISOString()
       const prevSince = new Date(Date.now() - days * 2 * 86400000).toISOString()
 
+      // First get seller's product IDs for the reviews query
+      const { data: sellerProducts } = await supabase
+        .from('products')
+        .select('id')
+        .eq('seller_id', seller!.id)
+      const productIds = (sellerProducts ?? []).map((p: any) => p.id)
+
       const [itemsRes, prevItemsRes, reviewsRes] = await Promise.all([
         supabase
           .from('order_items')
-          .select('total_price, quantity, created_at, product_id, product:products(name, category:categories(name_sw))')
+          .select('total_price, quantity, created_at, product_id, buyer_id, product:products(name, category:categories(name_sw))')
           .eq('seller_id', seller!.id)
           .gte('created_at', since),
         supabase
@@ -48,11 +55,13 @@ export default function SellerAnalyticsPage() {
           .eq('seller_id', seller!.id)
           .gte('created_at', prevSince)
           .lt('created_at', since),
-        supabase
-          .from('reviews')
-          .select('rating, created_at')
-          .eq('product_id', 'any')
-          .gte('created_at', since),
+        productIds.length > 0
+          ? supabase
+              .from('reviews')
+              .select('rating, created_at')
+              .in('product_id', productIds)
+              .gte('created_at', since)
+          : Promise.resolve({ data: [] as any[] }),
       ])
 
       const items = itemsRes.data ?? []

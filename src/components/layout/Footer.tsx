@@ -20,6 +20,7 @@ export default function Footer() {
             <h3 className="font-display font-bold text-white text-lg">{t('newsletterTitle', lang)}</h3>
             <p className="text-xs text-ink-400 mt-1 max-w-sm">{t('newsletterDesc', lang)}</p>
           </div>
+          {/* TODO: Newsletter form is a UI placeholder — wire up to a real mailing list API */}
           <form
             className="flex w-full sm:w-auto gap-2"
             onSubmit={(e) => {
@@ -77,7 +78,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-ink-800 pt-6 flex flex-col sm:flex-row justify-between gap-2 text-xs text-ink-500">
-          <span>{t('copyright', lang)}</span>
+          <span>{t('copyright', lang).replace('{year}', String(new Date().getFullYear()))}</span>
           <span>Zanzibar, Tanzania</span>
         </div>
       </div>

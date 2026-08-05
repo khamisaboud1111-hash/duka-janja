@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Moon, Sun } from 'lucide-react'
 import LanguageSwitcher from '@/components/layout/LanguageSwitcher'
@@ -10,15 +10,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const { theme, hasHydrated, setTheme } = useThemeStore()
 
   // Force dark mode when arriving at auth pages
+  const prevRef = useRef(theme)
   useEffect(() => {
     if (!hasHydrated) return
-    // Remember the previous theme so we can restore on leave
-    const prev = theme
+    prevRef.current = theme
     setTheme('dark')
-    return () => {
-      // Restore previous theme when navigating away
-      setTheme(prev)
-    }
+    return () => { setTheme(prevRef.current) }
   }, [hasHydrated])
 
   return (
@@ -47,7 +44,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
       <footer className="p-4 text-center text-xs text-ink-500">
-        © 2024 Duka Janja · Zanzibar, Tanzania
+        © {new Date().getFullYear()} Duka Janja · Zanzibar, Tanzania
       </footer>
     </div>
   )
