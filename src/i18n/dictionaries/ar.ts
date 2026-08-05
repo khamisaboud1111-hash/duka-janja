@@ -184,20 +184,17 @@ export const ar = {
   required: 'هذا الحقل مطلوب',
 
   // Search & Nav
-  searchPlaceholder: 'ابحث عن المنتجات، المتاجر...',
+  searchPlaceholder: 'ابحث عن ملايين المنتجات والمتاجر الموثوقة...',
   searchButton: 'بحث',
-  toggleMenu: 'تبديل القائمة',
+  toggleMenu: 'فتح القائمة',
   closeMenu: 'إغلاق القائمة',
   categoriesLabel: 'الفئات:',
-  ultimate: 'Ultimate',
+  ultimate: 'الأفضل',
   shipping: 'التوصيل',
   order: 'طلب',
-  map: 'خريطة',
+  map: 'الخريطة',
   categories: 'الفئات',
   offers: 'عروض',
-  marketMap: 'خريطة السوق',
-  you: 'أنت',
-  popularCategories: 'الفئات الشائعة',
 
   // Hero
   securePayments: 'مدفوعات آمنة',

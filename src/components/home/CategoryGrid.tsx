@@ -1,10 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
+import {
+  ShoppingBag, Utensils, Shirt, Gem, Home, Laptop,
+  BookOpen, Baby, Wrench, Leaf, Sparkles
+} from 'lucide-react'
 
 interface Category {
   id: string
@@ -12,30 +15,24 @@ interface Category {
   name_sw: string
   slug: string
   icon: string
-  image_url?: string
   [key: string]: any
 }
 
-const CATEGORY_IMAGES: Record<string, string> = {
-  spices: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?q=80&w=400&auto=format&fit=crop',
-  fashion: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=400&auto=format&fit=crop',
-  food: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?q=80&w=400&auto=format&fit=crop',
-  handmade: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=400&auto=format&fit=crop',
-  electronics: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?q=80&w=400&auto=format&fit=crop',
-  beauty: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=400&auto=format&fit=crop',
-  home: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?q=80&w=400&auto=format&fit=crop',
-  sports: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400&auto=format&fit=crop',
-  books: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?q=80&w=400&auto=format&fit=crop',
-  default: 'https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=400&auto=format&fit=crop',
+const ICON_MAP: Record<string, any> = {
+  shopping_bag: ShoppingBag,
+  utensils: Utensils,
+  shirt: Shirt,
+  gem: Gem,
+  home: Home,
+  laptop: Laptop,
+  book: BookOpen,
+  baby: Baby,
+  wrench: Wrench,
+  leaf: Leaf,
 }
 
-function getCategoryImage(cat: Category) {
-  if (cat.image_url) return cat.image_url
-  const slug = cat.slug?.toLowerCase() || ''
-  for (const [key, url] of Object.entries(CATEGORY_IMAGES)) {
-    if (slug.includes(key)) return url
-  }
-  return CATEGORY_IMAGES.default
+function getCategoryIcon(iconName: string) {
+  return ICON_MAP[iconName] || ShoppingBag
 }
 
 export default function CategoryGrid({ categories }: { categories: Category[] }) {
@@ -46,42 +43,70 @@ export default function CategoryGrid({ categories }: { categories: Category[] })
   return (
     <section className="section">
       <div className="page-container">
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">{t('popularCategories', lang)}</h2>
-          </div>
-          <Link href="/search" className="text-sm text-brand-400 dark:text-brand-300 font-semibold whitespace-nowrap">
-            {t('seeAll', lang)} →
-          </Link>
+        <div className="text-center max-w-xl mx-auto mb-8">
+          <motion.span
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4 }}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-spice-100 dark:bg-spice-900/40 text-spice-700 dark:text-spice-300 text-[11px] font-bold tracking-wide uppercase mb-4"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> {t('browseCategories', lang)}
+          </motion.span>
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="font-display font-bold text-2xl sm:text-3xl text-ink-900 dark:text-white"
+          >
+            {t('shopByCategory', lang)}
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-sm text-ink-500 dark:text-ink-300 mt-2"
+          >
+            {t('categorySubtitle', lang)}
+          </motion.p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-          {categories.slice(0, 4).map((cat, i) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.06 }}
-            >
-              <Link
-                href={`/category/${cat.slug}`}
-                className="group relative block aspect-[4/3] rounded-2xl overflow-hidden"
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+          {categories.slice(0, 6).map((cat, i) => {
+            const Icon = getCategoryIcon(cat.icon)
+            return (
+              <motion.div
+                key={cat.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.06 }}
               >
-                <Image
-                  src={getCategoryImage(cat)}
-                  alt={lang === 'sw' ? cat.name_sw : cat.name_en}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 p-3">
-                  <span className="text-white font-bold text-sm">{lang === 'sw' ? cat.name_sw : cat.name_en}</span>
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                <Link
+                  href={`/category/${cat.slug}`}
+                  className="group flex flex-col items-center gap-3 p-4 sm:p-5 rounded-2xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center shadow-glow-brand group-hover:scale-110 transition-transform">
+                    <Icon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  </div>
+                  <span className="text-xs sm:text-sm font-semibold text-ink-800 dark:text-ink-100 text-center leading-tight">
+                    {lang === 'sw' ? cat.name_sw : cat.name_en}
+                  </span>
+                </Link>
+              </motion.div>
+            )
+          })}
+        </div>
+
+        <div className="text-center mt-6">
+          <Link
+            href="/search"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-300 hover:gap-2.5 transition-all"
+          >
+            {t('seeAllCategories', lang)} →
+          </Link>
         </div>
       </div>
     </section>

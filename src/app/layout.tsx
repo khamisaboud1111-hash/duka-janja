@@ -89,7 +89,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   };
 
   return (
-    <html lang="sw" className="dark" suppressHydrationWarning>
+    <html lang="sw" suppressHydrationWarning>
       <head>
         <ThemeScript />
         <meta name="mobile-web-app-capable" content="yes" />

@@ -186,20 +186,17 @@ export const sw: Record<TranslationKey, string> = {
   required: 'Sehemu hii inahitajika',
 
   // Search & Nav
-  searchPlaceholder: 'Tafuta bidhaa, maduka...',
+  searchPlaceholder: 'Tafuta mamilioni ya bidhaa, maduka yaliyothibitishwa...',
   searchButton: 'Tafuta',
   toggleMenu: 'Fungua menyu',
   closeMenu: 'Funga menyu',
   categoriesLabel: 'Kategoria:',
   ultimate: 'Ultimate',
   shipping: 'Usafirishaji',
-  order: 'Oda',
+  order: 'Agizo',
   map: 'Ramani',
   categories: 'Kategoria',
   offers: 'Ofa',
-  marketMap: 'Ramani ya Soko',
-  you: 'Wewe',
-  popularCategories: 'Kategoria Maarufu',
 
   // Hero
   securePayments: 'Malipo Salama',

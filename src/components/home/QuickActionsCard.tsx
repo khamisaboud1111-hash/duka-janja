@@ -1,41 +1,45 @@
 'use client'
 
 import Link from 'next/link'
-import { LayoutGrid, Map, PackageSearch, Tag, Truck } from 'lucide-react'
+import { LayoutGrid, Map, PackageSearch, Tag } from 'lucide-react'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
 
+// Floats over the bottom edge of the Hero photo, like the reference design —
+// deliberately a plain white card (see .quick-action-tile in globals.css for
+// why it has no dark: variants).
 export default function QuickActionsCard() {
   const lang = useLangStore((s) => s.lang)
   return (
-    <div className="page-container relative z-20 -mt-8 sm:-mt-10">
-      <div className="bg-ink-900 dark:bg-ink-900 rounded-2xl shadow-xl border border-ink-800 p-4 sm:p-5 grid grid-cols-4 gap-2 sm:gap-4">
-        <Link href="/search" className="quick-action-tile dark:bg-ink-800 dark:border-ink-700">
+    <div className="page-container relative z-20 -mt-10 sm:-mt-12">
+      <div className="bg-white rounded-2xl shadow-modal border border-ink-100 p-4 sm:p-5 grid grid-cols-4 gap-1 sm:gap-4">
+        <Link href="/search" className="quick-action-tile">
           <span className="quick-action-tile-icon">
-            <LayoutGrid className="w-5 h-5 sm:w-6 sm:h-6 text-brand-400 group-hover:text-brand-300 transition-colors" />
+            <LayoutGrid className="w-5 h-5 sm:w-6 sm:h-6 text-ink-700 group-hover:text-brand-600 transition-colors" />
           </span>
-          <span className="text-[11px] sm:text-xs font-semibold text-ink-200 text-center leading-tight">{t('categories', lang)}</span>
+          <span className="text-[11px] sm:text-xs font-semibold text-ink-700 text-center leading-tight">{t('categories', lang)}</span>
         </Link>
 
-        <Link href="/map" className="quick-action-tile dark:bg-ink-800 dark:border-ink-700">
+        {/* Map opens as a full page so users can explore all of Zanzibar. */}
+        <Link href="/map" className="quick-action-tile">
           <span className="quick-action-tile-icon">
-            <Map className="w-5 h-5 sm:w-6 sm:h-6 text-brand-400 group-hover:text-brand-300 transition-colors" />
+            <Map className="w-5 h-5 sm:w-6 sm:h-6 text-ink-700 group-hover:text-brand-600 transition-colors" />
           </span>
-          <span className="text-[11px] sm:text-xs font-semibold text-ink-200 text-center leading-tight">{t('marketMap', lang)}</span>
+          <span className="text-[11px] sm:text-xs font-semibold text-ink-700 text-center leading-tight">{t('map', lang)}</span>
         </Link>
 
-        <Link href="/orders" className="quick-action-tile dark:bg-ink-800 dark:border-ink-700">
+        <Link href="/orders" className="quick-action-tile">
           <span className="quick-action-tile-icon">
-            <Truck className="w-5 h-5 sm:w-6 sm:h-6 text-brand-400 group-hover:text-brand-300 transition-colors" />
+            <PackageSearch className="w-5 h-5 sm:w-6 sm:h-6 text-ink-700 group-hover:text-brand-600 transition-colors" />
           </span>
-          <span className="text-[11px] sm:text-xs font-semibold text-ink-200 text-center leading-tight">{t('trackOrder', lang)}</span>
+          <span className="text-[11px] sm:text-xs font-semibold text-ink-700 text-center leading-tight">{t('order', lang)}</span>
         </Link>
 
-        <Link href="/search?on_sale=true" className="quick-action-tile dark:bg-ink-800 dark:border-ink-700">
+        <Link href="/search?on_sale=true" className="quick-action-tile">
           <span className="quick-action-tile-icon">
-            <Tag className="w-5 h-5 sm:w-6 sm:h-6 text-brand-400 group-hover:text-brand-300 transition-colors" />
+            <Tag className="w-5 h-5 sm:w-6 sm:h-6 text-ink-700 group-hover:text-brand-600 transition-colors" />
           </span>
-          <span className="text-[11px] sm:text-xs font-semibold text-ink-200 text-center leading-tight">{t('offers', lang)}</span>
+          <span className="text-[11px] sm:text-xs font-semibold text-ink-700 text-center leading-tight">{t('offers', lang)}</span>
         </Link>
       </div>
     </div>
