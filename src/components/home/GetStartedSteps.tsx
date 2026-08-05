@@ -29,7 +29,7 @@ const STEPS: { icon: any; step: string; titleKey: TranslationKey; descKey: Trans
     titleKey: 'gs3Title',
     descKey: 'gs3Desc',
     ctaKey: 'gs3Cta',
-    href: '/checkout',
+    href: '/register',
   },
   {
     icon: Truck,
@@ -37,7 +37,7 @@ const STEPS: { icon: any; step: string; titleKey: TranslationKey; descKey: Trans
     titleKey: 'gs4Title',
     descKey: 'gs4Desc',
     ctaKey: 'gs4Cta',
-    href: '/orders',
+    href: '/register',
   },
 ]
 

@@ -294,6 +294,26 @@ export const fr = {
   newProducts: 'Nouveautés',
   bottomCtaTitle: "Commencez à acheter et vendre aujourd'hui !",
   bottomCtaSubtitle: 'Rejoignez les milliers de Zanzibariens qui utilisent Duka Janja.',
+  bottomCtaTitleV2: 'Ne manquez rien — Achetez maintenant !',
+  bottomCtaSubtitleV2: "Des milliers de produits de vendeurs vérifiés à Zanzibar. Paiements sécurisés, livraison rapide.",
+  limitedTimeOffer: 'Rejoignez 10 000+ clients satisfaits',
+
+  // Categories
+  browseCategories: 'Catégories',
+  shopByCategory: 'Acheter par catégorie',
+  categorySubtitle: 'Trouvez exactement ce dont vous avez besoin dans notre large sélection.',
+  seeAllCategories: 'Voir toutes les catégories',
+
+  // Testimonials
+  whatPeopleSay: 'Ce que les gens disent',
+  trustedByCommunity: 'Approuvé par la communauté',
+
+  // WhatsApp
+  chatOnWhatsApp: 'Discuter sur WhatsApp',
+  whatsappIntro: "Bonjour ! Je suis intéressé par les achats sur Duka Janja. Pouvez-vous m'aider ?",
+
+  // Featured sellers
+  featuredSellersEmpty: "Soyez l'un des premiers vendeurs sur Duka Janja et touchez des milliers d'acheteurs à travers Zanzibar.",
 
   // Search
   recentSearches: 'Récents',

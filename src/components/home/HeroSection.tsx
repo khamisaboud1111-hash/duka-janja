@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Store, ShoppingBag, Package, Medal, Sparkles, ArrowRight, ShieldCheck, Bike, BadgeCheck } from 'lucide-react'
 import { useLangStore } from '@/store'
@@ -40,6 +41,18 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
   const lang = useLangStore((s) => s.lang)
   return (
     <section className="relative isolate overflow-hidden rounded-b-[2rem] sm:rounded-b-[2.5rem] bg-gradient-to-br from-teal-800 via-teal-600 to-emerald-500 animate-gradient-pan">
+      {/* Background hero image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1600&auto=format&fit=crop"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover opacity-15"
+          priority
+        />
+      </div>
+
       {/* Decorative orbs */}
       <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10 animate-pulse-glow" />
       <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-white/5" />
@@ -54,8 +67,8 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
         }}
       />
 
-      {/* Floating deco cards */}
-      <div className="hidden lg:block absolute top-24 right-16 z-10 animate-float-slow">
+      {/* Floating deco cards — visible on md+ */}
+      <div className="hidden md:block absolute top-24 right-16 z-10 animate-float-slow">
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 shadow-xl">
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
             <ShieldCheck className="w-5 h-5 text-emerald-100" />
@@ -66,7 +79,7 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
           </div>
         </div>
       </div>
-      <div className="hidden lg:block absolute top-1/2 right-8 z-10 animate-float-fast" style={{ animationDelay: '1s' }}>
+      <div className="hidden md:block absolute top-1/2 right-8 z-10 animate-float-fast" style={{ animationDelay: '1s' }}>
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 shadow-xl">
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
             <Bike className="w-5 h-5 text-amber-200" />
@@ -77,7 +90,7 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
           </div>
         </div>
       </div>
-      <div className="hidden lg:block absolute top-[70%] right-24 z-10 animate-float-slow" style={{ animationDelay: '2s' }}>
+      <div className="hidden md:block absolute top-[70%] right-24 z-10 animate-float-slow" style={{ animationDelay: '2s' }}>
         <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 shadow-xl">
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
             <BadgeCheck className="w-5 h-5 text-emerald-100" />

@@ -1,11 +1,15 @@
 import { Suspense } from 'react'
-import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
 import TrustBadges from '@/components/home/TrustBadges'
 import GetStartedSteps from '@/components/home/GetStartedSteps'
 import FeaturedSellersShowcase from '@/components/home/FeaturedSellersShowcase'
+import ShippingSteps from '@/components/home/ShippingSteps'
+import ZanzibarDiscovery from '@/components/home/ZanzibarDiscovery'
+import CategoryGrid from '@/components/home/CategoryGrid'
+import TestimonialsSection from '@/components/home/TestimonialsSection'
+import WhatsAppButton from '@/components/home/WhatsAppButton'
 import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
 import LText from '@/components/shared/LText'
@@ -73,20 +77,43 @@ async function getRecentProducts() {
   }
 }
 
+async function getCategories() {
+  try {
+    const supabase = createServerClient()
+    const { data } = await supabase
+      .from('categories')
+      .select('*')
+      .order('sort_order')
+    return (data ?? []) as any[]
+  } catch {
+    return []
+  }
+}
+
+async function getTestimonials() {
+  try {
+    const supabase = createServerClient()
+    const { data } = await supabase
+      .from('testimonials')
+      .select('*')
+      .eq('is_published', true)
+      .order('sort_order')
+      .limit(6)
+    return (data ?? []) as any[]
+  } catch {
+    return []
+  }
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export default async function MarketplaceHomePage() {
-  const supabase = createServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/register')
-
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-  if (profile?.role === 'rider') redirect('/rider/dashboard')
-
-  const [stats, featuredSellers, recentProducts] = await Promise.all([
+  const [stats, featuredSellers, recentProducts, categories, testimonials] = await Promise.all([
     getStats(),
     getFeaturedSellers(),
     getRecentProducts(),
+    getCategories(),
+    getTestimonials(),
   ])
 
   return (
@@ -94,13 +121,13 @@ export default async function MarketplaceHomePage() {
       <HeroSection stats={stats} />
       <QuickActionsCard />
 
-      {/* Trust badges — moved up for early buyer confidence */}
       <FadeInView>
         <TrustBadges />
       </FadeInView>
 
-      {/* Get Started — staged onboarding for new visitors */}
       <GetStartedSteps />
+
+      <CategoryGrid categories={categories} />
 
       {recentProducts.length > 0 && (
         <FadeInView>
@@ -137,27 +164,44 @@ export default async function MarketplaceHomePage() {
         </Suspense>
       </FadeInView>
 
+      <FadeInView>
+        <section className="section">
+          <div className="page-container">
+            <ShippingSteps />
+          </div>
+        </section>
+      </FadeInView>
+
+      <TestimonialsSection testimonials={testimonials} />
+
+      <ZanzibarDiscovery />
+
       {/* Bottom CTA */}
-      <section className="relative isolate overflow-hidden bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 py-12 animate-gradient-pan">
+      <section className="relative isolate overflow-hidden bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 py-14 sm:py-16 animate-gradient-pan">
         <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 animate-pulse-glow" />
         <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-white/10 animate-pulse-glow" style={{ animationDelay: '2s' }} />
         <div className="page-container relative text-center">
-          <h2 className="font-display font-black text-xl sm:text-2xl text-white mb-2">
-            <LText k="bottomCtaTitle" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] font-bold tracking-wide uppercase mb-4">
+            <LText k="limitedTimeOffer" />
+          </span>
+          <h2 className="font-display font-black text-2xl sm:text-3xl text-white mb-2">
+            <LText k="bottomCtaTitleV2" />
           </h2>
-          <p className="text-white/85 text-sm mb-5 max-w-sm mx-auto">
-            <LText k="bottomCtaSubtitle" />
+          <p className="text-white/85 text-sm sm:text-base mb-6 max-w-md mx-auto">
+            <LText k="bottomCtaSubtitleV2" />
           </p>
-          <div className="flex flex-wrap justify-center gap-2">
-            <Link href="/register" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95">
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95">
               <LText k="gs1Cta" />
             </Link>
-            <Link href="/search" className="inline-flex items-center gap-2 px-5 py-2.5 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-all border border-white/30 hover:-translate-y-0.5 active:scale-95">
+            <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-all border border-white/30 hover:-translate-y-0.5 active:scale-95">
               <LText k="browse" />
             </Link>
           </div>
         </div>
       </section>
+
+      <WhatsAppButton />
     </>
   )
 }

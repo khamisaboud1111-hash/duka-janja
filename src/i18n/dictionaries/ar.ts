@@ -294,6 +294,26 @@ export const ar = {
   newProducts: 'وصل حديثًا',
   bottomCtaTitle: 'ابدأ الشراء والبيع اليوم!',
   bottomCtaSubtitle: 'انضم إلى آلاف الزنجباريين الذين يستخدمون دوكا جانجا.',
+  bottomCtaTitleV2: 'لا تفوّت — اتسوّق الآن!',
+  bottomCtaSubtitleV2: 'آلاف المنتجات من بائعين موثقين في زنجبار. مدفوعات آمنة، توصيل سريع.',
+  limitedTimeOffer: 'انضم إلى أكثر من 10,000 عميل سعيد',
+
+  // Categories
+  browseCategories: 'الفئات',
+  shopByCategory: 'تسوّق حسب الفئة',
+  categorySubtitle: 'ابحث عما تحتاجه من تشكيلتنا الواسعة.',
+  seeAllCategories: 'عرض جميع الفئات',
+
+  // Testimonials
+  whatPeopleSay: 'ماذا يقول الناس',
+  trustedByCommunity: 'موثوق من المجتمع',
+
+  // WhatsApp
+  chatOnWhatsApp: 'تحدث عبر واتساب',
+  whatsappIntro: 'مرحبًا! أنا مهتم بالتسوق في دوكا جانجا. هل يمكنك مساعدتي؟',
+
+  // Featured sellers
+  featuredSellersEmpty: 'كن أحد أول البائعين في دوكا جانجا وصولاً إلى آلاف المشترين في زنجبار.',
 
   // Search
   recentSearches: 'الأخيرة',

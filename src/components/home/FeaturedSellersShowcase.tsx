@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { BadgeCheck, MapPin, Package, ShoppingBag, Star } from 'lucide-react'
+import { BadgeCheck, MapPin, Package, ShoppingBag, Star, Store } from 'lucide-react'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
 
@@ -24,7 +24,25 @@ interface FeaturedSeller {
 export default function FeaturedSellersShowcase({ sellers }: { sellers: FeaturedSeller[] }) {
   const lang = useLangStore((s) => s.lang)
 
-  if (sellers.length === 0) return null
+  if (sellers.length === 0) {
+    return (
+      <section className="section bg-ink-50/50 dark:bg-ink-900/40">
+        <div className="page-container text-center py-12">
+          <div className="w-16 h-16 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center mx-auto mb-4">
+            <Store className="w-8 h-8 text-brand-500" />
+          </div>
+          <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">{t('popularStores', lang)}</h2>
+          <p className="text-sm text-ink-500 dark:text-ink-300 mb-5 max-w-sm mx-auto">{t('featuredSellersEmpty', lang)}</p>
+          <Link
+            href="/register?type=seller"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-bold rounded-xl text-sm hover:bg-brand-600 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95"
+          >
+            <Store className="w-4 h-4" /> {t('openStore', lang)}
+          </Link>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="section bg-ink-50/50 dark:bg-ink-900/40">

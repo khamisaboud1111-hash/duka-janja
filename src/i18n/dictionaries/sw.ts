@@ -297,6 +297,26 @@ export const sw: Record<TranslationKey, string> = {
   newProducts: 'Bidhaa Mpya',
   bottomCtaTitle: 'Anza Kununua na Kuuza Leo!',
   bottomCtaSubtitle: 'Jiunge na maelfu ya Wazanzibari wanaotumia Duka Janja.',
+  bottomCtaTitleV2: 'Usikose — Nunua Sasa!',
+  bottomCtaSubtitleV2: 'Maelfu ya bidhaa kutoka kwa wauzaji walioidhinishwa Zanzibar. Malipo salama, usafirishaji wa haraka.',
+  limitedTimeOffer: 'Jiunge na wateja 10,000+ wenye furaha',
+
+  // Categories
+  browseCategories: 'Kategoria',
+  shopByCategory: 'Nunua kwa Kategoria',
+  categorySubtitle: 'Pata unachohitaji kutoka chaguo letu pana.',
+  seeAllCategories: 'Ona kategoria zote',
+
+  // Testimonials
+  whatPeopleSay: 'Watu Wanasema Nini',
+  trustedByCommunity: 'Imekubalika na Jamii',
+
+  // WhatsApp
+  chatOnWhatsApp: 'Piga ujumse WhatsApp',
+  whatsappIntro: 'Habari! Ninapenda kununua dukani la Duka Janja. Je, unaweza kunisaidia?',
+
+  // Featured sellers
+  featuredSellersEmpty: 'Kuwa mmoja wa wauzaji wa kwanza Duka Janja na ufikie maelfu ya wateja Zanzibar.',
 
   // Search
   recentSearches: 'Ulizosaka Hivi Karibuni',

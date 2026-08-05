@@ -12,7 +12,7 @@ export default function Footer() {
   const lang = useLangStore((s) => s.lang)
   const [email, setEmail] = useState('')
   return (
-    <footer className="hidden sm:block bg-ink-900 text-ink-300 py-10 mt-8 lg:pl-16">
+    <footer className="bg-ink-900 text-ink-300 py-10 mt-8 lg:pl-16">
       <div className="page-container">
         {/* Newsletter band */}
         <div className="mb-10 rounded-2xl bg-gradient-to-r from-brand-500/15 to-spice-500/15 border border-white/10 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
