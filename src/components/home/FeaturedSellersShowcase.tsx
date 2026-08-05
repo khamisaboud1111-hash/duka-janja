@@ -26,13 +26,13 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
 
   if (sellers.length === 0) {
     return (
-      <section className="section bg-ink-50/50 dark:bg-ink-900/40">
+      <section className="section bg-ink-950">
         <div className="page-container text-center py-12">
-          <div className="w-16 h-16 rounded-2xl bg-brand-100 dark:bg-brand-900/40 flex items-center justify-center mx-auto mb-4">
-            <Store className="w-8 h-8 text-brand-500" />
+          <div className="w-16 h-16 rounded-2xl bg-brand-500/10 flex items-center justify-center mx-auto mb-4">
+            <Store className="w-8 h-8 text-brand-400" />
           </div>
-          <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white mb-2">{t('popularStores', lang)}</h2>
-          <p className="text-sm text-ink-500 dark:text-ink-300 mb-5 max-w-sm mx-auto">{t('featuredSellersEmpty', lang)}</p>
+          <h2 className="font-display font-bold text-xl text-white mb-2">{t('popularStores', lang)}</h2>
+          <p className="text-sm text-ink-400 mb-5 max-w-sm mx-auto">{t('featuredSellersEmpty', lang)}</p>
           <Link
             href="/register?type=seller"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white font-bold rounded-xl text-sm hover:bg-brand-600 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95"
@@ -45,14 +45,14 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
   }
 
   return (
-    <section className="section bg-ink-50/50 dark:bg-ink-900/40">
+    <section className="section bg-ink-950">
       <div className="page-container">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="font-display font-bold text-xl text-ink-900 dark:text-white">{t('popularStores', lang)}</h2>
-            <p className="text-sm text-ink-500 dark:text-ink-300">{t('featuredSellersSubtitle', lang)}</p>
+            <h2 className="font-display font-bold text-xl text-white">{t('popularStores', lang)}</h2>
+            <p className="text-sm text-ink-400">{t('featuredSellersSubtitle', lang)}</p>
           </div>
-          <Link href="/search?type=sellers" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
+          <Link href="/search?type=sellers" className="text-sm text-brand-400 font-semibold whitespace-nowrap">
             {t('seeAll', lang)} →
           </Link>
         </div>
@@ -62,7 +62,7 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
             <Link
               key={seller.id}
               href={`/sellers/${seller.store_slug}`}
-              className="group rounded-2xl overflow-hidden bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-card hover:shadow-card-hover transition-shadow"
+              className="group rounded-2xl overflow-hidden bg-ink-900 border border-ink-800 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1"
             >
               {/* Banner */}
               <div className="relative h-24 bg-gradient-to-br from-brand-500 to-brand-700">
@@ -79,34 +79,34 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
 
               <div className="p-4 -mt-8 relative">
                 {/* Logo */}
-                <div className="w-16 h-16 rounded-xl border-4 border-white dark:border-ink-900 bg-white dark:bg-ink-800 shadow-card overflow-hidden mb-2">
+                <div className="w-16 h-16 rounded-xl border-4 border-ink-900 bg-ink-800 shadow-card overflow-hidden mb-2">
                   {seller.logo_url ? (
                     <Image src={seller.logo_url} alt={seller.store_name} width={64} height={64} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-brand-100 dark:bg-brand-900">
-                      <span className="text-brand-700 dark:text-brand-200 font-bold text-xl">{seller.store_name.charAt(0)}</span>
+                    <div className="w-full h-full flex items-center justify-center bg-brand-500/20">
+                      <span className="text-brand-400 font-bold text-xl">{seller.store_name.charAt(0)}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="flex items-center gap-1.5 mb-1">
-                  <h3 className="font-bold text-ink-900 dark:text-white text-sm line-clamp-1">{seller.store_name}</h3>
+                  <h3 className="font-bold text-white text-sm line-clamp-1">{seller.store_name}</h3>
                   {seller.national_id_verified && (
-                    <BadgeCheck className="w-4 h-4 text-brand-500 flex-shrink-0" aria-label={t('verifiedBadge', lang)} />
+                    <BadgeCheck className="w-4 h-4 text-brand-400 flex-shrink-0" aria-label={t('verifiedBadge', lang)} />
                   )}
                 </div>
 
                 {(seller.location_label || seller.location_area) && (
-                  <p className="flex items-center gap-1 text-xs text-ink-500 dark:text-ink-400 mb-2">
+                  <p className="flex items-center gap-1 text-xs text-ink-400 mb-2">
                     <MapPin className="w-3 h-3" /> {seller.location_label || seller.location_area}
                   </p>
                 )}
 
-                <div className="flex items-center gap-3 text-xs text-ink-600 dark:text-ink-300">
+                <div className="flex items-center gap-3 text-xs text-ink-400">
                   <span className="flex items-center gap-1">
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     {seller.average_rating?.toFixed(1) ?? '0.0'}
-                    <span className="text-ink-400">({seller.review_count})</span>
+                    <span className="text-ink-500">({seller.review_count})</span>
                   </span>
                   {typeof seller.product_count === 'number' && (
                     <span className="flex items-center gap-1">
@@ -118,7 +118,7 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
                   </span>
                 </div>
 
-                <span className="mt-3 inline-flex w-full justify-center items-center gap-1 py-2 rounded-lg bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-xs font-semibold group-hover:bg-brand-500 group-hover:text-white transition-colors">
+                <span className="mt-3 inline-flex w-full justify-center items-center gap-1 py-2 rounded-lg bg-ink-800 text-ink-300 text-xs font-semibold group-hover:bg-brand-500 group-hover:text-white transition-colors">
                   {t('visitStore', lang)}
                 </span>
               </div>

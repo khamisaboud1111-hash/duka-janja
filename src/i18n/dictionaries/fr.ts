@@ -184,17 +184,20 @@ export const fr = {
   required: 'Ce champ est requis',
 
   // Search & Nav
-  searchPlaceholder: 'Recherchez des millions de produits, de boutiques vérifiées et de marques...',
+  searchPlaceholder: 'Rechercher des produits, boutiques...',
   searchButton: 'Rechercher',
-  toggleMenu: 'Ouvrir le menu',
+  toggleMenu: 'Basculer le menu',
   closeMenu: 'Fermer le menu',
   categoriesLabel: 'Catégories :',
-  ultimate: 'Ultime',
+  ultimate: 'Ultimate',
   shipping: 'Livraison',
   order: 'Commande',
   map: 'Carte',
   categories: 'Catégories',
   offers: 'Offres',
+  marketMap: 'Carte du Marché',
+  you: 'Vous',
+  popularCategories: 'Catégories Populaires',
 
   // Hero
   securePayments: 'Paiements sécurisés',

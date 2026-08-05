@@ -4,9 +4,11 @@ const THEME_SCRIPT = `
 (function () {
   try {
     var raw = localStorage.getItem('duka-janja-theme');
-    var theme = raw ? JSON.parse(raw).state.theme : 'light';
-    if (theme === 'dark') document.documentElement.classList.add('dark');
-  } catch (e) {}
+    var theme = raw ? JSON.parse(raw).state.theme : 'dark';
+    if (theme === 'dark' || !raw) document.documentElement.classList.add('dark');
+  } catch (e) {
+    document.documentElement.classList.add('dark');
+  }
 })();
 `
 

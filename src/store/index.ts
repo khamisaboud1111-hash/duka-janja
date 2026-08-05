@@ -142,7 +142,7 @@ interface ThemeStore {
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
-      theme: 'light',
+      theme: 'dark',
       hasHydrated: false,
       toggleTheme: () => {
         const next: Theme = get().theme === 'light' ? 'dark' : 'light'

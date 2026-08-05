@@ -22,7 +22,7 @@ export default function TestimonialsSection({ testimonials }: { testimonials: Te
   if (testimonials.length === 0) return null
 
   return (
-    <section className="section bg-ink-50/50 dark:bg-ink-900/40">
+    <section className="section bg-ink-950">
       <div className="page-container">
         <div className="text-center max-w-xl mx-auto mb-8">
           <motion.span
@@ -30,7 +30,7 @@ export default function TestimonialsSection({ testimonials }: { testimonials: Te
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.4 }}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 text-[11px] font-bold tracking-wide uppercase mb-4"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[11px] font-bold tracking-wide uppercase mb-4"
           >
             <Star className="w-3.5 h-3.5" /> {t('whatPeopleSay', lang)}
           </motion.span>
@@ -39,7 +39,7 @@ export default function TestimonialsSection({ testimonials }: { testimonials: Te
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="font-display font-bold text-2xl sm:text-3xl text-ink-900 dark:text-white"
+            className="font-display font-bold text-2xl sm:text-3xl text-white"
           >
             {t('trustedByCommunity', lang)}
           </motion.h2>
@@ -53,22 +53,22 @@ export default function TestimonialsSection({ testimonials }: { testimonials: Te
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.08 }}
-              className="relative rounded-2xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-card p-5 sm:p-6"
+              className="relative rounded-2xl bg-ink-900 border border-ink-800 shadow-card p-5 sm:p-6"
             >
-              <Quote className="absolute top-4 right-4 w-8 h-8 text-brand-100 dark:text-brand-900/40" />
+              <Quote className="absolute top-4 right-4 w-8 h-8 text-brand-500/10" />
 
               {testimonial.rating && (
                 <div className="flex gap-0.5 mb-3">
                   {Array.from({ length: 5 }).map((_, j) => (
                     <Star
                       key={j}
-                      className={`w-4 h-4 ${j < testimonial.rating! ? 'fill-amber-400 text-amber-400' : 'text-ink-200 dark:text-ink-700'}`}
+                      className={`w-4 h-4 ${j < testimonial.rating! ? 'fill-amber-400 text-amber-400' : 'text-ink-700'}`}
                     />
                   ))}
                 </div>
               )}
 
-              <p className="text-sm text-ink-600 dark:text-ink-300 leading-relaxed mb-4 relative z-10">
+              <p className="text-sm text-ink-300 leading-relaxed mb-4 relative z-10">
                 &ldquo;{lang === 'sw' ? testimonial.quote_sw : testimonial.quote_en}&rdquo;
               </p>
 
@@ -77,9 +77,9 @@ export default function TestimonialsSection({ testimonials }: { testimonials: Te
                   {testimonial.author_name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-ink-900 dark:text-white">{testimonial.author_name}</p>
+                  <p className="text-sm font-semibold text-white">{testimonial.author_name}</p>
                   {testimonial.author_role && (
-                    <p className="text-[11px] text-ink-500 dark:text-ink-400">{testimonial.author_role}</p>
+                    <p className="text-[11px] text-ink-500">{testimonial.author_role}</p>
                   )}
                 </div>
               </div>

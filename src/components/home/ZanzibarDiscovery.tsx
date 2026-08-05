@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import Image from 'next/image'
 import { useLangStore } from '@/store'
 import { t, type TranslationKey } from '@/i18n/translations'
@@ -41,16 +42,16 @@ const PLACES: Place[] = [
 export default function ZanzibarDiscovery() {
   const lang = useLangStore((s) => s.lang)
   return (
-    <section className="section dark:bg-ink-950">
+    <section className="section bg-ink-950">
       <div className="page-container">
         <div className="text-center max-w-xl mx-auto mb-8">
-          <p className="text-brand-600 dark:text-brand-300 text-xs font-bold uppercase tracking-widest mb-2">
+          <p className="text-brand-400 text-xs font-bold uppercase tracking-widest mb-2">
             {t('zanzibarPride', lang)}
           </p>
-          <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white">
+          <h2 className="font-display font-bold text-xl sm:text-2xl text-white">
             {t('zanzibarTitle', lang)}
           </h2>
-          <p className="text-sm text-ink-500 dark:text-ink-300 mt-1">
+          <p className="text-sm text-ink-400 mt-1">
             {t('zanzibarSubtitle', lang)}
           </p>
         </div>
@@ -71,7 +72,7 @@ export default function ZanzibarDiscovery() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
               <div className="absolute bottom-0 left-0 p-3">
                 <p className="text-white font-bold text-sm leading-tight">{place.name}</p>
-                <p className="text-white/80 text-[11px] leading-snug hidden sm:block mt-0.5">{t(place.descKey, lang)}</p>
+                <p className="text-white/70 text-[11px] leading-snug hidden sm:block mt-0.5">{t(place.descKey, lang)}</p>
               </div>
             </div>
           ))}

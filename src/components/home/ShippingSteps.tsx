@@ -9,7 +9,7 @@ const STEPS: { icon: any; color: string; ring: string; titleKey: TranslationKey;
   {
     icon: Phone,
     color: 'from-orange-500 to-amber-500',
-    ring: 'bg-orange-50 dark:bg-orange-950/40',
+    ring: 'bg-orange-500/10',
     titleKey: 'shipStep1Title',
     descKey: 'shipStep1Desc',
     tagKey: 'step1',
@@ -17,7 +17,7 @@ const STEPS: { icon: any; color: string; ring: string; titleKey: TranslationKey;
   {
     icon: PackageCheck,
     color: 'from-emerald-500 to-green-500',
-    ring: 'bg-emerald-50 dark:bg-emerald-950/40',
+    ring: 'bg-emerald-500/10',
     titleKey: 'shipStep2Title',
     descKey: 'shipStep2Desc',
     tagKey: 'step2',
@@ -25,7 +25,7 @@ const STEPS: { icon: any; color: string; ring: string; titleKey: TranslationKey;
   {
     icon: Bike,
     color: 'from-sky-500 to-blue-500',
-    ring: 'bg-sky-50 dark:bg-sky-950/40',
+    ring: 'bg-sky-500/10',
     titleKey: 'shipStep3Title',
     descKey: 'shipStep3Desc',
     tagKey: 'step3',
@@ -33,7 +33,7 @@ const STEPS: { icon: any; color: string; ring: string; titleKey: TranslationKey;
   {
     icon: MapPin,
     color: 'from-violet-500 to-purple-500',
-    ring: 'bg-violet-50 dark:bg-violet-950/40',
+    ring: 'bg-violet-500/10',
     titleKey: 'shipStep4Title',
     descKey: 'shipStep4Desc',
     tagKey: 'step4',
@@ -41,7 +41,7 @@ const STEPS: { icon: any; color: string; ring: string; titleKey: TranslationKey;
   {
     icon: CheckCircle2,
     color: 'from-teal-500 to-emerald-500',
-    ring: 'bg-teal-50 dark:bg-teal-950/40',
+    ring: 'bg-teal-500/10',
     titleKey: 'shipStep5Title',
     descKey: 'shipStep5Desc',
     tagKey: 'step5',
@@ -58,7 +58,7 @@ export default function ShippingSteps() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-100 dark:bg-teal-900/40 text-teal-700 dark:text-teal-300 text-[11px] font-bold tracking-wide uppercase mb-4"
+          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/10 text-teal-400 text-[11px] font-bold tracking-wide uppercase mb-4"
         >
           <Bike className="w-3.5 h-3.5" /> {t('shipping', lang)}
         </motion.span>
@@ -67,7 +67,7 @@ export default function ShippingSteps() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="font-display font-bold text-2xl sm:text-3xl text-ink-900 dark:text-white"
+          className="font-display font-bold text-2xl sm:text-3xl text-white"
         >
           {t('howShippingWorks', lang)}
         </motion.h2>
@@ -76,7 +76,7 @@ export default function ShippingSteps() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-sm text-ink-500 dark:text-ink-300 mt-2"
+          className="text-sm text-ink-400 mt-2"
         >
           {t('shippingSubtitle', lang)}
         </motion.p>
@@ -84,7 +84,7 @@ export default function ShippingSteps() {
 
       <div className="relative">
         {/* Vertical connector line */}
-        <div className="hidden sm:block absolute left-1/2 top-2 bottom-2 w-0.5 bg-gradient-to-b from-teal-200 via-brand-200 to-emerald-200 dark:from-teal-900 dark:via-brand-800 dark:to-emerald-900" />
+        <div className="hidden sm:block absolute left-1/2 top-2 bottom-2 w-0.5 bg-gradient-to-b from-teal-500/30 via-brand-500/20 to-emerald-500/30" />
 
         <div className="space-y-6 sm:space-y-8">
           {STEPS.map((step, i) => {
@@ -103,10 +103,10 @@ export default function ShippingSteps() {
                   <Icon className="w-7 h-7 text-white" />
                 </div>
 
-                <div className={`flex-1 rounded-2xl bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-card p-4 ${i % 2 === 0 ? 'sm:items-end' : ''}`}>
-                  <p className="text-[11px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">{t(step.tagKey, lang)}</p>
-                  <h3 className="font-bold text-ink-900 dark:text-white text-base mb-1">{t(step.titleKey, lang)}</h3>
-                  <p className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">{t(step.descKey, lang)}</p>
+                <div className={`flex-1 rounded-2xl bg-ink-900 border border-ink-800 shadow-card p-4 ${i % 2 === 0 ? 'sm:items-end' : ''}`}>
+                  <p className="text-[11px] font-bold text-brand-400 uppercase tracking-wide mb-1">{t(step.tagKey, lang)}</p>
+                  <h3 className="font-bold text-white text-base mb-1">{t(step.titleKey, lang)}</h3>
+                  <p className="text-xs text-ink-400 leading-relaxed">{t(step.descKey, lang)}</p>
                 </div>
               </motion.div>
             )

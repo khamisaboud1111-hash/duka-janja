@@ -183,7 +183,7 @@ export const en = {
   required: 'This field is required',
 
   // Search & Nav
-  searchPlaceholder: 'Search millions of products, verified stores & brands...',
+  searchPlaceholder: 'Search products, stores...',
   searchButton: 'Search',
   toggleMenu: 'Toggle menu',
   closeMenu: 'Close menu',
@@ -194,6 +194,9 @@ export const en = {
   map: 'Map',
   categories: 'Categories',
   offers: 'Offers',
+  marketMap: 'Market Map',
+  you: 'You',
+  popularCategories: 'Popular Categories',
 
   // Hero
   securePayments: 'Secure Payments',
