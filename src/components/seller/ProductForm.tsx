@@ -12,6 +12,7 @@ import VideoUploader from '@/components/shared/VideoUploader'
 import { slugify, generateSKU } from '@/utils'
 import type { Product, Category, Seller } from '@/types'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 const schema = z.object({
   name:               z.string().min(2, 'Jina linahitajika'),
@@ -235,7 +236,7 @@ export default function ProductForm({ seller, product }: Props) {
         <div className="grid grid-cols-3 gap-3">
           {images.map((url, i) => (
             <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-ink-100 group">
-              <img src={url} alt="" className="w-full h-full object-cover" />
+              <Image src={url} alt="" width={200} height={200} unoptimized className="w-full h-full object-cover" />
               {i === 0 && (
                 <span className="absolute top-1.5 left-1.5 text-xs bg-brand-500 text-white px-1.5 py-0.5 rounded-full font-medium">Kuu</span>
               )}

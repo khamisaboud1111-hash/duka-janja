@@ -7,6 +7,7 @@ import { useUser } from '@/hooks/useUser'
 import { useSeller } from '@/hooks/useSeller'
 import { PageLoader } from '@/components/ui'
 import { cn } from '@/utils'
+import Image from 'next/image'
 
 const NAV = [
   { href: '/seller/dashboard',  label: 'Dashibodi', icon: LayoutDashboard },
@@ -46,7 +47,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
           </Link>
           <div className="flex items-center gap-2">
             {seller?.logo_url ? (
-              <img src={seller.logo_url} className="w-8 h-8 rounded-lg object-cover" alt="" />
+              <Image src={seller.logo_url} alt="" width={32} height={32} unoptimized className="w-8 h-8 rounded-lg object-cover" />
             ) : (
               <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center">
                 <span className="text-brand-700 font-bold text-sm">{seller?.store_name?.charAt(0)}</span>

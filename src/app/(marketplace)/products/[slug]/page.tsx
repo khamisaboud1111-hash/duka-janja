@@ -206,7 +206,7 @@ export default async function ProductPage({ params }: Props) {
                 <p className="text-xs text-muted-foreground font-semibold mb-3 uppercase tracking-wide"><LText k="aboutStore" /></p>
                 <Link href={`/sellers/${seller.store_slug}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                   {seller.logo_url ? (
-                    <img src={seller.logo_url} alt={seller.store_name} className="w-12 h-12 rounded-xl object-cover" />
+                    <Image src={seller.logo_url} alt={seller.store_name} width={48} height={48} unoptimized className="w-12 h-12 rounded-xl object-cover" />
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center flex-shrink-0">
                       <span className="text-brand-700 dark:text-brand-300 font-bold text-xl">{seller.store_name.charAt(0)}</span>
@@ -243,7 +243,7 @@ export default async function ProductPage({ params }: Props) {
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div className="flex items-center gap-2">
                       {review.buyer?.avatar_url ? (
-                        <img src={review.buyer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                        <Image src={review.buyer.avatar_url} alt="" width={32} height={32} unoptimized className="w-8 h-8 rounded-full object-cover" />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
                           {review.buyer?.full_name?.charAt(0) ?? 'M'}

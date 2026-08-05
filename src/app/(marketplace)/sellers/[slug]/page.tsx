@@ -64,7 +64,7 @@ export default async function SellerStorePage({ params }: Props) {
           <div className="flex items-end gap-4">
             <div className="w-20 h-20 rounded-2xl border-4 border-white dark:border-ink-900 shadow-card overflow-hidden bg-white dark:bg-ink-800 flex-shrink-0">
               {seller.logo_url ? (
-                <img src={seller.logo_url} alt={seller.store_name} className="w-full h-full object-cover" />
+                <Image src={seller.logo_url} alt={seller.store_name} width={80} height={80} unoptimized className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-brand-100 dark:bg-brand-500/20 flex items-center justify-center">
                   <span className="text-brand-700 dark:text-brand-300 font-black text-2xl">{seller.store_name.charAt(0)}</span>

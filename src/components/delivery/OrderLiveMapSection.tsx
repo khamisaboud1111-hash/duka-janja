@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { createClient } from '@/lib/supabase/client'
-import LiveDeliveryMap from './LiveDeliveryMap'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
+
+const LiveDeliveryMap = dynamic(() => import('./LiveDeliveryMap'), { ssr: false })
 
 interface ActiveOrderDelivery {
   delivery_id: string

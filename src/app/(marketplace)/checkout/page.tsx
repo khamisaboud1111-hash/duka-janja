@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Image from 'next/image'
 import { Trash2, Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
-import { useCartStore, useLangStore } from '@/store'
+import { useCartStore, useLangStore, selectCartSubtotal } from '@/store'
 import { createClient } from '@/lib/supabase/client'
 import { formatTZS, DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider } from '@/utils'
 import { t, type Language } from '@/i18n/translations'
@@ -32,7 +32,11 @@ type FormData = z.infer<ReturnType<typeof makeSchema>>
 export default function CheckoutPage() {
   const router = useRouter()
   const { lang } = useLangStore()
-  const { items, subtotal, clearCart, removeItem, updateQuantity } = useCartStore()
+  const items = useCartStore((s) => s.items)
+  const clearCart = useCartStore((s) => s.clearCart)
+  const removeItem = useCartStore((s) => s.removeItem)
+  const updateQuantity = useCartStore((s) => s.updateQuantity)
+  const subtotal = useCartStore(selectCartSubtotal)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
 
@@ -43,7 +47,7 @@ export default function CheckoutPage() {
 
   const selectedZone = watch('delivery_zone') as string
   const deliveryFee = selectedZone ? DELIVERY_ZONES[selectedZone as DeliveryZone]?.fee ?? 0 : 0
-  const total = subtotal() + deliveryFee
+  const total = subtotal + deliveryFee
 
   const onSubmit = useCallback(async (data: FormData) => {
     if (items.length === 0) return
@@ -64,7 +68,7 @@ export default function CheckoutPage() {
       .insert({
         buyer_id:          user.id,
         status:            'pending',
-        subtotal:          subtotal(),
+        subtotal:          subtotal,
         delivery_fee:      deliveryFee,
         commission_amount: commissionTotal,
         total_amount:      total,
@@ -334,7 +338,7 @@ export default function CheckoutPage() {
               <div className="space-y-2 text-sm mb-4">
                 <div className="flex justify-between text-ink-700">
                   <span>{t('subtotal', lang)}</span>
-                  <span>{formatTZS(subtotal())}</span>
+                  <span>{formatTZS(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-ink-700">
                   <span>{t('deliveryFee', lang)}</span>

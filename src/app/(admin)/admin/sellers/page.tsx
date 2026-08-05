@@ -7,6 +7,7 @@ import { SellerStatusBadge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { ConfirmDialog, PageLoader, EmptyState } from '@/components/ui'
 import { formatDate, whatsappUrl } from '@/utils'
+import Image from 'next/image'
 import type { Seller, SellerStatus } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -92,7 +93,7 @@ export default function AdminSellersPage() {
                 <div className="flex items-start justify-between gap-4 flex-wrap">
                   <div className="flex items-start gap-3">
                     {seller.logo_url ? (
-                      <img src={seller.logo_url} className="w-12 h-12 rounded-xl object-cover" alt="" />
+                      <Image src={seller.logo_url} alt="" width={48} height={48} unoptimized className="w-12 h-12 rounded-xl object-cover" />
                     ) : (
                       <div className="w-12 h-12 rounded-xl bg-brand-100 flex items-center justify-center flex-shrink-0">
                         <span className="text-brand-700 font-bold text-lg">{seller.store_name.charAt(0)}</span>

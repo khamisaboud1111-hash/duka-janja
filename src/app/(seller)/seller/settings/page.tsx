@@ -7,8 +7,9 @@ import { useUser } from '@/hooks/useUser'
 import { useSeller } from '@/hooks/useSeller'
 import { slugify } from '@/utils'
 import { PageLoader } from '@/components/ui'
-import { Camera, MapPin, Clock, Phone, Store, Globe, Save, CheckCircle, AlertCircle, ChevronRight, Image } from 'lucide-react'
+import { Camera, MapPin, Clock, Phone, Store, Globe, Save, CheckCircle, AlertCircle, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 const DELIVERY_ZONES = [
   { value: 'stone_town', label: 'Stone Town' },
@@ -166,7 +167,7 @@ export default function SellerSettingsPage() {
       {/* Hero Section - Banner + Logo */}
       <div className="card rounded-2xl overflow-hidden mb-6">
         <div className="relative h-36 sm:h-48 bg-gradient-to-br from-brand-400 via-brand-500 to-teal-500 overflow-hidden">
-          {banner && <img src={banner} alt="" className="w-full h-full object-cover" />}
+          {banner && <Image src={banner} alt="" width={600} height={200} unoptimized className="w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-black/20" />
           <button onClick={() => bannerRef.current?.click()}
             className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-lg transition-all hover:scale-105">
@@ -180,7 +181,7 @@ export default function SellerSettingsPage() {
             <div className="relative group">
               <div className="w-24 h-24 rounded-2xl overflow-hidden bg-white ring-4 ring-white shadow-lg">
                 {logo ? (
-                  <img src={logo} alt="" className="w-full h-full object-cover" />
+                  <Image src={logo} alt="" width={96} height={96} unoptimized className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-400 to-brand-600">
                     <span className="text-3xl font-bold text-white">{seller?.store_name?.charAt(0)?.toUpperCase() ?? '?'}</span>

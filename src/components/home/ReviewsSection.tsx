@@ -1,5 +1,6 @@
 import { Star } from 'lucide-react'
 import { formatDate } from '@/utils'
+import Image from 'next/image'
 
 interface ReviewRow {
   id: string
@@ -30,7 +31,7 @@ export default function ReviewsSection({ reviews }: { reviews: ReviewRow[] }) {
               )}
               <div className="flex items-center gap-2">
                 {r.buyer?.avatar_url ? (
-                  <img src={r.buyer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                  <Image src={r.buyer.avatar_url} alt="" width={32} height={32} unoptimized className="w-8 h-8 rounded-full object-cover" />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900 flex items-center justify-center text-xs font-bold text-brand-700 dark:text-brand-200">
                     {r.buyer?.full_name?.charAt(0) ?? '?'}

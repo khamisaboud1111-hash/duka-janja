@@ -11,6 +11,7 @@ import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
+import Image from 'next/image'
 
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
@@ -147,7 +148,7 @@ export default function SettingsPage() {
           <div className="relative group mb-4">
             <div className="w-28 h-28 rounded-full overflow-hidden bg-muted ring-4 ring-card shadow-lg">
               {avatar ? (
-                <img src={avatar} alt="" className="w-full h-full object-cover" />
+                <Image src={avatar} alt="" width={112} height={112} unoptimized className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-400 to-brand-600">
                   <span className="text-4xl font-bold text-white">{profile.full_name?.charAt(0)?.toUpperCase() ?? '?'}</span>

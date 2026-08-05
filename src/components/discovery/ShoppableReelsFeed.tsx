@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { Heart, MessageCircle, Share2, ShoppingBag, Volume2, VolumeX, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export interface ReelProduct {
   id: string | number;
@@ -108,7 +109,7 @@ export default function ShoppableReelsFeed({ reels = [], onAddToCart }: Shoppabl
               <div className="absolute right-4 bottom-24 z-20 flex flex-col items-center gap-5 text-white">
                 {/* Creator Avatar */}
                 <div className="relative w-12 h-12 rounded-full border-2 border-primary overflow-hidden shadow-lg">
-                  <img src={reel.creatorAvatar} alt={reel.creatorName} className="w-full h-full object-cover" />
+                  <Image src={reel.creatorAvatar} alt={reel.creatorName} width={48} height={48} unoptimized className="w-full h-full object-cover" />
                 </div>
 
                 {/* Like Button */}
@@ -150,10 +151,13 @@ export default function ShoppableReelsFeed({ reels = [], onAddToCart }: Shoppabl
                 {/* Attached Product Card */}
                 <div className="flex items-center justify-between bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-2.5 shadow-xl">
                   <div className="flex items-center gap-3">
-                    <img 
-                      src={reel.product.image} 
-                      alt={reel.product.title} 
-                      className="w-12 h-12 rounded-xl object-cover border border-white/10" 
+                    <Image
+                      src={reel.product.image}
+                      alt={reel.product.title}
+                      width={48}
+                      height={48}
+                      unoptimized
+                      className="w-12 h-12 rounded-xl object-cover border border-white/10"
                     />
                     <div>
                       <h5 className="text-white text-xs font-medium line-clamp-1">{reel.product.title}</h5>

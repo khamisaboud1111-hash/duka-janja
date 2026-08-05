@@ -11,9 +11,14 @@ interface CartStore {
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
-  itemCount: () => number
-  subtotal: () => number
 }
+
+// Selector functions — use these instead of store methods
+export const selectCartItemCount = (state: CartStore) =>
+  state.items.reduce((sum, item) => sum + item.quantity, 0)
+
+export const selectCartSubtotal = (state: CartStore) =>
+  state.items.reduce((sum, item) => (item.product?.price ?? 0) * item.quantity + sum, 0)
 
 export const useCartStore = create<CartStore>()(
   persist(
@@ -55,13 +60,16 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [] }),
-
-      itemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
-
-      subtotal: () =>
-        get().items.reduce((sum, i) => sum + i.product.price * i.quantity, 0),
     }),
-    { name: 'duka-janja-cart' }
+    {
+      name: 'duka-janja-cart',
+      partialize: (state) => ({
+        items: state.items.map(({ product, quantity }) => ({
+          product: { id: product.id, name: product.name, price: product.price, seller_id: product.seller_id },
+          quantity,
+        })),
+      }),
+    }
   )
 )
 
@@ -104,6 +112,7 @@ export const useLangStore = create<LangStore>()(
     }),
     {
       name: 'duka-janja-lang',
+      partialize: (state) => ({ lang: state.lang }),
       onRehydrateStorage: () => (state) => {
         if (state) applyDir(state.lang)
       },
@@ -151,6 +160,7 @@ export const useThemeStore = create<ThemeStore>()(
     }),
     {
       name: 'duka-janja-theme',
+      partialize: (state) => ({ theme: state.theme }),
       onRehydrateStorage: () => (state) => {
         state?.setTheme(state.theme)
         useThemeStore.setState({ hasHydrated: true })

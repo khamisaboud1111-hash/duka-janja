@@ -5,6 +5,7 @@ import { Upload, X, Loader2, ShieldCheck } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/utils'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 interface RiderDocumentUploaderProps {
   userId: string
@@ -95,7 +96,7 @@ export default function RiderDocumentUploader({
         {value ? (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
             {previewUrl ? (
-              <img src={previewUrl} alt="" className="absolute inset-0 w-full h-full object-cover opacity-90" />
+              <Image src={previewUrl} alt="" width={400} height={300} unoptimized className="absolute inset-0 w-full h-full object-cover opacity-90" />
             ) : (
               <ShieldCheck className="w-8 h-8 text-emerald-500" />
             )}

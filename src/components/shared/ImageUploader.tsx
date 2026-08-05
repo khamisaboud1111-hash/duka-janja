@@ -5,6 +5,7 @@ import { Upload, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/utils'
 import toast from 'react-hot-toast'
+import Image from 'next/image'
 
 interface ImageUploaderProps {
   bucket: 'product-images' | 'seller-logos' | 'seller-banners' | 'avatars'
@@ -86,7 +87,7 @@ export default function ImageUploader({
       >
         {value ? (
           <>
-            <img src={value} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover" />
+            <Image src={value} alt="Uploaded" width={400} height={400} unoptimized className="absolute inset-0 w-full h-full object-cover" />
             {onRemove && (
               <button
                 type="button"

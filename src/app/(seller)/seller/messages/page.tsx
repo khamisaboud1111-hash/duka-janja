@@ -8,6 +8,7 @@ import { useChat } from '@/hooks/useChat'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
 import BuyerSellerChat from '@/components/chat/BuyerSellerChat'
+import Image from 'next/image'
 
 interface RoomPreview {
   id: string
@@ -146,7 +147,7 @@ export default function SellerMessagesPage() {
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
                         {r.buyer_avatar ? (
-                          <img src={r.buyer_avatar} alt="" className="w-11 h-11 rounded-full object-cover" />
+                          <Image src={r.buyer_avatar} alt="" width={44} height={44} unoptimized className="w-11 h-11 rounded-full object-cover" />
                         ) : (
                           <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-sm ${
                             isActive ? 'bg-brand-200 text-brand-700' : 'bg-ink-100 text-ink-600'

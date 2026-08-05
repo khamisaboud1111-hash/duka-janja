@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { 
+import {
   Sparkles, 
   Wand2, 
   Copy, 
@@ -19,6 +19,7 @@ import {
   HelpCircle,
   Loader2 // <-- Added Loader2 here to fix the build error
 } from "lucide-react";
+import Image from "next/image";
 
 export type ToneOption = "professional" | "luxury" | "friendly" | "local" | "youth";
 export type LanguageOption = "en" | "sw" | "both";
@@ -165,7 +166,7 @@ export default function AIProductStudio() {
           >
             {imagePreview ? (
               <div className="flex items-center gap-3">
-                <img src={imagePreview} alt="Upload preview" className="w-12 h-12 object-cover rounded-xl border shadow-sm" />
+                <Image src={imagePreview} alt="Upload preview" width={48} height={48} unoptimized className="w-12 h-12 object-cover rounded-xl border shadow-sm" />
                 <div className="text-left">
                   <p className="text-xs font-bold text-foreground">Image Loaded Successfully</p>
                   <p className="text-[10px] text-muted-foreground">AI will extract color, material, and category</p>
