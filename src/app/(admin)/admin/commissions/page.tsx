@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Percent, Check, DollarSign } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { StatCard, PageLoader, EmptyState } from '@/components/ui'
@@ -9,7 +9,7 @@ import type { CommissionRecord } from '@/types'
 import toast from 'react-hot-toast'
 
 export default function AdminCommissionsPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [commissions, setCommissions] = useState<CommissionRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'unpaid' | 'paid' | 'all'>('unpaid')

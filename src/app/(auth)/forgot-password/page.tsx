@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useLangStore } from '@/store'
@@ -9,7 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
 export default function ForgotPasswordPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { lang } = useLangStore()
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)

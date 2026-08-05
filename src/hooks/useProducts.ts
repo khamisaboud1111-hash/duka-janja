@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Product } from '@/types'
 
@@ -14,7 +14,7 @@ export interface ProductFilters {
 }
 
 export function useProducts(filters: ProductFilters = {}) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [products, setProducts] = useState<Product[]>([])
   const [count, setCount]       = useState(0)
   const [loading, setLoading]   = useState(true)

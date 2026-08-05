@@ -13,6 +13,8 @@ export function usePullToRefresh() {
   const startY = useRef(0)
   const active = useRef(false)
   const pullDistanceRef = useRef(0)
+  const routerRef = useRef(router)
+  routerRef.current = router
 
   useEffect(() => {
     function onTouchStart(e: TouchEvent) {
@@ -29,7 +31,6 @@ export function usePullToRefresh() {
         setPulling(true)
         const d = Math.min(delta * 0.5, 100)
         pullDistanceRef.current = d
-        setPullDistance(d)
       }
     }
 
@@ -40,7 +41,7 @@ export function usePullToRefresh() {
         setRefreshing(true)
         setPullDistance(THRESHOLD)
         await new Promise((r) => setTimeout(r, 600))
-        router.refresh()
+        routerRef.current.refresh()
         await new Promise((r) => setTimeout(r, 400))
         setRefreshing(false)
       }

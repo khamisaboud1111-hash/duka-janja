@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Bike, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { createClient } from '@/lib/supabase/client'
@@ -30,7 +30,7 @@ export default function ReadyForPickupButton({
   deliveryAddress,
   suggestedFee,
 }: ReadyForPickupButtonProps) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [dispatch, setDispatch] = useState<DispatchState>({ deliveryId: null, status: 'idle' })
   const [fee, setFee] = useState(suggestedFee || 2000)
 

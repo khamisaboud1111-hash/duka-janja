@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
@@ -65,7 +65,7 @@ interface ActiveDelivery {
 
 export default function RiderDashboardPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { profile, loading: userLoading } = useUser()
   const lang = useLangStore((s) => s.lang)
 
@@ -168,7 +168,7 @@ export default function RiderDashboardPage() {
     return () => navigator.geolocation.clearWatch(id)
   }, [activeDelivery, isOnline])
 
-  async function handleToggle() {
+  const handleToggle = useCallback(async () => {
     if (!riderProfile) return
     if (!riderProfile.is_verified) { toast.error(t('accountPendingVerification', lang)); return }
     const previousState = isOnline
@@ -182,7 +182,7 @@ export default function RiderDashboardPage() {
       toast.error(t('onlineStatusFailed', lang))
     }
     setTogglingOnline(false)
-  }
+  }, [riderProfile, isOnline, toggleOnline, setIsOnline, lang])
 
   async function handleUpdateStatus() {
     if (!activeDelivery || updatingDeliveryStatus) return

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, ShoppingCart, Star, BadgeCheck, Eye, PlayCircle, Truck, Check } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useCartStore, useLangStore } from '@/store'
 import { createClient } from '@/lib/supabase/client'
 import { formatTZS, cn } from '@/utils'
@@ -19,7 +19,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, wishlisted: initialWishlisted = false }: ProductCardProps) {
   const { addItem } = useCartStore()
   const { lang } = useLangStore()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [wishlisted, setWishlisted] = useState(initialWishlisted)
   const [wishlistLoading, setWishlistLoading] = useState(false)
   const [justAdded, setJustAdded] = useState(false)

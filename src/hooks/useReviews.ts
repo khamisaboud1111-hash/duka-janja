@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Review } from '@/types'
 
 export function useProductReviews(productId: string) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -25,7 +25,7 @@ export function useProductReviews(productId: string) {
 }
 
 export function useReviewableOrders() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [reviewable, setReviewable] = useState<Array<{ order_id: string; product_id: string; product_name: string }>>([])
   const [loading, setLoading] = useState(true)
 

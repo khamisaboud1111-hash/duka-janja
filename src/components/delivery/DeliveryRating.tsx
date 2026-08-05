@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { CheckCircle2, Bike } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { StarRating } from '@/components/ui/StarRating'
@@ -35,7 +35,7 @@ export default function DeliveryRating({
   existingRating,
   onSubmitted,
 }: DeliveryRatingProps) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [rating, setRating] = useState(existingRating?.rating ?? 0)
   const [comment, setComment] = useState(existingRating?.comment ?? '')
   const [submitting, setSubmitting] = useState(false)

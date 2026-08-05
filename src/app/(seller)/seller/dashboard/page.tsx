@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { ShoppingBag, TrendingUp, TrendingDown, Package, Star, AlertTriangle, Plus, DollarSign, Users, Wallet, Bell, MessageSquare, BarChart2, Activity, CreditCard, Clock, CheckCircle, XCircle, Archive, Layers, Percent, Settings, PackagePlus, UsersRound, Store, PackageCheck, PackageX, Clock4, Gauge, Sparkles } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSeller } from '@/hooks/useSeller'
@@ -34,7 +34,7 @@ interface Alert {
 }
 
 export default function SellerDashboardPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -48,9 +48,56 @@ export default function SellerDashboardPage() {
     }
   }, [seller])
 
+  const loadAlerts = useCallback(() => {
+    const newAlerts: Alert[] = []
+    
+    if (stats) {
+      if (stats.lowStockProducts > 0) {
+        newAlerts.push({
+          id: 'low-stock',
+          type: 'warning',
+          message: `${stats.lowStockProducts} products are running low on stock (≤5 units)`,          actionLabel: 'View Products',
+          action: () => window.location.href = '/seller/products'
+        })
+      }
+      
+      if (stats.unpaidCommissions > 0) {
+        newAlerts.push({
+          id: 'commissions',
+          type: 'warning',
+          message: `$${stats.unpaidCommissions.toFixed(2)} in commissions are pending payout`,
+          actionLabel: 'Pay Now',
+          action: () => window.location.href = '/seller/wallet'
+        })
+      }
+      
+      if (stats.pendingOrders > 0) {
+        newAlerts.push({
+          id: 'orders',
+          type: 'info',
+          message: `${stats.pendingOrders} orders are pending processing`,
+          actionLabel: 'Process Orders',
+          action: () => window.location.href = '/seller/orders'
+        })
+      }
+      
+      if (stats.totalRevenue < stats.recentRevenue * 0.8) {
+        newAlerts.push({
+          id: 'revenue',
+          type: 'warning',
+          message: 'Revenue has decreased by 20% this week. Consider promotional campaigns.',
+          actionLabel: 'View Insights',
+          action: () => window.location.href = '/seller/analytics'
+        })
+      }
+    }
+    
+    setAlerts(newAlerts)
+  }, [stats])
+
   useEffect(() => {
     loadAlerts()
-  }, [stats])
+  }, [loadAlerts])
 
   async function loadDashboardData() {
     if (!seller) return
@@ -166,52 +213,7 @@ export default function SellerDashboardPage() {
     }
   }
 
-  function loadAlerts() {
-    const newAlerts: Alert[] = []
-    
-    if (stats) {
-      if (stats.lowStockProducts > 0) {
-        newAlerts.push({
-          id: 'low-stock',
-          type: 'warning',
-          message: `${stats.lowStockProducts} products are running low on stock (≤5 units)`,          actionLabel: 'View Products',
-          action: () => window.location.href = '/seller/products'
-        })
-      }
-      
-      if (stats.unpaidCommissions > 0) {
-        newAlerts.push({
-          id: 'commissions',
-          type: 'warning',
-          message: `$${stats.unpaidCommissions.toFixed(2)} in commissions are pending payout`,
-          actionLabel: 'Pay Now',
-          action: () => window.location.href = '/seller/wallet'
-        })
-      }
-      
-      if (stats.pendingOrders > 0) {
-        newAlerts.push({
-          id: 'orders',
-          type: 'info',
-          message: `${stats.pendingOrders} orders are pending processing`,
-          actionLabel: 'Process Orders',
-          action: () => window.location.href = '/seller/orders'
-        })
-      }
-      
-      if (stats.totalRevenue < stats.recentRevenue * 0.8) {
-        newAlerts.push({
-          id: 'revenue',
-          type: 'warning',
-          message: 'Revenue has decreased by 20% this week. Consider promotional campaigns.',
-          actionLabel: 'View Insights',
-          action: () => window.location.href = '/seller/analytics'
-        })
-      }
-    }
-    
-    setAlerts(newAlerts)
-  }
+
 
   if (sellerLoading || loading) return <PageLoader />
 

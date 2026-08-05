@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { Check, X, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -11,7 +11,7 @@ import type { Product, ProductStatus } from '@/types'
 import toast from 'react-hot-toast'
 
 export default function AdminProductsPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | ProductStatus>('draft')

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -45,7 +45,7 @@ export default function CheckoutPage() {
   const deliveryFee = selectedZone ? DELIVERY_ZONES[selectedZone as DeliveryZone]?.fee ?? 0 : 0
   const total = subtotal() + deliveryFee
 
-  async function onSubmit(data: FormData) {
+  const onSubmit = useCallback(async (data: FormData) => {
     if (items.length === 0) return
     setSubmitting(true)
 
@@ -183,7 +183,7 @@ export default function CheckoutPage() {
     }
 
     setSubmitting(false)
-  }
+  }, [items, router, lang, subtotal, deliveryFee, clearCart])
 
   if (success) {
     return (

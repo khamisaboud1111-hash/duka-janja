@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, X, FileText, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
@@ -13,7 +13,7 @@ interface DocRow extends SellerVerificationDocument {
 }
 
 export default function AdminVerificationQueuePage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [docs, setDocs] = useState<DocRow[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | VerificationStatus>('pending')

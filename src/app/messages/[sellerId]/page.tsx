@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { MessageCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -16,7 +16,7 @@ import BuyerSellerChat from '@/components/chat/BuyerSellerChat'
 export default function BuyerMessagePage() {
   const params = useParams<{ sellerId: string }>()
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { profile, loading: userLoading } = useUser()
   const { lang } = useLangStore()
   const [storeName, setStoreName] = useState('')

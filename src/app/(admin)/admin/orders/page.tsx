@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ShoppingBag } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -11,7 +11,7 @@ import type { Order, OrderStatus } from '@/types'
 import toast from 'react-hot-toast'
 
 export default function AdminOrdersPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | OrderStatus>('all')

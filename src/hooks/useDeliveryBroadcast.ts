@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export interface DeliveryLocationPayload {
@@ -18,7 +18,7 @@ export interface DeliveryLocationPayload {
  * smooth, zero-DB-roundtrip live animation on the watching side.
  */
 export function useDeliveryBroadcastPublisher(deliveryId: string | null) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function useDeliveryBroadcastSubscriber(
   deliveryId: string | null,
   onLocation: (payload: DeliveryLocationPayload) => void
 ) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     if (!deliveryId) return

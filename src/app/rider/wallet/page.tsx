@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Wallet as WalletIcon, TrendingUp, ArrowUpRight, ArrowDownRight, Clock, Banknote, ChevronRight } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
@@ -29,7 +29,7 @@ interface WithdrawalRequest {
 }
 
 export default function RiderWalletPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { profile, loading: userLoading } = useUser()
   const lang = useLangStore((s) => s.lang)
   const [balance, setBalance] = useState(0)

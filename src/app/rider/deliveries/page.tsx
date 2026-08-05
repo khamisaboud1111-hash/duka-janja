@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Search, Download, Star, MapPin, Navigation, Clock, Package } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
@@ -29,7 +29,7 @@ interface DeliveryRecord {
 type FilterStatus = 'all' | 'delivered' | 'cancelled'
 
 export default function RiderDeliveriesPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { profile, loading: userLoading } = useUser()
   const lang = useLangStore((s) => s.lang)
   const [deliveries, setDeliveries] = useState<DeliveryRecord[]>([])

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ShieldCheck, Loader2, Clock, CheckCircle2, XCircle, Upload } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSeller } from '@/hooks/useSeller'
@@ -15,7 +15,7 @@ const DOC_TYPES: { id: VerificationDocType; label: string; hint: string }[] = [
 ]
 
 export default function SellerVerificationPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading, refetch } = useSeller()
   const [docs, setDocs] = useState<SellerVerificationDocument[]>([])
   const [loading, setLoading] = useState(true)

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MessageCircle, Search, MoreVertical, Phone, Star, Clock, ChevronLeft } from 'lucide-react'
 import { useSeller } from '@/hooks/useSeller'
 import { useUser } from '@/hooks/useUser'
@@ -32,7 +32,7 @@ function relativeTime(iso: string): string {
 }
 
 export default function SellerMessagesPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
   const { profile } = useUser()
   const [rooms, setRooms] = useState<RoomPreview[]>([])
@@ -53,35 +53,36 @@ export default function SellerMessagesPage() {
       .select('id, buyer_id, buyer:profiles(full_name, avatar_url)')
       .eq('seller_id', seller!.id)
 
-    // NOTE: N+1 query problem — two queries per room (last message + unread count).
-    // A more optimal approach would batch these into a single query or use a DB view/rpc.
-    const previews: RoomPreview[] = []
-    for (const r of roomRows ?? []) {
-      const { data: lastMsg } = await supabase
-        .from('messages')
-        .select('body, created_at')
-        .eq('room_id', r.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+    const senderId = profile?.id ?? ''
+    const previews: RoomPreview[] = await Promise.all(
+      (roomRows ?? []).map(async (r) => {
+        const [lastMsgResult, unreadResult] = await Promise.all([
+          supabase
+            .from('messages')
+            .select('body, created_at')
+            .eq('room_id', r.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from('messages')
+            .select('id', { count: 'exact', head: true })
+            .eq('room_id', r.id)
+            .is('read_at', null)
+            .neq('sender_id', senderId),
+        ])
 
-      const { count } = await supabase
-        .from('messages')
-        .select('id', { count: 'exact', head: true })
-        .eq('room_id', r.id)
-        .is('read_at', null)
-        .neq('sender_id', profile?.id ?? '')
-
-      previews.push({
-        id: r.id,
-        buyer_id: r.buyer_id,
-        buyer_name: (r as any).buyer?.full_name ?? 'Mteja',
-        buyer_avatar: (r as any).buyer?.avatar_url,
-        last_message: lastMsg?.body ?? null,
-        last_at: lastMsg?.created_at ?? null,
-        unread_count: count ?? 0,
+        return {
+          id: r.id,
+          buyer_id: r.buyer_id,
+          buyer_name: (r as any).buyer?.full_name ?? 'Mteja',
+          buyer_avatar: (r as any).buyer?.avatar_url,
+          last_message: lastMsgResult.data?.body ?? null,
+          last_at: lastMsgResult.data?.created_at ?? null,
+          unread_count: unreadResult.count ?? 0,
+        }
       })
-    }
+    )
 
     previews.sort((a, b) => (b.last_at ?? '').localeCompare(a.last_at ?? ''))
     setRooms(previews)

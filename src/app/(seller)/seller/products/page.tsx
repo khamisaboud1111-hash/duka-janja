@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Plus, Pencil, Trash2, Eye, EyeOff, AlertTriangle, Search, Filter, Download, Grid3X3, List, CheckSquare, Square, ChevronDown, Package, ArrowUpDown } from 'lucide-react'
@@ -17,7 +17,7 @@ type SortKey = 'name' | 'price' | 'stock' | 'created'
 type FilterStatus = 'all' | 'active' | 'draft' | 'out_of_stock'
 
 export default function SellerProductsPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)

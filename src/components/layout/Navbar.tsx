@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -73,7 +73,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
   const { unreadCount } = useNotifications();
   const { profile, isAdmin, isSeller } = useUser();
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   // Debounced command-palette-style search suggestions.
   useEffect(() => {

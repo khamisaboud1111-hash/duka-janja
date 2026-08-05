@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Heart } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -16,7 +16,7 @@ import type { WishlistItem } from '@/types'
 export default function WishlistPage() {
   const { profile, loading: authLoading } = useUser()
   const lang = useLangStore((s) => s.lang)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [items, setItems] = useState<WishlistItem[]>([])
   const [loading, setLoading] = useState(true)
 

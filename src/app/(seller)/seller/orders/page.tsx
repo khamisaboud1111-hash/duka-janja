@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import { Search, Filter, Download, Archive, TrendingUp, Clock, CheckCircle, XCircle, Package, Truck, MapPin, User, Phone, FileText, PackageCheck, PackageX, AlertCircle, ChevronDown, Eye, Edit, Trash2 } from 'lucide-react'
 import { useSeller } from '@/hooks/useSeller'
@@ -63,7 +63,7 @@ export default function SellerOrdersPage() {
     setSelectedOrders([])
   }, [statusFilter, searchQuery])
 
-  async function handleAdvance(order: Order) {
+  const handleAdvance = useCallback(async (order: Order) => {
     const next = NEXT_STATUS[order.status]
     if (!next) return
     setUpdatingId(order.id)
@@ -72,16 +72,16 @@ export default function SellerOrdersPage() {
     setActiveOrder(null)
     setUpdatingId(null)
     toast.success(`Hali imebadilishwa: ${STATUS_LABELS[next]}`)
-  }
+  }, [note, updateOrderStatus])
 
-  async function handleCancel(order: Order) {
+  const handleCancel = useCallback(async (order: Order) => {
     setUpdatingId(order.id)
     await updateOrderStatus(order.id, 'cancelled', note || 'Imefutwa na muuzaji')
     setNote('')
     setActiveOrder(null)
     setUpdatingId(null)
     toast.success('Agizo limefutwa')
-  }
+  }, [note, updateOrderStatus])
 
   function exportOrders() {
     const csvContent = 'data:text/csv;charset=utf-8,' +

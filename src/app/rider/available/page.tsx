@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Search, Navigation, MapPin, Clock, Package, Zap, Star, Filter, X, Users } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { createClient } from '@/lib/supabase/client'
@@ -28,7 +28,7 @@ interface AvailableDelivery {
 type FilterType = 'all' | 'express' | 'standard' | 'nearest'
 
 export default function RiderAvailablePage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { profile, loading: userLoading } = useUser()
   const lang = useLangStore((s) => s.lang)
   const [deliveries, setDeliveries] = useState<AvailableDelivery[]>([])

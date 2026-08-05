@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
@@ -13,7 +13,7 @@ import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
 
 export default function SettingsPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const { profile, loading: authLoading } = useUser()
   const lang = useLangStore((s) => s.lang)
@@ -408,7 +408,7 @@ function SectionRow({
 }
 
 function AccountTypeCard({ profile, router }: { profile: any; router: any }) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const lang = useLangStore((s) => s.lang)
   const [roles, setRoles] = useState<any>({ seller: null, rider: null })
   const [loading, setLoading] = useState(true)

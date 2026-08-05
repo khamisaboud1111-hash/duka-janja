@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Store, Package, ShoppingBag, DollarSign, AlertCircle, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -10,7 +10,7 @@ import { formatTZS, formatDate } from '@/utils'
 import toast from 'react-hot-toast'
 
 export default function AdminDashboardPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [stats, setStats] = useState<{
     totalSellers: number
     pendingSellers: number

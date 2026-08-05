@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Upload, X, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/utils'
@@ -28,7 +28,7 @@ export default function ImageUploader({
   maxSizeMB = 5,
 }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
 

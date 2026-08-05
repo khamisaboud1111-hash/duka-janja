@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Order, OrderStatus } from '@/types'
 
 export function useBuyerOrders() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -29,7 +29,7 @@ export function useBuyerOrders() {
 }
 
 export function useSellerOrders(sellerId: string | null) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 

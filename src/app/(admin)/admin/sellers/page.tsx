@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, X, Pause, Play, MessageCircle, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { SellerStatusBadge } from '@/components/ui/Badge'
@@ -11,7 +11,7 @@ import type { Seller, SellerStatus } from '@/types'
 import toast from 'react-hot-toast'
 
 export default function AdminSellersPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [sellers, setSellers] = useState<Seller[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | SellerStatus>('pending')

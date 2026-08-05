@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import LiveDeliveryMap from './LiveDeliveryMap'
 import { useLangStore } from '@/store'
@@ -22,7 +22,7 @@ interface ActiveOrderDelivery {
  * the rider's broadcast (see useDeliveryBroadcast, Phase 11) — no polling.
  */
 export default function OrderLiveMapSection({ orderId }: { orderId: string }) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const lang = useLangStore((s) => s.lang)
   const [delivery, setDelivery] = useState<ActiveOrderDelivery | null>(null)
   const [riderLocation, setRiderLocation] = useState<{ lat: number; lng: number } | null>(null)

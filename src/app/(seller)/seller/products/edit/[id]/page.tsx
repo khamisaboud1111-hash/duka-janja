@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -10,7 +10,7 @@ import { PageLoader } from '@/components/ui'
 import type { Product } from '@/types'
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)

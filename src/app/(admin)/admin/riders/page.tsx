@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Check, X, ExternalLink, Bike, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
@@ -28,7 +28,7 @@ interface RiderRow {
 type FilterTab = 'pending' | 'verified' | 'suspended' | 'all'
 
 export default function AdminRidersPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [riders, setRiders] = useState<RiderRow[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<FilterTab>('pending')

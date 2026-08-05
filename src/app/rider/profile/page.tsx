@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { User, Phone, Mail, Star, Package, MapPin, Shield, LogOut, ChevronRight } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
 import { useRouter } from 'next/navigation'
@@ -28,7 +28,7 @@ interface RiderProfile {
 }
 
 export default function RiderProfilePage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const { profile, loading: userLoading } = useUser()
   const lang = useLangStore((s) => s.lang)

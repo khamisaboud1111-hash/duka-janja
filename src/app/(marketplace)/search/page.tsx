@@ -1,7 +1,7 @@
 'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { SlidersHorizontal, X, Search, Clock, TrendingUp } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
 import { useProducts } from '@/hooks/useProducts'
@@ -40,7 +40,7 @@ export default function SearchPage() {
   const router = useRouter()
   const params = useSearchParams()
   const { lang } = useLangStore()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const [categories, setCategories] = useState<Category[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)

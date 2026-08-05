@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import DeliveryRating from './DeliveryRating'
 
@@ -24,7 +24,7 @@ interface DeliveryInfo {
  * delivered delivery for this order yet (e.g. cash pickup, or still in transit).
  */
 export default function DeliveryRatingSection({ orderId, reviewerId, reviewerRole }: DeliveryRatingSectionProps) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [delivery, setDelivery] = useState<DeliveryInfo | null>(null)
   const [riderName, setRiderName] = useState('Dereva')
   const [existingRating, setExistingRating] = useState<{ rating: number; comment: string | null } | null>(null)

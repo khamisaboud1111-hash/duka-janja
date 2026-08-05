@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Video, X, Loader2, Play } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/utils'
@@ -24,7 +24,7 @@ export default function VideoUploader({
   maxSizeMB = 50,
 }: VideoUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [uploading, setUploading] = useState(false)
   const [dragOver, setDragOver] = useState(false)
 

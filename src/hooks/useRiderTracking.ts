@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useDeliveryBroadcastPublisher } from './useDeliveryBroadcast'
 
@@ -22,7 +22,7 @@ export interface ActiveOffer {
  * broadcast live to the buyer/admin tracking map (Phase 11).
  */
 export function useRiderTracking(riderId: string | undefined) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [isOnline, setIsOnline] = useState(false)
   const [offer, setOffer] = useState<ActiveOffer | null>(null)
   const [activeDeliveryId, setActiveDeliveryId] = useState<string | null>(null)

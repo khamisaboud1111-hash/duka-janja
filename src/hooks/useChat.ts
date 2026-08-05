@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 export interface ChatMessage {
@@ -27,7 +27,7 @@ export interface ChatRoom {
  * route layer is needed, the Supabase client talks directly to Postgres here.
  */
 export function useChat(buyerId: string | undefined, sellerId: string | undefined, orderId?: string | null) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [room, setRoom] = useState<ChatRoom | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [loading, setLoading] = useState(true)

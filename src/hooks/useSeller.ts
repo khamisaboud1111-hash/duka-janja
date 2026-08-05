@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Seller } from '@/types'
 
 export function useSeller() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [seller, setSeller] = useState<Seller | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -29,7 +29,7 @@ export function useSeller() {
 }
 
 export function useSellerAnalytics(sellerId: string | null) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [analytics, setAnalytics] = useState<{
     totalRevenue: number
     totalOrders: number

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { TrendingUp, TrendingDown, ShoppingBag, Star, DollarSign, Package, Users, Download, Calendar, BarChart2, Activity, Target, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSeller } from '@/hooks/useSeller'
@@ -13,7 +13,7 @@ interface CategoryBreakdown { name: string; revenue: number; count: number; avgP
 interface TopProduct { name: string; revenue: number; quantity: number; avgRating: number }
 
 export default function SellerAnalyticsPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
 
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d')

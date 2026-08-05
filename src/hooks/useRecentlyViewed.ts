@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Product } from '@/types'
 
 /** Call this on a product detail page to record the view (no-op if logged out). */
 export function useTrackRecentlyViewed(productId: string | undefined) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     if (!productId) return
@@ -22,7 +22,7 @@ export function useTrackRecentlyViewed(productId: string | undefined) {
 
 /** Fetch the current buyer's recently-viewed products (newest first), excluding one product if given. */
 export function useRecentlyViewed(excludeProductId?: string, limit = 10) {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 

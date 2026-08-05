@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -37,7 +37,7 @@ interface Props {
 
 export default function ProductForm({ seller, product }: Props) {
   const router = useRouter()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [categories, setCategories] = useState<Category[]>([])
   const [images, setImages] = useState<string[]>(product?.images?.map(i => i.url) ?? [])
   const [videos, setVideos] = useState<string[]>(product?.videos?.map(v => v.url) ?? [])

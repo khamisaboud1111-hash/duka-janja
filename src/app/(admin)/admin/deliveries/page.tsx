@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Truck, Star, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
@@ -28,7 +28,7 @@ interface DeliveryDetail {
 }
 
 export default function AdminDeliveriesPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [riders, setRiders] = useState<OnlineRider[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryDetail | null>(null)
