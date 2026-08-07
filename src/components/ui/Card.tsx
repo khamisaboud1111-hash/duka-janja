@@ -33,6 +33,7 @@ export function Card({
     </div>
   );
 }
+<<<<<<< HEAD
 
 // ==========================================
 // Action Item Component (Extracted for clean code)
@@ -126,5 +127,35 @@ export function QuickActionGrid({
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div className={`animate-pulse rounded-md bg-slate-200 dark:bg-slate-800 ${className}`} />
+=======
+
+// 2. The QuickActionGrid component
+export function QuickActionGrid({ actions, light }: { actions: QuickAction[]; light?: boolean }) {
+  return (
+    <div className="grid grid-cols-4 gap-2 sm:gap-3">
+      {actions.map((a, index) => (
+        <a
+          key={index}
+          href={a.href || '#'}
+          onClick={a.onClick}
+          className={light ? 'quick-action-tile' : 'icon-tile'}
+        >
+          <span className={light ? 'quick-action-tile-icon' : 'icon-tile-icon'}>
+            {a.icon}
+          </span>
+          <span className="text-[11px] font-medium text-slate-700">
+            {a.label}
+          </span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// 3. The Skeleton component (This fixes your error)
+export function Skeleton({ className = "" }: { className?: string }) {
+  return (
+    <div className={`animate-pulse bg-slate-200 rounded-md ${className}`} />
+>>>>>>> 4d83432 (Save work before retention timeout)
   );
 }
