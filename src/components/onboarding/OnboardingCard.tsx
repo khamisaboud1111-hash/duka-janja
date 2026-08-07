@@ -450,6 +450,10 @@ function SignUpForm({ onSwitch, initialType }: { onSwitch: () => void; initialTy
 }
 
 /* ── Glass card with Sign Up / Sign In toggle ────────────────────────── */
+// NOTE: This file is ~535 lines but tightly coupled — SignInForm, SignUpForm, and
+// shared glass-field components all share state patterns and the same visual language.
+// Extracting them would add import overhead without meaningful decoupling.
+// Consider splitting only if a third distinct mode or form variant is added.
 
 interface Props {
   initialMode?: OnboardingMode

@@ -8,6 +8,16 @@ import { StatCard, PageLoader } from '@/components/ui'
 import { OrderStatusBadge, SellerStatusBadge } from '@/components/ui/Badge'
 import { formatTZS, formatDate } from '@/utils'
 import toast from 'react-hot-toast'
+import type { Order, Seller } from '@/types'
+
+interface RecentOrder {
+  id: string
+  status: string
+  total_amount: number
+  created_at: string
+  buyer?: { full_name: string } | null
+  items?: { product?: { name: string } | null }[]
+}
 
 export default function AdminDashboardPage() {
   const supabase = useMemo(() => createClient(), [])
@@ -21,8 +31,8 @@ export default function AdminDashboardPage() {
     totalCommissions: number
     unpaidCommissions: number
   } | null>(null)
-  const [recentOrders, setRecentOrders] = useState<any[]>([])
-  const [pendingSellersList, setPendingSellersList] = useState<any[]>([])
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([])
+  const [pendingSellersList, setPendingSellersList] = useState<Seller[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -56,9 +66,9 @@ export default function AdminDashboardPage() {
         totalProducts: productsRes.count ?? 0,
         pendingProducts: pendingProductsRes.count ?? 0,
         totalOrders: orders.length,
-        totalRevenue: orders.reduce((s: number, o: any) => s + o.total_amount, 0),
-        totalCommissions: commissions.reduce((s: number, c: any) => s + c.commission_amount, 0),
-        unpaidCommissions: commissions.filter((c: any) => !c.is_paid).reduce((s: number, c: any) => s + c.commission_amount, 0),
+        totalRevenue: orders.reduce((s: number, o: { total_amount: number }) => s + o.total_amount, 0),
+        totalCommissions: commissions.reduce((s: number, c: { commission_amount: number }) => s + c.commission_amount, 0),
+        unpaidCommissions: commissions.filter((c: { is_paid: boolean }) => !c.is_paid).reduce((s: number, c: { commission_amount: number }) => s + c.commission_amount, 0),
       })
 
       setRecentOrders(recentOrdersRes.data ?? [])

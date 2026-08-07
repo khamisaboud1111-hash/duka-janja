@@ -19,9 +19,28 @@ interface RiderNavigationMapProps {
   deliveryNotes?: string
 }
 
+interface RoutingStep {
+  text: string
+  distance: number
+}
+
+interface RoutingSummary {
+  totalTime: number
+  totalDistance: number
+}
+
+interface RoutingRoute {
+  summary: RoutingSummary
+  instructions: RoutingStep[]
+}
+
+interface RoutesFoundEvent {
+  routes: RoutingRoute[]
+}
+
 interface RoutingControlInstance {
   remove(): void
-  on(event: string, callback: (e: any) => void): this
+  on(event: string, callback: (e: RoutesFoundEvent) => void): this
 }
 
 export function RiderNavigationMap({
@@ -174,7 +193,7 @@ export function RiderNavigationMap({
         createMarker: () => null,
       })
 
-      routingControl.on('routesfound', (e: any) => {
+      routingControl.on('routesfound', (e: RoutesFoundEvent) => {
         setIsCalculatingRoute(false)
         const summary = e.routes[0]?.summary
         if (summary) {
@@ -186,7 +205,7 @@ export function RiderNavigationMap({
 
         const steps = e.routes[0]?.instructions || []
         setInstructions(
-          steps.slice(0, 3).map((step: any) => ({
+          steps.slice(0, 3).map((step: RoutingStep) => ({
             text: step.text,
             distance: step.distance,
           }))
