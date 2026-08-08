@@ -1,59 +1,102 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@/lib/supabase/server'
-import { getPaymentAdapter } from '@/lib/payments'
-import { PaymentProvider } from '@/types'
+import { NextResponse } from 'next/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { isValidWebhookSignature, verifyTransaction } from '@/lib/payments/aggregator'
 
-/**
- * Generic webhook receiver. Each provider posts here with its own payload shape;
- * `?provider=mpesa|airtel_money|tigo_pesa` tells us which adapter should parse it.
- *
- * NOTE: until real provider credentials exist, the adapters throw — this route
- * is wired and ready, but won't receive real traffic until M-Pesa/Airtel/Tigo
- * merchant accounts are configured (see src/lib/payments/providers/*.ts).
- */
-export async function POST(req: NextRequest) {
-  const provider = req.nextUrl.searchParams.get('provider') as PaymentProvider | null
-  if (!provider) return NextResponse.json({ error: 'Missing provider' }, { status: 400 })
+export async function POST(req: Request) {
+  const signature = req.headers.get('verif-hash')
 
-  const adapter = getPaymentAdapter(provider)
-  if (!adapter) return NextResponse.json({ error: 'Unknown provider' }, { status: 400 })
-
-  const payload = await req.json().catch(() => null)
-
-  try {
-    const result = await adapter.handleCallback(payload)
-    const supabase = createServerClient()
-
-    const { data: txn } = await supabase
-      .from('payment_transactions')
-      .update({
-        status: result.status,
-        provider_payload: result.rawPayload,
-        completed_at: result.status === 'completed' ? new Date().toISOString() : null,
-      })
-      .eq('provider_reference', result.providerReference)
-      .select()
-      .single()
-
-    if (txn && result.status === 'completed') {
-      await supabase.from('orders').update({ payment_confirmed: true }).eq('id', txn.order_id)
-
-      const { data: order } = await supabase.from('orders').select('buyer_id').eq('id', txn.order_id).single()
-      if (order) {
-        await supabase.from('notifications').insert({
-          user_id: order.buyer_id,
-          type: 'payment_received',
-          title_en: 'Payment received',
-          title_sw: 'Malipo yamepokelewa',
-          body_en: 'Your payment was successful. Your order is being processed.',
-          body_sw: 'Malipo yako yamefanikiwa. Agizo lako linashughulikiwa.',
-          link: `/orders/${txn.order_id}`,
-        })
-      }
-    }
-
-    return NextResponse.json({ ok: true })
-  } catch (err) {
-    return NextResponse.json({ error: 'Provider not yet configured for live callbacks' }, { status: 501 })
+  if (!isValidWebhookSignature(signature)) {
+    console.warn('[payments/webhook] rejected: invalid or missing verif-hash')
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
+
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const transactionId = body?.data?.id
+  if (!transactionId) {
+    return NextResponse.json({ error: 'Missing transaction id' }, { status: 400 })
+  }
+
+  const verification = await verifyTransaction(transactionId)
+
+  if (!verification.verified) {
+    console.error('[payments/webhook] could not verify transaction', transactionId)
+    return NextResponse.json({ error: 'Verification failed' }, { status: 502 })
+  }
+
+  const supabase = createAdminClient()
+
+  let orderId = verification.orderId
+
+  if (!orderId && verification.txRef) {
+    const { data: matched } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('payment_reference', verification.txRef)
+      .maybeSingle()
+    orderId = matched?.id
+  }
+
+  if (!orderId) {
+    console.error('[payments/webhook] could not match transaction to an order', verification.txRef)
+    return NextResponse.json({ error: 'Order not found for transaction' }, { status: 404 })
+  }
+
+  const { data: order } = await supabase
+    .from('orders')
+    .select('id, total_amount, payment_confirmed, status')
+    .eq('id', orderId)
+    .single()
+
+  if (!order) {
+    return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+  }
+
+  if (order.payment_confirmed) {
+    return NextResponse.json({ success: true, already_processed: true })
+  }
+
+  if (verification.status !== 'successful') {
+    console.warn(`[payments/webhook] transaction ${transactionId} not successful: ${verification.status}`)
+    return NextResponse.json({ success: true, payment_status: verification.status })
+  }
+
+  if (verification.amount !== undefined && verification.amount < order.total_amount) {
+    console.error(`[payments/webhook] amount mismatch for order ${orderId}: paid ${verification.amount}, expected ${order.total_amount}`)
+    return NextResponse.json({ error: 'Amount mismatch' }, { status: 422 })
+  }
+
+  const { error: updateErr } = await supabase
+    .from('orders')
+    .update({
+      payment_confirmed: true,
+      status: order.status === 'pending' ? 'confirmed' : order.status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', orderId)
+
+  if (updateErr) {
+    console.error('[payments/webhook] order update failed:', updateErr)
+    return NextResponse.json({ error: 'Could not update order' }, { status: 500 })
+  }
+
+  const { data: orderRow } = await supabase.from('orders').select('buyer_id').eq('id', orderId).single()
+  if (orderRow) {
+    await supabase.from('notifications').insert({
+      user_id: orderRow.buyer_id,
+      type: 'order_placed',
+      title_en: 'Payment confirmed',
+      title_sw: 'Malipo Yamethibitishwa',
+      body_en: 'Your payment was received. Your order is now confirmed.',
+      body_sw: 'Malipo yako yamepokelewa. Agizo lako limethibitishwa.',
+      link: `/orders/${orderId}`,
+    })
+  }
+
+  return NextResponse.json({ success: true })
 }

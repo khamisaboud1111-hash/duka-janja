@@ -20,6 +20,13 @@ export const selectCartItemCount = (state: CartStore) =>
 export const selectCartSubtotal = (state: CartStore) =>
   state.items.reduce((sum, item) => (item.product?.price ?? 0) * item.quantity + sum, 0)
 
+export const selectCartTotalSavings = (state: CartStore) =>
+  state.items.reduce((sum, item) => {
+    const originalPrice = item.product?.compare_at_price ?? item.product?.price ?? 0
+    const currentPrice = item.product?.price ?? 0
+    return sum + Math.max(0, (originalPrice - currentPrice) * item.quantity)
+  }, 0)
+
 export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
@@ -65,7 +72,13 @@ export const useCartStore = create<CartStore>()(
       name: 'duka-janja-cart',
       partialize: (state) => ({
         items: state.items.map(({ product, quantity }) => ({
-          product: { id: product.id, name: product.name, price: product.price, seller_id: product.seller_id },
+          product: {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            seller_id: product.seller_id,
+            seller: product.seller ? { store_name: product.seller.store_name } : undefined,
+          },
           quantity,
         })),
       }),
@@ -93,6 +106,7 @@ function applyDir(lang: Language) {
   if (typeof document !== 'undefined') {
     // Arabic reads right-to-left; every other language is left-to-right.
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+    document.cookie = `lang=${lang}; path=/; max-age=31536000`
   }
 }
 

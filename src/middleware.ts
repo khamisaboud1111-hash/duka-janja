@@ -25,24 +25,23 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
   const path = req.nextUrl.pathname
 
   const isAdminRoute  = ADMIN_ROUTES.some((r) => path.startsWith(r))
   const isPublic      = PUBLIC_ROUTES.some((r) => path === r || path.startsWith(`${r}/`))
 
-  // First-time visitors land on the login page instead of the homepage.
-  if (!session && !isPublic) {
+  if (!user && !isPublic) {
     const redirectUrl = new URL('/login', req.url)
     redirectUrl.searchParams.set('redirect', path)
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (isAdminRoute && session) {
+  if (isAdminRoute && user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single()
 
     if (profile?.role !== 'admin') {

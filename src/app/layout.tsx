@@ -3,6 +3,7 @@ import PullToRefreshIndicator from '@/components/layout/PullToRefreshIndicator'
 import { Inter, Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import ThemeScript from '@/components/layout/ThemeScript'
+import { cookies } from 'next/headers'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -16,7 +17,7 @@ const poppins = Poppins({
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#1da8ab' },
     { media: '(prefers-color-scheme: dark)', color: '#0f172a' },
@@ -76,6 +77,10 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  const langCookie = cookies().get('lang')?.value
+  const ssrLang = langCookie === 'ar' || langCookie === 'en' || langCookie === 'fr' ? langCookie : 'sw'
+  const ssrDir = ssrLang === 'ar' ? 'rtl' : 'ltr'
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -89,7 +94,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   };
 
   return (
-    <html lang="sw" suppressHydrationWarning>
+    <html lang={ssrLang} dir={ssrDir} suppressHydrationWarning>
       <head>
         <ThemeScript />
         <meta name="mobile-web-app-capable" content="yes" />

@@ -8,11 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "test": "node tests/smoke.mjs",
+    "test": "node tests/smoke.mjs && vitest run",
     "test:unit": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "pretest": "node tests/smoke.mjs"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

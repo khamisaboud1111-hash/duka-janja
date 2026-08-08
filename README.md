@@ -2,7 +2,7 @@
 
 A production-ready, mobile-first multivendor e-commerce platform for Zanzibar, built with Next.js 14, Supabase, and Tailwind CSS.
 
-🇹🇿 Bilingual (Swahili / English) · 💳 M-Pesa / Tigo Pesa / Airtel Money / Halopesa · 🚚 Zanzibar delivery zones · 🏪 Multivendor with seller approval workflow
+🇹🇿 Multilingual (Swahili, English, Arabic, French) · 💳 M-Pesa / Tigo Pesa / Airtel Money / Halopesa · 🚚 Zanzibar delivery zones · 🏪 Multivendor with seller approval workflow · 📱 PWA with offline support
 
 ---
 
@@ -16,8 +16,11 @@ A production-ready, mobile-first multivendor e-commerce platform for Zanzibar, b
 | Database       | Supabase (PostgreSQL)                         |
 | Auth           | Supabase Auth                                 |
 | File storage   | Supabase Storage                              |
-| State          | Zustand (cart, language) + React Query patterns via hooks |
-| Forms          | react-hook-form + zod                         |
+| State          | Zustand (cart, language, theme, UI)          |
+| Forms          | react-hook-form + Zod                         |
+| Payments       | Flutterwave aggregator                       |
+| Maps           | Leaflet + react-leaflet                       |
+| Testing        | Vitest + Testing Library                      |
 | Deployment     | Vercel                                        |
 
 ---
@@ -31,13 +34,15 @@ duka-janja/
 │   │   ├── (auth)/                  # Login, register, forgot password
 │   │   ├── (marketplace)/           # Public buyer-facing pages
 │   │   │   ├── page.tsx             # Homepage
-│   │   │   ├── products/[id]/       # Product detail
-│   │   │   ├── sellers/[id]/        # Seller storefront
+│   │   │   ├── products/[slug]/     # Product detail
+│   │   │   ├── sellers/[slug]/      # Seller storefront
 │   │   │   ├── search/              # Browse/filter
 │   │   │   ├── checkout/            # Cart → order
 │   │   │   ├── orders/              # Buyer order history + tracking
 │   │   │   ├── wishlist/
-│   │   │   └── notifications/
+│   │   │   ├── notifications/
+│   │   │   ├── about/
+│   │   │   └── contact/
 │   │   ├── (seller)/seller/         # Seller dashboard (protected)
 │   │   │   ├── dashboard/
 │   │   │   ├── products/            # CRUD + new/edit
@@ -50,25 +55,33 @@ duka-janja/
 │   │   │   ├── products/            # Moderation
 │   │   │   ├── orders/
 │   │   │   └── commissions/
-│   │   └── api/                     # REST API routes (mirror of hooks, for external use)
+│   │   ├── rider/                   # Rider delivery system (apply, dashboard, deliveries, wallet)
+│   │   └── api/                     # REST API routes (24 endpoints)
 │   ├── components/
 │   │   ├── ui/                      # Button, Input, Badge, Modal, StarRating...
-│   │   ├── layout/                  # Navbar
+│   │   ├── layout/                  # Navbar, Footer, Sidebar, MobileBottomNav
 │   │   ├── product/                 # ProductCard, ReviewForm
 │   │   ├── seller/                  # ProductForm
-│   │   ├── order/                   # OrderTracker
+│   │   ├── order/                   # OrderTracker, PayNowButton
+│   │   ├── rider/                   # Rider components
+│   │   ├── chat/                    # BuyerSellerChat
 │   │   └── shared/                  # ImageUploader
 │   ├── hooks/                       # useUser, useProducts, useOrders, useSeller, useNotifications, useReviews
-│   ├── lib/supabase/                # client.ts (browser), server.ts (RSC)
-│   ├── store/                       # Zustand: cart + language
-│   ├── i18n/                        # Swahili/English translations
+│   ├── lib/supabase/                # client.ts (browser), server.ts (RSC), admin.ts (service role)
+│   ├── lib/payments/                # Flutterwave aggregator + per-MNO adapters
+│   ├── store/                       # Zustand: cart, language, theme, UI
+│   ├── i18n/                        # 4-language translations (sw, en, ar, fr)
 │   ├── types/                       # Shared TypeScript types
 │   ├── utils/                       # formatTZS, delivery zones, slugify, etc.
 │   └── middleware.ts                # Route protection (seller/admin/auth)
 ├── supabase/
 │   ├── migrations/
-│   │   ├── 001_initial_schema.sql   # Tables, RLS policies, triggers
-│   │   └── 002_storage_and_functions.sql  # Storage buckets, RPC functions
+│   │   ├── 001_initial_schema.sql        # Tables, RLS policies, triggers
+│   │   ├── 002_storage_and_functions.sql # Storage buckets, functions
+│   │   ├── 003_production_upgrade.sql    # Production schema upgrades
+│   │   ├── 004_notification_types.sql    # Notification type support
+│   │   ├── 005_create_order_rpc.sql      # Atomic order creation RPC
+│   │   └── 006_rider_deliveries_tables.sql # Rider & delivery tables
 │   └── seed/
 │       ├── categories.sql
 │       └── make_admin.sql
@@ -213,7 +226,7 @@ vercel --prod
 
 ## Key Business Logic
 
-**Commission**: Currently flat 5% per order line item, calculated and stored in the `commissions` table at checkout time. Admins can mark commissions as paid in `/admin/commissions`. To support per-category or per-seller rates, update the `commission_rate` column on `sellers` and reference it in `src/app/(marketplace)/checkout/page.tsx` instead of the hardcoded `0.05`.
+**Commission**: Currently flat 5% per order line item, calculated atomically inside the `create_order()` database RPC and stored in the `commissions` table at order creation time. Admins can mark commissions as paid in `/admin/commissions`. To support per-category or per-seller rates, update the `commission_rate` column on `sellers` and reference it in the `create_order` function in `supabase/migrations/005_create_order_rpc.sql` instead of the hardcoded `0.05`.
 
 **Delivery zones & fees** are defined in two places that must stay in sync:
 - `supabase/migrations/001_initial_schema.sql` → `delivery_zones` table (source of truth for backend)
@@ -233,8 +246,10 @@ vercel --prod
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY`    | Supabase → Settings → API → anon/public key      | Yes      |
 | `SUPABASE_SERVICE_ROLE_KEY`        | Supabase → Settings → API → service_role key     | Yes (server-side admin ops) |
 | `NEXT_PUBLIC_APP_URL`              | Your deployed URL                                 | Yes      |
+| `FLUTTERWAVE_SECRET_KEY`           | Flutterwave Dashboard → Settings → API Keys       | Yes (payments) |
+| `FLUTTERWAVE_SECRET_HASH`          | Flutterwave Dashboard → Settings → Webhook Hash   | Yes (webhook verification) |
 
-⚠️ Never expose `SUPABASE_SERVICE_ROLE_KEY` to the client — it's only used in server contexts.
+⚠️ Never expose `SUPABASE_SERVICE_ROLE_KEY` or `FLUTTERWAVE_SECRET_KEY` to the client — they're only used in server contexts.
 
 ---
 
@@ -242,9 +257,7 @@ vercel --prod
 
 - AI chat assistant
 - Tourism marketplace section
-- Real payment gateway integration (M-Pesa/Tigo Pesa/Airtel/Halopesa are currently captured as a reference number at checkout for manual confirmation — integrate Selcom, Flutterwave, or a local mobile money aggregator API for automated capture)
 - SMS notifications (currently in-app only — wire up Africa's Talking or similar for SMS)
-- Real-time chat between buyer and seller (WhatsApp deep links are used instead)
 
 ---
 

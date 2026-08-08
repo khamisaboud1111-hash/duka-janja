@@ -1,5 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { z } from 'zod'
+
+const productCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  description: z.string().max(5000).optional(),
+  price: z.number().positive().int(),
+  compare_at_price: z.number().positive().int().optional(),
+  stock_quantity: z.number().int().nonnegative().default(0),
+  category_id: z.string().uuid().optional(),
+  images: z.array(z.object({ url: z.string().url(), is_primary: z.boolean().default(false) })).optional(),
+  sku: z.string().max(100).optional(),
+}).strict()
+
+const productUpdateSchema = productCreateSchema.partial()
 
 export async function GET(req: NextRequest) {
   const supabase = createServerClient()
@@ -13,10 +27,6 @@ export async function GET(req: NextRequest) {
   const from = (page - 1) * pageSize
   const to   = from + pageSize - 1
 
-  // Resolve the category slug to a category_id first. PostgREST dot-notation
-  // filters on the embedded 'category' relation (q.eq('category.slug', ...))
-  // do NOT exclude parent product rows, so products of other categories would
-  // leak through.
   let categoryId: string | null = null
   if (category) {
     const { data: cat } = await supabase
@@ -27,8 +37,6 @@ export async function GET(req: NextRequest) {
     categoryId = cat?.id ?? null
   }
 
-  // Unknown category slug → nothing can match; return empty rather than
-  // silently dropping the filter.
   if (category && !categoryId) {
     return NextResponse.json({ data: [], count: 0, page, pageSize, totalPages: 0 })
   }
@@ -64,10 +72,21 @@ export async function POST(req: NextRequest) {
   if (!seller) return NextResponse.json({ error: 'You are not a registered seller' }, { status: 403 })
   if (seller.status !== 'approved') return NextResponse.json({ error: 'Your seller account is not approved yet' }, { status: 403 })
 
-  const body = await req.json()
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+
+  const parsed = productCreateSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Validation failed', details: parsed.error.issues }, { status: 400 })
+  }
+
   const { data, error } = await supabase
     .from('products')
-    .insert({ ...body, seller_id: seller.id })
+    .insert({ ...parsed.data, seller_id: seller.id })
     .select()
     .single()
 

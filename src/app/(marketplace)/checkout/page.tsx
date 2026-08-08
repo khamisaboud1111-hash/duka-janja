@@ -8,8 +8,8 @@ import { z } from 'zod'
 import Image from 'next/image'
 import { Trash2, Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
 import { useCartStore, useLangStore, selectCartSubtotal } from '@/store'
-import { createClient } from '@/lib/supabase/client'
-import { formatTZS, DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider } from '@/utils'
+import { DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider } from '@/utils'
+import { formatTZS } from '@/utils'
 import { t, type Language } from '@/i18n/translations'
 import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
@@ -53,132 +53,66 @@ export default function CheckoutPage() {
     if (items.length === 0) return
     setSubmitting(true)
 
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
-
-    // Calculate commission per seller
-    const commissionTotal = items.reduce((sum, item) => {
-      return sum + Math.round(item.product.price * item.quantity * 0.05) // 5% default
-    }, 0)
-
-    // Create order
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        buyer_id:          user.id,
-        status:            'pending',
-        subtotal:          subtotal,
-        delivery_fee:      deliveryFee,
-        commission_amount: commissionTotal,
-        total_amount:      total,
-        delivery_zone:     data.delivery_zone,
-        delivery_address:  data.delivery_address,
-        delivery_name:     data.delivery_name,
-        delivery_phone:    data.delivery_phone,
-        payment_method:    data.payment_method,
-        payment_reference: data.payment_reference || null,
-        notes:             data.notes || null,
-      })
-      .select()
-      .single()
-
-    if (orderError || !order) {
-      toast.error(`${t('error', lang)}: ${orderError?.message ?? 'Unknown'}`)
-      setSubmitting(false)
-      return
-    }
-
-    // Insert order items
-    const orderItems = items.map((item) => ({
-      order_id:    order.id,
-      product_id:  item.product.id,
-      seller_id:   item.product.seller_id,
-      quantity:    item.quantity,
-      unit_price:  item.product.price,
-      total_price: item.product.price * item.quantity,
-    }))
-
-    await supabase.from('order_items').insert(orderItems)
-
-    // Notify each seller in this order
-    const sellerIds = [...new Set(items.map((item) => item.product.seller_id))]
-    for (const sellerId of sellerIds) {
-      const { data: sellerRow } = await supabase.from('sellers').select('user_id').eq('id', sellerId).single()
-      if (sellerRow) {
-        await supabase.from('notifications').insert({
-          user_id: sellerRow.user_id,
-          type: 'new_order',
-          title_en: 'New order received',
-          title_sw: 'Agizo jipya limepokelewa',
-          body_en: `You have a new order (#${order.id.slice(0, 8)}). Check your orders to fulfill it.`,
-          body_sw: `Una agizo jipya (#${order.id.slice(0, 8)}). Angalia maagizo yako kulitekeleza.`,
-          link: `/seller/orders`,
-        })
-      }
-    }
-
-    // Confirm to the buyer
-    await supabase.from('notifications').insert({
-      user_id: user.id,
-      type: 'order_placed',
-      title_en: 'Order placed',
-      title_sw: 'Agizo limewekwa',
-      body_en: 'Your order has been placed and sellers have been notified.',
-      body_sw: 'Agizo lako limewekwa na wauzaji wamejulishwa.',
-      link: `/orders/${order.id}`,
-    })
-
-    // Initial tracking event
-    await supabase.from('order_tracking').insert({
-      order_id:   order.id,
-      status:     'pending',
-      note:       lang === 'sw' ? 'Agizo limepokelewa' : 'Order received',
-      created_by: user.id,
-    })
-
-    // Insert commissions per seller
-    const sellerCommissions: Record<string, number> = {}
-    items.forEach((item) => {
-      const sid = item.product.seller_id
-      sellerCommissions[sid] = (sellerCommissions[sid] ?? 0) + item.product.price * item.quantity
-    })
-    for (const [sellerId, amount] of Object.entries(sellerCommissions)) {
-      await supabase.from('commissions').insert({
-        order_id:          order.id,
-        seller_id:         sellerId,
-        order_amount:      amount,
-        commission_rate:   5,
-        commission_amount: Math.round(amount * 0.05),
-      })
-    }
-
-    clearCart()
-
-    const provider = toPaymentProvider(data.payment_method)
-
-    // Cash on delivery: no online payment step, just confirm the order.
-    if (provider === 'cash_on_delivery') {
-      setSuccess(order.id)
-      setSubmitting(false)
-      return
-    }
-
-    // Mobile money / card: redirect to the Flutterwave-hosted checkout page.
-    // This replaces a direct per-telco integration (M-Pesa/Tigo/Airtel each
-    // need their own merchant agreement) with one aggregator account that
-    // only charges a transaction fee — zero setup cost, works today.
     try {
-      const res = await fetch('/api/payments/checkout', {
+      const orderPayload = {
+        items: items.map((item) => ({
+          product_id: item.product.id,
+          quantity: item.quantity,
+        })),
+        delivery_zone: data.delivery_zone,
+        delivery_address: data.delivery_address,
+        delivery_name: data.delivery_name,
+        delivery_phone: data.delivery_phone,
+        payment_method: data.payment_method,
+        payment_reference: data.payment_reference || null,
+        notes: data.notes || null,
+      }
+
+      const res = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_id: order.id }),
+        body: JSON.stringify(orderPayload),
       })
       const json = await res.json()
 
-      if (res.ok && json.payment_link) {
-        window.location.href = json.payment_link
-        return // page is navigating away, nothing else to do
+      if (!res.ok) {
+        toast.error(`${t('error', lang)}: ${json.error ?? 'Unknown'}`)
+        setSubmitting(false)
+        return
+      }
+
+      const order = json.data
+
+      clearCart()
+
+      const provider = toPaymentProvider(data.payment_method)
+
+      if (provider === 'cash_on_delivery') {
+        setSuccess(order.id)
+        setSubmitting(false)
+        return
+      }
+
+      const payRes = await fetch('/api/payments/mobile-money', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: order.id,
+          phone_number: data.delivery_phone,
+          provider: provider,
+        }),
+      })
+      const payJson = await payRes.json()
+
+      if (payRes.ok && payJson.checkout_url) {
+        window.location.href = payJson.checkout_url
+        return
+      }
+
+      if (payRes.ok && payJson.reference) {
+        setSuccess(order.id)
+        setSubmitting(false)
+        return
       }
 
       toast.error(t('paymentInitError', lang))
@@ -225,10 +159,8 @@ export default function CheckoutPage() {
         <h1 className="font-display font-black text-2xl text-ink-900 mb-6">{t('checkout', lang)}</h1>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-          {/* Cart items (left) */}
           <div className="lg:col-span-3 space-y-4">
 
-            {/* Items */}
             <div className="card p-4">
               <h2 className="font-semibold text-ink-800 mb-4 flex items-center gap-2">
                 <Package className="w-4 h-4" />
@@ -263,7 +195,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Delivery */}
             <div className="card p-4">
               <h2 className="font-semibold text-ink-800 mb-4 flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
@@ -302,7 +233,6 @@ export default function CheckoutPage() {
               </div>
             </div>
 
-            {/* Payment */}
             <div className="card p-4">
               <h2 className="font-semibold text-ink-800 mb-4 flex items-center gap-2">
                 <CreditCard className="w-4 h-4" />
@@ -331,7 +261,6 @@ export default function CheckoutPage() {
             </div>
           </div>
 
-          {/* Order summary (right) */}
           <div className="lg:col-span-2">
             <div className="card p-4 sticky top-20">
               <h2 className="font-semibold text-ink-800 mb-4">{t('orderSummary', lang)}</h2>

@@ -14,12 +14,9 @@ import {
   Zap,
   ShieldAlert
 } from "lucide-react";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 
-// Initialize browser-safe Supabase client for real-time order updates
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder-key');
+const supabase = createClient();
 
 export type MobileProvider = "mpesa" | "tigopesa" | "airtel" | "halopesa";
 
@@ -121,10 +118,9 @@ export default function MobileMoneyCheckout({
           "X-Idempotency-Key": idempotencyKey,
         },
         body: JSON.stringify({
+          order_id: orderId,
+          phone_number: formattedPhone,
           provider,
-          phone: formattedPhone,
-          amount,
-          orderId,
         }),
       });
 
