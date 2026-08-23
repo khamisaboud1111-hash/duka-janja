@@ -1,9 +1,8 @@
 'use client'
 
-import { CheckCircle, Clock, CreditCard, Package, Truck, Check } from 'lucide-react'
+import { CheckCircle, CreditCard, Package, Truck, Check } from 'lucide-react'
 import { cn } from '@/utils'
 import type { Language } from '@/i18n/translations'
-import { t } from '@/i18n/translations'
 import { useLangStore } from '@/store'
 
 interface PaymentStepperProps {
@@ -11,11 +10,11 @@ interface PaymentStepperProps {
   lang?: Language
 }
 
-const steps = [
-  { id: 'payment', labelKey: 'paymentStep1Title', descKey: 'paymentStep1Desc', icon: CreditCard, swLabel: 'Lipa', enLabel: 'Pay' },
-  { id: 'processing', labelKey: 'paymentStep2Title', descKey: 'paymentStep2Desc', icon: Package, swLabel: 'Subiri', enLabel: 'Wait' },
-  { id: 'confirmed', labelKey: 'paymentStep3Title', descKey: 'paymentStep3Desc', icon: CheckCircle, swLabel: 'Hakikisha', enLabel: 'Confirm' },
-  { id: 'delivery', labelKey: 'paymentStep4Title', descKey: 'paymentStep4Desc', icon: Truck, swLabel: 'Utoaji', enLabel: 'Delivery' },
+const steps: Array<{ id: string; icon: React.ElementType; swLabel: string; enLabel: string; swDesc: string; enDesc: string }> = [
+  { id: 'payment', icon: CreditCard, swLabel: 'Lipa', enLabel: 'Pay', swDesc: 'Chagua njia ya malipo', enDesc: 'Choose payment method' },
+  { id: 'processing', icon: Package, swLabel: 'Subiri', enLabel: 'Wait', swDesc: 'Tunasubiri uthibitisho', enDesc: 'Waiting for confirmation' },
+  { id: 'confirmed', icon: CheckCircle, swLabel: 'Hakikisha', enLabel: 'Confirm', swDesc: 'Malipo yamehakikishwa', enDesc: 'Payment confirmed' },
+  { id: 'delivery', icon: Truck, swLabel: 'Utoaji', enLabel: 'Delivery', swDesc: 'Agizo linasafirishwa', enDesc: 'Order is being delivered' },
 ]
 
 export function PaymentStepper({ currentStep, lang }: PaymentStepperProps) {
@@ -33,10 +32,11 @@ export function PaymentStepper({ currentStep, lang }: PaymentStepperProps) {
         
         {steps.map((step, index) => (
           <div key={step.id} className="relative flex items-start gap-3">
-            <div className="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10"
+            <div
               className={cn(
-                index <= currentIndex 
-                  ? 'bg-brand-500 border-brand-500 text-white' 
+                'flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10',
+                index <= currentIndex
+                  ? 'bg-brand-500 border-brand-500 text-white'
                   : 'bg-white dark:bg-ink-800 border-ink-200 dark:border-ink-700 text-ink-400'
               )}>
               {index < currentIndex ? (
@@ -52,10 +52,10 @@ export function PaymentStepper({ currentStep, lang }: PaymentStepperProps) {
                 'font-semibold text-sm transition-colors',
                 index <= currentIndex ? 'text-ink-900 dark:text-white' : 'text-ink-500 dark:text-ink-400'
               )}>
-                {displayLang === 'sw' ? (step as any).swLabel : (step as any).enLabel}
+                {displayLang === 'sw' ? step.swLabel : step.enLabel}
               </p>
               <p className="text-xs text-ink-500 dark:text-ink-400 mt-0.5 truncate">
-                {t(step.descKey, displayLang)}
+                {displayLang === 'sw' ? step.swDesc : step.enDesc}
               </p>
             </div>
           </div>
@@ -95,7 +95,7 @@ export function PaymentStepperCompact({ currentStep, lang }: PaymentStepperProps
             'text-[10px] font-medium text-center transition-colors max-w-[60px]',
             index <= currentIndex ? 'text-brand-600 dark:text-brand-400' : 'text-ink-400 dark:text-ink-500'
           )}>
-            {displayLang === 'sw' ? (step as any).swLabel : (step as any).enLabel}
+            {displayLang === 'sw' ? step.swLabel : step.enLabel}
           </span>
           
           {/* Connecting line between steps */}

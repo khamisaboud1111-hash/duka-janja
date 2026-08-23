@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -57,6 +57,42 @@ export default function CheckoutPage() {
   const selectedZone = watch('delivery_zone') as string
   const deliveryFee = selectedZone ? DELIVERY_ZONES[selectedZone as DeliveryZone]?.fee ?? 0 : 0
   const total = subtotal + deliveryFee
+
+  // Poll payment status every 5 seconds
+  const pollPaymentStatusRef = useRef<((orderId: string) => Promise<void>) | null>(null)
+  
+  const pollPaymentStatus = useCallback(async (orderId: string) => {
+    if (!polling) return
+    
+    try {
+      const res = await fetch(`/api/orders/${orderId}`)
+      const json = await res.json()
+      
+      if (json.data?.payment_confirmed) {
+        setPaymentStatus('success')
+        setPaymentStep('confirmed')
+        setPolling(false)
+        setSuccess(orderId)
+        toast.success('Malipo yamehakikishwa!')
+      } else if (json.data?.status === 'cancelled') {
+        setPaymentStatus('failed')
+        setPaymentStep('payment')
+        setPolling(false)
+        toast.error('Malipo yamekataliwa au yamefeli.')
+      } else {
+        // Continue polling
+        setTimeout(() => pollPaymentStatusRef.current?.(orderId), 5000)
+      }
+    } catch {
+      // On error, retry in 10 seconds
+      setTimeout(() => pollPaymentStatusRef.current?.(orderId), 10000)
+    }
+  }, [polling, lang])
+
+  // Update ref when callback changes
+  useEffect(() => {
+    pollPaymentStatusRef.current = pollPaymentStatus
+  }, [pollPaymentStatus])
 
   const onSubmit = useCallback(async (data: FormData) => {
     if (items.length === 0) return
@@ -143,42 +179,6 @@ export default function CheckoutPage() {
     setSubmitting(false)
   }, [items, lang, clearCart, pollPaymentStatus])
 
-  // Poll payment status every 5 seconds
-  const pollPaymentStatusRef = useRef<((orderId: string) => Promise<void>) | null>(null)
-  
-  const pollPaymentStatus = useCallback(async (orderId: string) => {
-    if (!polling) return
-    
-    try {
-      const res = await fetch(`/api/orders/${orderId}`)
-      const json = await res.json()
-      
-      if (json.data?.payment_confirmed) {
-        setPaymentStatus('success')
-        setPaymentStep('confirmed')
-        setPolling(false)
-        setSuccess(orderId)
-        toast.success(t('paymentConfirmed', lang) || 'Malipo yamehakikishwa!')
-      } else if (json.data?.status === 'cancelled') {
-        setPaymentStatus('failed')
-        setPaymentStep('payment')
-        setPolling(false)
-        toast.error('Malipo yamekataliwa au yamefeli.')
-      } else {
-        // Continue polling
-        setTimeout(() => pollPaymentStatusRef.current?.(orderId), 5000)
-      }
-    } catch {
-      // On error, retry in 10 seconds
-      setTimeout(() => pollPaymentStatusRef.current?.(orderId), 10000)
-    }
-  }, [polling, lang])
-
-  // Update ref when callback changes
-  useEffect(() => {
-    pollPaymentStatusRef.current = pollPaymentStatus
-  }, [pollPaymentStatus])
-
   // Show payment confirmation with stepper when order is placed
   if (success && (paymentStep === 'confirmed' || paymentStep === 'delivery')) {
     return (
@@ -193,7 +193,7 @@ export default function CheckoutPage() {
             </h1>
             <p className="text-ink-500 text-sm mb-6">
               {paymentStep === 'delivery' 
-                ? t('deliveryStep4Desc', lang) 
+                ? (lang === 'sw' ? 'Agizo lako linasafirishwa' : 'Your order is being delivered')
                 : t('willCallToConfirm', lang)}
             </p>
             <div className="flex flex-col gap-3">
