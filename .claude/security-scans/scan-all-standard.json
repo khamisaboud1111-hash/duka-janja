@@ -1,0 +1,213 @@
+{
+  "timestamp": "2026-08-09T14:18:01.499Z",
+  "target": ".",
+  "depth": "standard",
+  "type": "all",
+  "summary": {
+    "critical": 1,
+    "high": 30,
+    "medium": 2,
+    "low": 0,
+    "total": 33
+  },
+  "findings": [
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:@next/eslint-plugin-next",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:brace-expansion",
+      "description": "brace-expansion: DoS via unbounded "
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:eslint-config-next",
+      "description": "Vulnerability"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:glob",
+      "description": "glob CLI: Command injection via -c/"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:js-yaml",
+      "description": "JS-YAML: Quadratic CPU consumption "
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:nanoid",
+      "description": "nanoid: custom generators can loop "
+    },
+    {
+      "severity": "CRITICAL",
+      "type": "Dependency CVE",
+      "location": "package.json:next",
+      "description": "Next.js Allows a Denial of Service "
+    },
+    {
+      "severity": "HIGH",
+      "type": "Dependency CVE",
+      "location": "package.json:postcss",
+      "description": "PostCSS has XSS via Unescaped </sty"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\ar.ts:23",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\ar.ts:26",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\ar.ts:434",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\ar.ts:436",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\ar.ts:437",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\ar.ts:439",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\en.ts:24",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\en.ts:27",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\en.ts:443",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\en.ts:445",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\en.ts:446",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\en.ts:448",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\fr.ts:23",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\fr.ts:26",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\fr.ts:434",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\fr.ts:436",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\fr.ts:437",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\fr.ts:439",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\sw.ts:29",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\sw.ts:445",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\sw.ts:447",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\sw.ts:448",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "HIGH",
+      "type": "Hardcoded Secret",
+      "location": "src\\i18n\\dictionaries\\sw.ts:450",
+      "description": "Hardcoded Password"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "React XSS",
+      "location": "src\\app\\layout.tsx:106",
+      "description": "React XSS risk"
+    },
+    {
+      "severity": "MEDIUM",
+      "type": "React XSS",
+      "location": "src\\components\\layout\\ThemeScript.tsx:14",
+      "description": "React XSS risk"
+    }
+  ]
+}

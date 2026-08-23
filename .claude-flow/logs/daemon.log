@@ -1,0 +1,126 @@
+[2026-08-09T13:58:10.683Z] [INFO] AI workers disabled (default) - all workers run local-only. Enable with `daemon start --headless`, daemon.aiWorkers.enabled=true, or RUFLO_DAEMON_AI_WORKERS=1 (#2661)
+[2026-08-09T13:58:10.688Z] [INFO] Scheduled map (interval: 900s, first run in 0s)
+[2026-08-09T13:58:10.689Z] [INFO] Scheduled audit (interval: 600s, first run in 120s)
+[2026-08-09T13:58:10.691Z] [INFO] Scheduled optimize (interval: 900s, first run in 240s)
+[2026-08-09T13:58:10.691Z] [INFO] Scheduled consolidate (interval: 1800s, first run in 360s)
+[2026-08-09T13:58:10.692Z] [INFO] Scheduled testgaps (interval: 1200s, first run in 480s)
+[2026-08-09T13:58:10.693Z] [INFO] Scheduled backup (interval: 86400s, first run in 600s)
+[2026-08-09T13:58:10.696Z] [INFO] Scheduled harness (interval: 21600s, first run in 720s)
+[2026-08-09T13:58:10.697Z] [INFO] Lifecycle monitor active (workspace-removal, ttl=43200s, idle=1800s)
+[2026-08-09T13:58:10.705Z] [INFO] Daemon started (PID: 24324, CPUs: 8, workers: 7, maxCpuLoad: 6.4, minFreeMemoryPercent: 10%)
+[2026-08-09T13:58:10.721Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-09T13:58:10.727Z] [INFO] Worker map completed in 13ms
+[2026-08-09T14:00:10.720Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-09T14:00:10.723Z] [INFO] Worker audit completed in 29ms
+[2026-08-09T14:02:10.826Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-09T14:02:10.845Z] [INFO] Worker optimize completed in 132ms
+[2026-08-09T14:04:10.717Z] [INFO] Starting worker: consolidate (1/2 concurrent)
+[2026-08-09T14:04:10.840Z] [INFO] Consolidate worker: distillation skipped (target table reasoning_patterns missing (agentdb schema not initialised))
+[2026-08-09T14:04:10.843Z] [INFO] Worker consolidate completed in 133ms
+[2026-08-09T14:06:10.735Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-08-09T14:06:10.741Z] [INFO] Worker testgaps completed in 40ms
+[2026-08-09T14:08:10.728Z] [INFO] Starting worker: backup (1/2 concurrent)
+[2026-08-09T14:08:10.758Z] [INFO] Worker backup completed in 54ms
+[2026-08-09T14:10:10.743Z] [INFO] Starting worker: harness (1/2 concurrent)
+[2026-08-09T14:10:10.757Z] [INFO] Worker harness completed in 44ms
+[2026-08-09T14:10:10.779Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-09T14:10:10.783Z] [INFO] Worker audit completed in 15ms
+[2026-08-09T14:13:10.773Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-09T14:13:10.777Z] [INFO] Worker map completed in 29ms
+[2026-08-09T14:17:10.942Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-09T14:17:10.945Z] [INFO] Worker optimize completed in 32ms
+[2026-08-09T14:20:10.841Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-09T14:20:10.882Z] [INFO] Worker audit completed in 66ms
+[2026-08-09T14:26:10.789Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-08-09T14:26:10.792Z] [INFO] Worker testgaps completed in 12ms
+[2026-08-09T14:28:10.797Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-09T14:28:10.801Z] [INFO] Worker map completed in 12ms
+[2026-08-09T14:30:10.947Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-09T14:30:10.955Z] [INFO] Worker audit completed in 39ms
+[2026-08-09T14:32:10.996Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-09T14:32:11.003Z] [INFO] Worker optimize completed in 40ms
+[2026-08-09T14:34:10.868Z] [INFO] Starting worker: consolidate (1/2 concurrent)
+[2026-08-09T14:34:10.884Z] [INFO] Consolidate worker: distillation skipped (target table reasoning_patterns missing (agentdb schema not initialised))
+[2026-08-09T14:34:10.886Z] [INFO] Worker consolidate completed in 27ms
+[2026-08-09T14:40:11.018Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-09T14:40:11.021Z] [INFO] Worker audit completed in 30ms
+[2026-08-09T14:43:10.843Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-09T14:43:10.848Z] [INFO] Worker map completed in 34ms
+[2026-08-09T14:46:10.868Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-08-09T14:46:10.872Z] [INFO] Worker testgaps completed in 58ms
+[2026-08-09T14:47:11.048Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-09T14:47:11.052Z] [INFO] Worker optimize completed in 15ms
+[2026-08-09T14:50:11.063Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-09T14:50:11.067Z] [INFO] Worker audit completed in 33ms
+[2026-08-09T14:58:10.900Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-09T14:58:10.905Z] [INFO] Worker map completed in 34ms
+[2026-08-09T15:00:11.102Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-09T15:00:11.108Z] [INFO] Worker audit completed in 19ms
+[2026-08-09T15:02:11.080Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-09T15:02:11.082Z] [INFO] Worker optimize completed in 9ms
+[2026-08-09T15:04:10.902Z] [INFO] Starting worker: consolidate (1/2 concurrent)
+[2026-08-09T15:04:10.908Z] [INFO] Consolidate worker: distillation skipped (target table reasoning_patterns missing (agentdb schema not initialised))
+[2026-08-09T15:04:10.908Z] [INFO] Worker consolidate completed in 11ms
+[2026-08-09T15:06:10.961Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-08-09T15:06:10.962Z] [INFO] Worker testgaps completed in 8ms
+[2026-08-09T16:22:40.770Z] [INFO] Daemon self-shutdown: idle for 1800s (no worker activity)
+[2026-08-09T16:22:41.081Z] [INFO] Stopped worker: map
+[2026-08-09T16:22:41.081Z] [INFO] Stopped worker: audit
+[2026-08-09T16:22:41.082Z] [INFO] Stopped worker: optimize
+[2026-08-09T16:22:41.102Z] [INFO] Stopped worker: consolidate
+[2026-08-09T16:22:41.102Z] [INFO] Stopped worker: testgaps
+[2026-08-09T16:22:41.104Z] [INFO] Stopped worker: backup
+[2026-08-09T16:22:41.110Z] [INFO] Stopped worker: harness
+[2026-08-09T16:22:41.180Z] [INFO] Daemon stopped
+[2026-08-15T14:08:46.868Z] [INFO] AI workers disabled (default) - all workers run local-only. Enable with `daemon start --headless`, daemon.aiWorkers.enabled=true, or RUFLO_DAEMON_AI_WORKERS=1 (#2661)
+[2026-08-15T14:08:46.871Z] [INFO] Scheduled map (interval: 900s, first run in 0s)
+[2026-08-15T14:08:46.872Z] [INFO] Scheduled audit (interval: 600s, first run in 120s)
+[2026-08-15T14:08:46.872Z] [INFO] Scheduled optimize (interval: 900s, first run in 240s)
+[2026-08-15T14:08:46.873Z] [INFO] Scheduled consolidate (interval: 1800s, first run in 360s)
+[2026-08-15T14:08:46.873Z] [INFO] Scheduled testgaps (interval: 1200s, first run in 480s)
+[2026-08-15T14:08:46.873Z] [INFO] Scheduled backup (interval: 86400s, first run in 600s)
+[2026-08-15T14:08:46.874Z] [INFO] Scheduled harness (interval: 21600s, first run in 720s)
+[2026-08-15T14:08:46.874Z] [INFO] Lifecycle monitor active (workspace-removal, ttl=43200s, idle=1800s)
+[2026-08-15T14:08:46.885Z] [INFO] Daemon started (PID: 13056, CPUs: 8, workers: 7, maxCpuLoad: 6.4, minFreeMemoryPercent: 10%)
+[2026-08-15T14:08:46.892Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-15T14:08:46.895Z] [INFO] Worker map completed in 8ms
+[2026-08-15T14:10:46.882Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-15T14:10:46.885Z] [INFO] Worker audit completed in 6ms
+[2026-08-15T14:12:46.882Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-15T14:12:46.884Z] [INFO] Worker optimize completed in 7ms
+[2026-08-15T14:14:46.884Z] [INFO] Starting worker: consolidate (1/2 concurrent)
+[2026-08-15T14:14:46.938Z] [INFO] Consolidate worker: distillation skipped (target table reasoning_patterns missing (agentdb schema not initialised))
+[2026-08-15T14:14:46.939Z] [INFO] Worker consolidate completed in 60ms
+[2026-08-15T14:16:46.892Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-08-15T14:16:46.898Z] [INFO] Worker testgaps completed in 18ms
+[2026-08-15T14:18:46.892Z] [INFO] Starting worker: backup (1/2 concurrent)
+[2026-08-15T14:18:46.933Z] [INFO] Worker backup completed in 52ms
+[2026-08-15T14:20:46.886Z] [INFO] Starting worker: harness (1/2 concurrent)
+[2026-08-15T14:20:46.891Z] [INFO] Worker harness completed in 13ms
+[2026-08-15T14:20:46.915Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-15T14:20:46.917Z] [INFO] Worker audit completed in 7ms
+[2026-08-15T14:23:46.913Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-15T14:23:46.915Z] [INFO] Worker map completed in 7ms
+[2026-08-15T14:27:50.396Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-15T14:27:50.398Z] [INFO] Worker optimize completed in 9ms
+[2026-08-15T14:30:50.427Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-15T14:30:50.429Z] [INFO] Worker audit completed in 8ms
+[2026-08-15T14:36:50.437Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-08-15T14:36:50.441Z] [INFO] Worker testgaps completed in 32ms
+[2026-08-15T14:38:50.443Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-15T14:38:50.448Z] [INFO] Worker map completed in 36ms
+[2026-08-15T14:40:50.469Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-15T14:40:50.473Z] [INFO] Worker audit completed in 32ms
+[2026-08-15T14:42:50.420Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-15T14:42:50.422Z] [INFO] Worker optimize completed in 10ms
+[2026-08-15T14:44:50.467Z] [INFO] Starting worker: consolidate (1/2 concurrent)
+[2026-08-15T14:44:50.487Z] [INFO] Consolidate worker: distillation skipped (target table reasoning_patterns missing (agentdb schema not initialised))
+[2026-08-15T14:44:50.491Z] [INFO] Worker consolidate completed in 55ms
+[2026-08-15T14:50:50.519Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-08-15T14:50:50.525Z] [INFO] Worker audit completed in 36ms
+[2026-08-15T14:53:50.498Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-08-15T14:53:50.504Z] [INFO] Worker map completed in 36ms
+[2026-08-15T14:56:50.491Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-08-15T14:56:50.493Z] [INFO] Worker testgaps completed in 29ms
+[2026-08-15T14:57:50.460Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-08-15T14:57:50.462Z] [INFO] Worker optimize completed in 26ms

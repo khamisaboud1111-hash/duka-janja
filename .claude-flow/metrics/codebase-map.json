@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-08-15T14:53:50.501Z",
+  "projectRoot": "C:\\Users\\hp\\duka-janja",
+  "structure": {
+    "hasPackageJson": true,
+    "hasTsConfig": true,
+    "hasClaudeConfig": true,
+    "hasClaudeFlow": true
+  },
+  "scannedAt": 1786805630502
+}
