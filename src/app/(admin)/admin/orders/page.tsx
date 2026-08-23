@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ShoppingBag } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -16,25 +16,24 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | OrderStatus>('all')
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true)
-      let q = supabase
-        .from('orders')
-        .select(`*, buyer:profiles(full_name, phone), items:order_items(id)`)
-        .order('created_at', { ascending: false })
-        .limit(100)
-      if (filter !== 'all') q = q.eq('status', filter)
-      const { data, error } = await q
-      if (error) {
-        console.error('Failed to load orders:', error.message)
-        toast.error('Imeshindikana kupakia maagizo')
-      }
-      setOrders(data ?? [])
-      setLoading(false)
+  const load = useCallback(async () => {
+    setLoading(true)
+    let q = supabase
+      .from('orders')
+      .select(`*, buyer:profiles(full_name, phone), items:order_items(id)`)
+      .order('created_at', { ascending: false })
+      .limit(100)
+    if (filter !== 'all') q = q.eq('status', filter)
+    const { data, error } = await q
+    if (error) {
+      console.error('Failed to load orders:', error.message)
+      toast.error('Imeshindikana kupakia maagizo')
     }
-    load()
-  }, [filter])
+    setOrders(data ?? [])
+    setLoading(false)
+  }, [supabase, filter])
+
+  useEffect(() => { load() }, [load])
 
   if (loading) return <PageLoader />
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -235,10 +236,12 @@ export default function Navbar({ categories = [] }: NavbarProps) {
                           >
                             {primaryImage(p) ? (
                               <div className="w-12 h-12 rounded-xl overflow-hidden bg-ink-100 dark:bg-ink-800 flex-shrink-0">
-                                <img
+                                <Image
                                   src={primaryImage(p)}
                                   alt=""
-                                  className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-300"
+                                  fill
+                                  sizes="48px"
+                                  className="object-cover group-hover/item:scale-110 transition-transform duration-300"
                                 />
                               </div>
                             ) : (

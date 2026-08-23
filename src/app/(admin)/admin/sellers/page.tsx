@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, X, Pause, Play, MessageCircle, Star } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { SellerStatusBadge } from '@/components/ui/Badge'
@@ -19,7 +19,7 @@ export default function AdminSellersPage() {
   const [confirmAction, setConfirmAction] = useState<{ seller: Seller; action: SellerStatus } | null>(null)
   const [processing, setProcessing] = useState(false)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     let q = supabase.from('sellers').select(`*, profile:profiles(full_name, email, phone, created_at)`).order('created_at', { ascending: false })
     if (filter !== 'all') q = q.eq('status', filter)
@@ -30,9 +30,9 @@ export default function AdminSellersPage() {
     }
     setSellers(data ?? [])
     setLoading(false)
-  }
+  }, [supabase, filter])
 
-  useEffect(() => { load() }, [filter])
+  useEffect(() => { load() }, [load])
 
   async function handleAction() {
     if (!confirmAction) return

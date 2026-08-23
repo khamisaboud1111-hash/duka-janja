@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Truck, Star, RefreshCw } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
@@ -33,13 +33,7 @@ export default function AdminDeliveriesPage() {
   const [loading, setLoading] = useState(true)
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryDetail | null>(null)
 
-  useEffect(() => {
-    load()
-    const interval = setInterval(load, 20000)
-    return () => clearInterval(interval)
-  }, [])
-
-  async function load() {
+  const load = useCallback(async () => {
     const { data, error } = await supabase.rpc('list_online_riders')
     if (error) {
       console.error('Failed to load online riders:', error.message)
@@ -47,7 +41,13 @@ export default function AdminDeliveriesPage() {
     }
     setRiders((data as OnlineRider[]) ?? [])
     setLoading(false)
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    load()
+    const interval = setInterval(load, 20000)
+    return () => clearInterval(interval)
+  }, [load])
 
   async function viewDelivery(deliveryId: string) {
     const { data, error } = await supabase

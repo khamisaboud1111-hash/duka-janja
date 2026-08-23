@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { TrendingUp, TrendingDown, ShoppingBag, Star, DollarSign, Package, Users, Download, Calendar, BarChart2, Activity, Target, Zap, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useSeller } from '@/hooks/useSeller'
@@ -48,113 +48,112 @@ export default function SellerAnalyticsPage() {
   const [loading, setLoading] = useState(true)
   const [hoveredBar, setHoveredBar] = useState<string | null>(null)
 
-  useEffect(() => {
+  const load = useCallback(async () => {
     if (!seller) return
-    async function load() {
-      setLoading(true)
-      const days = period === '7d' ? 7 : period === '30d' ? 30 : 90
-      const since = new Date(Date.now() - days * 86400000).toISOString()
-      const prevSince = new Date(Date.now() - days * 2 * 86400000).toISOString()
+    setLoading(true)
+    const days = period === '7d' ? 7 : period === '30d' ? 30 : 90
+    const since = new Date(Date.now() - days * 86400000).toISOString()
+    const prevSince = new Date(Date.now() - days * 2 * 86400000).toISOString()
 
-      // First get seller's product IDs for the reviews query
-      const { data: sellerProducts } = await supabase
-        .from('products')
-        .select('id')
+    // First get seller's product IDs for the reviews query
+    const { data: sellerProducts } = await supabase
+      .from('products')
+      .select('id')
+      .eq('seller_id', seller!.id)
+    const productIds = (sellerProducts ?? []).map((p: { id: string }) => p.id)
+
+    const [itemsRes, prevItemsRes, reviewsRes] = await Promise.all([
+      supabase
+        .from('order_items')
+        .select('total_price, quantity, created_at, product_id, buyer_id, product:products(name, category:categories(name_sw))')
         .eq('seller_id', seller!.id)
-      const productIds = (sellerProducts ?? []).map((p: { id: string }) => p.id)
+        .gte('created_at', since),
+      supabase
+        .from('order_items')
+        .select('total_price, quantity, created_at')
+        .eq('seller_id', seller!.id)
+        .gte('created_at', prevSince)
+        .lt('created_at', since),
+      productIds.length > 0
+        ? supabase
+            .from('reviews')
+            .select('rating, created_at')
+            .in('product_id', productIds)
+            .gte('created_at', since)
+        : Promise.resolve({ data: [] as ReviewRow[] }),
+    ])
 
-      const [itemsRes, prevItemsRes, reviewsRes] = await Promise.all([
-        supabase
-          .from('order_items')
-          .select('total_price, quantity, created_at, product_id, buyer_id, product:products(name, category:categories(name_sw))')
-          .eq('seller_id', seller!.id)
-          .gte('created_at', since),
-        supabase
-          .from('order_items')
-          .select('total_price, quantity, created_at')
-          .eq('seller_id', seller!.id)
-          .gte('created_at', prevSince)
-          .lt('created_at', since),
-        productIds.length > 0
-          ? supabase
-              .from('reviews')
-              .select('rating, created_at')
-              .in('product_id', productIds)
-              .gte('created_at', since)
-          : Promise.resolve({ data: [] as ReviewRow[] }),
-      ])
+    const items = itemsRes.data ?? []
+    const prevItems = prevItemsRes.data ?? []
 
-      const items = itemsRes.data ?? []
-      const prevItems = prevItemsRes.data ?? []
+    // Daily revenue aggregation
+    const dayMap: Record<string, DayRevenue> = {}
+    items.forEach((item: OrderItemAnalytics) => {
+      const date = item.created_at.slice(0, 10)
+      if (!dayMap[date]) dayMap[date] = { date, revenue: 0, orders: 0, units: 0 }
+      dayMap[date].revenue += item.total_price
+      dayMap[date].orders += 1
+      dayMap[date].units += item.quantity
+    })
+    const sortedDays = Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date))
+    setDaily(sortedDays)
 
-      // Daily revenue aggregation
-      const dayMap: Record<string, DayRevenue> = {}
-      items.forEach((item: OrderItemAnalytics) => {
-        const date = item.created_at.slice(0, 10)
-        if (!dayMap[date]) dayMap[date] = { date, revenue: 0, orders: 0, units: 0 }
-        dayMap[date].revenue += item.total_price
-        dayMap[date].orders += 1
-        dayMap[date].units += item.quantity
-      })
-      const sortedDays = Object.values(dayMap).sort((a, b) => a.date.localeCompare(b.date))
-      setDaily(sortedDays)
+    // Previous period for comparison
+    const prevDayMap: Record<string, DayRevenue> = {}
+    prevItems.forEach((item: PrevOrderItem) => {
+      const date = item.created_at.slice(0, 10)
+      if (!prevDayMap[date]) prevDayMap[date] = { date, revenue: 0, orders: 0, units: 0 }
+      prevDayMap[date].revenue += item.total_price
+      prevDayMap[date].orders += 1
+      prevDayMap[date].units += item.quantity
+    })
+    setPrevDaily(Object.values(prevDayMap))
 
-      // Previous period for comparison
-      const prevDayMap: Record<string, DayRevenue> = {}
-      prevItems.forEach((item: PrevOrderItem) => {
-        const date = item.created_at.slice(0, 10)
-        if (!prevDayMap[date]) prevDayMap[date] = { date, revenue: 0, orders: 0, units: 0 }
-        prevDayMap[date].revenue += item.total_price
-        prevDayMap[date].orders += 1
-        prevDayMap[date].units += item.quantity
-      })
-      setPrevDaily(Object.values(prevDayMap))
+    // Category breakdown
+    const catMap: Record<string, CategoryBreakdown> = {}
+    items.forEach((item: OrderItemAnalytics) => {
+      const cat = item.product?.[0]?.category?.[0]?.name_sw ?? 'Nyingine'
+      if (!catMap[cat]) catMap[cat] = { name: cat, revenue: 0, count: 0, avgPrice: 0 }
+      catMap[cat].revenue += item.total_price
+      catMap[cat].count += item.quantity
+    })
+    Object.values(catMap).forEach(c => { c.avgPrice = c.count > 0 ? Math.round(c.revenue / c.count) : 0 })
+    setCategories(Object.values(catMap).sort((a, b) => b.revenue - a.revenue))
 
-      // Category breakdown
-      const catMap: Record<string, CategoryBreakdown> = {}
-      items.forEach((item: OrderItemAnalytics) => {
-        const cat = item.product?.[0]?.category?.[0]?.name_sw ?? 'Nyingine'
-        if (!catMap[cat]) catMap[cat] = { name: cat, revenue: 0, count: 0, avgPrice: 0 }
-        catMap[cat].revenue += item.total_price
-        catMap[cat].count += item.quantity
-      })
-      Object.values(catMap).forEach(c => { c.avgPrice = c.count > 0 ? Math.round(c.revenue / c.count) : 0 })
-      setCategories(Object.values(catMap).sort((a, b) => b.revenue - a.revenue))
+    // Top products
+    const prodMap: Record<string, TopProduct> = {}
+    items.forEach((item: OrderItemAnalytics) => {
+      const name = item.product?.[0]?.name ?? 'Unknown'
+      if (!prodMap[name]) prodMap[name] = { name, revenue: 0, quantity: 0, avgRating: 0 }
+      prodMap[name].revenue += item.total_price
+      prodMap[name].quantity += item.quantity
+    })
+    setTopProducts(Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5))
 
-      // Top products
-      const prodMap: Record<string, TopProduct> = {}
-      items.forEach((item: OrderItemAnalytics) => {
-        const name = item.product?.[0]?.name ?? 'Unknown'
-        if (!prodMap[name]) prodMap[name] = { name, revenue: 0, quantity: 0, avgRating: 0 }
-        prodMap[name].revenue += item.total_price
-        prodMap[name].quantity += item.quantity
-      })
-      setTopProducts(Object.values(prodMap).sort((a, b) => b.revenue - a.revenue).slice(0, 5))
+    const totalRevenue = items.reduce((s: number, i: OrderItemAnalytics) => s + i.total_price, 0)
+    const totalUnits = items.reduce((s: number, i: OrderItemAnalytics) => s + i.quantity, 0)
+    const prevRevenue = prevItems.reduce((s: number, i: PrevOrderItem) => s + i.total_price, 0)
+    const prevOrders = prevItems.length
+    const reviews = reviewsRes.data ?? []
+    const uniqueBuyers = new Set(items.map((i: OrderItemAnalytics) => i.buyer_id)).size
 
-      const totalRevenue = items.reduce((s: number, i: OrderItemAnalytics) => s + i.total_price, 0)
-      const totalUnits = items.reduce((s: number, i: OrderItemAnalytics) => s + i.quantity, 0)
-      const prevRevenue = prevItems.reduce((s: number, i: PrevOrderItem) => s + i.total_price, 0)
-      const prevOrders = prevItems.length
-      const reviews = reviewsRes.data ?? []
-      const uniqueBuyers = new Set(items.map((i: OrderItemAnalytics) => i.buyer_id)).size
+    setSummary({
+      revenue: totalRevenue,
+      orders: items.length,
+      units: totalUnits,
+      avgOrder: items.length ? Math.round(totalRevenue / items.length) : 0,
+      reviewCount: reviews.length,
+      avgRating: reviews.length ? reviews.reduce((s: number, r: ReviewRow) => s + r.rating, 0) / reviews.length : 0,
+      prevRevenue,
+      prevOrders,
+      conversionRate: uniqueBuyers > 0 ? Math.min((items.length / (uniqueBuyers * 3)) * 100, 100) : 0,
+      returningCustomers: Math.round(uniqueBuyers * 0.3),
+      newCustomers: Math.round(uniqueBuyers * 0.7),
+    })
+    setLoading(false)
+  }, [supabase, seller, period])
 
-      setSummary({
-        revenue: totalRevenue,
-        orders: items.length,
-        units: totalUnits,
-        avgOrder: items.length ? Math.round(totalRevenue / items.length) : 0,
-        reviewCount: reviews.length,
-        avgRating: reviews.length ? reviews.reduce((s: number, r: ReviewRow) => s + r.rating, 0) / reviews.length : 0,
-        prevRevenue,
-        prevOrders,
-        conversionRate: uniqueBuyers > 0 ? Math.min((items.length / (uniqueBuyers * 3)) * 100, 100) : 0,
-        returningCustomers: Math.round(uniqueBuyers * 0.3),
-        newCustomers: Math.round(uniqueBuyers * 0.7),
-      })
-      setLoading(false)
-    }
-    load()
-  }, [seller, period])
+  useEffect(() => { load() }, [load])
 
   function exportCSV() {
     const header = 'Date,Revenue,Orders,Units\n'

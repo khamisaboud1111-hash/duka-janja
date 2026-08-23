@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { Check, X, Package } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -16,7 +16,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | ProductStatus>('draft')
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     let q = supabase
       .from('products')
@@ -30,9 +30,9 @@ export default function AdminProductsPage() {
     }
     setProducts(data ?? [])
     setLoading(false)
-  }
+  }, [supabase, filter])
 
-  useEffect(() => { load() }, [filter])
+  useEffect(() => { load() }, [load])
 
   async function setStatus(product: any, status: ProductStatus) {
     await supabase.from('products').update({ status }).eq('id', product.id)

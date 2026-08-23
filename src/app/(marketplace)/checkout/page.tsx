@@ -121,7 +121,7 @@ export default function CheckoutPage() {
     }
 
     setSubmitting(false)
-  }, [items, router, lang, subtotal, deliveryFee, clearCart])
+  }, [items, lang, clearCart])
 
   if (success) {
     return (

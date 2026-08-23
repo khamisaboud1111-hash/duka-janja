@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, ShoppingCart, ArrowRight, Package } from "lucide-react";
 import { useCartStore, useLangStore, selectCartSubtotal, selectCartItemCount, selectCartTotalSavings } from "@/store";
@@ -121,10 +122,12 @@ export default function CartPage() {
                       >
                         <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-ink-100 flex-shrink-0">
                           {img ? (
-                            <img
+                            <Image
                               src={img.url}
                               alt={product.name}
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="80px"
+                              className="object-cover"
                             />
                           ) : (
                             <Package className="absolute inset-0 m-auto w-6 h-6 text-ink-300" />

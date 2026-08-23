@@ -5,20 +5,18 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
 import { useSeller } from '@/hooks/useSeller'
-import { slugify } from '@/utils'
+import { slugify, DELIVERY_ZONES as CANONICAL_ZONES } from '@/utils'
 import { PageLoader } from '@/components/ui'
 import { Camera, MapPin, Clock, Phone, Store, Globe, Save, CheckCircle, AlertCircle, ChevronRight } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Image from 'next/image'
 
-const DELIVERY_ZONES = [
-  { value: 'stone_town', label: 'Stone Town' },
-  { value: 'north_zanzibar', label: 'Kaskazini Zanzibar' },
-  { value: 'south_zanzibar', label: 'Kusini Zanzibar' },
-  { value: 'east_zanzibar', label: 'Mashariki Zanzibar' },
-  { value: 'west_zanzibar', label: 'Magharibi Zanzibar' },
-  { value: 'pemba_island', label: 'Kisiwa cha Pemba' },
-]
+// Derived from the single source of truth (src/utils/index.ts) so the
+// seller-facing zone list can never drift from checkout / the DB seed.
+const DELIVERY_ZONES = Object.entries(CANONICAL_ZONES).map(([value, z]) => ({
+  value,
+  label: z.nameSw,
+}))
 
 const DAYS = ['Jumatatu', 'Jumanne', 'Jumatano', 'Alhamisi', 'Ijumaa', 'Jumamosi', 'Jumapili']
 

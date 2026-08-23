@@ -44,13 +44,13 @@ export default function SettingsPage() {
     if (!authLoading && !profile) {
       router.push('/login')
     }
-  }, [authLoading, profile, router])
+  }, [authLoading, profile])
 
   useEffect(() => {
     if (profile) {
       setAvatar(profile.avatar_url ?? undefined)
     }
-  }, [profile])
+  }, [profile?.avatar_url])
 
   async function uploadAvatar(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -336,16 +336,18 @@ function AccountTypeCard({ profile, router }: { profile: any; router: any }) {
   const [loading, setLoading] = useState(true)
   const [switching, setSwitching] = useState<string | null>(null)
 
+  const loadRoles = useCallback(async () => {
+    const [sr, rr] = await Promise.all([
+      supabase.from('sellers').select('status').eq('user_id', profile.id).maybeSingle(),
+      supabase.from('rider_profiles').select('is_verified,account_status').eq('id', profile.id).maybeSingle(),
+    ])
+    setRoles({ seller: sr.data ?? null, rider: rr.data ?? null })
+    setLoading(false)
+  }, [supabase, profile.id])
+
   useEffect(() => {
-    ;(async () => {
-      const [sr, rr] = await Promise.all([
-        supabase.from('sellers').select('status').eq('user_id', profile.id).maybeSingle(),
-        supabase.from('rider_profiles').select('is_verified,account_status').eq('id', profile.id).maybeSingle(),
-      ])
-      setRoles({ seller: sr.data ?? null, rider: rr.data ?? null })
-      setLoading(false)
-    })()
-  }, [])
+    loadRoles()
+  }, [loadRoles])
 
   async function switchRole(role: 'buyer' | 'seller' | 'rider') {
     if (profile.role === role) return

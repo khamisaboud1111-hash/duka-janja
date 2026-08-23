@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Check, X, FileText, ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { PageLoader, EmptyState } from '@/components/ui'
@@ -23,7 +23,7 @@ export default function AdminVerificationQueuePage() {
   const [docUrls, setDocUrls] = useState<Record<string, string>>({})
   const [openingId, setOpeningId] = useState<string | null>(null)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     let q = supabase
       .from('seller_verification_documents')
@@ -37,9 +37,9 @@ export default function AdminVerificationQueuePage() {
     }
     setDocs((data as DocRow[]) ?? [])
     setLoading(false)
-  }
+  }, [supabase, filter])
 
-  useEffect(() => { load() }, [filter])
+  useEffect(() => { load() }, [load])
 
   // seller-verification is a PRIVATE bucket (see migration 003) — getPublicUrl()
   // returns a URL that 400s because there's no anonymous read policy on it.

@@ -16,7 +16,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     prevRef.current = theme
     setTheme('dark')
     return () => { setTheme(prevRef.current) }
-  }, [hasHydrated])
+  }, [hasHydrated, setTheme])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-ink-950 via-ink-900 to-ink-950 flex flex-col">

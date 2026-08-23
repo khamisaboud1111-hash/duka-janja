@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Percent, Check, DollarSign } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { StatCard, PageLoader, EmptyState } from '@/components/ui'
@@ -15,7 +15,7 @@ export default function AdminCommissionsPage() {
   const [filter, setFilter] = useState<'unpaid' | 'paid' | 'all'>('unpaid')
   const [payingId, setPayingId] = useState<string | null>(null)
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     let q = supabase
       .from('commissions')
@@ -30,9 +30,9 @@ export default function AdminCommissionsPage() {
     }
     setCommissions(data ?? [])
     setLoading(false)
-  }
+  }, [supabase, filter])
 
-  useEffect(() => { load() }, [filter])
+  useEffect(() => { load() }, [load])
 
   async function markPaid(id: string) {
     setPayingId(id)
@@ -42,11 +42,11 @@ export default function AdminCommissionsPage() {
     load()
   }
 
-  const totalUnpaid = commissions.filter((c: any) => !c.is_paid).reduce((s: number, c: any) => s + c.commission_amount, 0)
-  const totalPaid = commissions.filter((c: any) => c.is_paid).reduce((s: number, c: any) => s + c.commission_amount, 0)
+  const totalUnpaid = commissions.filter((c) => !c.is_paid).reduce((s, c) => s + c.commission_amount, 0)
+  const totalPaid = commissions.filter((c) => c.is_paid).reduce((s, c) => s + c.commission_amount, 0)
 
   const bySeller: Record<string, { name: string; total: number; count: number; records: CommissionRecord[] }> = {}
-  commissions.forEach((c: any) => {
+  commissions.forEach((c) => {
     const key = c.seller_id
     if (!bySeller[key]) bySeller[key] = { name: c.seller?.store_name ?? 'Unknown', total: 0, count: 0, records: [] }
     bySeller[key].total += c.commission_amount
@@ -88,7 +88,7 @@ export default function AdminCommissionsPage() {
                 <p className="font-black text-lg text-spice-600">{formatTZS(group.total)}</p>
               </div>
               <div className="divide-y divide-ink-100">
-                {group.records.map((c: any) => (
+                {group.records.map((c) => (
                   <div key={c.id} className="flex items-center justify-between py-2.5">
                     <div>
                       <p className="text-sm text-ink-700">Agizo #{c.order_id.slice(-8).toUpperCase()}</p>
