@@ -15,6 +15,7 @@ import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
 import { PaymentStepper, PaymentStepperCompact } from '@/components/checkout/PaymentStepper'
+import { DeliveryZoneAutoDetect } from '@/components/checkout/DeliveryZoneAutoDetect'
 
 function makeSchema(lang: Language) {
   return z.object({
@@ -49,7 +50,7 @@ export default function CheckoutPage() {
   const [polling, setPolling] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed' | null>(null)
 
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(makeSchema(lang)),
     defaultValues: { payment_method: 'mpesa' }
   })
@@ -281,12 +282,18 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="label">{t('selectZone', lang)}</label>
-                  <select {...register('delivery_zone')} className="input">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="label mb-0">{t('selectZone', lang)}</label>
+                    <DeliveryZoneAutoDetect
+                      currentZone={selectedZone}
+                      onDetected={(zone) => setValue('delivery_zone', zone, { shouldValidate: true })}
+                    />
+                  </div>
+                  <select {...register('delivery_zone')} className="input min-h-[48px]">
                     <option value="">{t('chooseZone', lang)}</option>
                     {Object.entries(DELIVERY_ZONES).map(([key, zone]) => (
                       <option key={key} value={key}>
-                        {lang === 'sw' ? zone.nameSw : zone.nameEn} — {formatTZS(zone.fee)} ({zone.days} {t('days', lang)})
+                        {lang === 'sw' ? zone.nameSw : zone.nameEn} — {formatTZS(zone.fee, lang)} ({zone.days} {t('days', lang)})
                       </option>
                     ))}
                   </select>

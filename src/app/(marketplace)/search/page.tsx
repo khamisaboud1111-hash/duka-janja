@@ -14,6 +14,7 @@ import { MobileSheet } from '@/components/shared/MobileSheet'
 import { SkeletonGrid } from '@/components/shared/SkeletonComposites'
 import type { Category } from '@/types'
 import { cn } from '@/utils'
+import { VoiceSearchInline } from '@/components/search/VoiceSearchButton'
 
 const RECENT_KEY = 'dj_recent_searches'
 const POPULAR_SEARCHES = ['Karafuu', 'Kanga', 'Mafuta ya Nazi', 'Vazi la Kiislamu', 'Vikapu vya Ukili']
@@ -202,7 +203,7 @@ export default function SearchPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="relative flex-1">
+              <div className="relative flex-1">
               <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-brand-500/10 to-amber-500/10 opacity-0 focus-within:opacity-100 blur-xl transition-opacity duration-500" />
               <div className="relative flex items-center bg-white dark:bg-ink-800 border border-ink-200/60 dark:border-ink-700/60 rounded-2xl overflow-hidden focus-within:ring-2 focus-within:ring-brand-500/30 focus-within:border-brand-500/50 transition-all duration-300">
                 <Search className="absolute left-4 w-4 h-4 text-ink-400 dark:text-ink-500" />
@@ -212,9 +213,12 @@ export default function SearchPage() {
                   onChange={(e) => setInputValue(e.target.value)}
                   onFocus={() => setSuggestOpen(true)}
                   placeholder={t('search', lang)}
-                  className="w-full bg-transparent py-3 pl-12 pr-4 text-sm focus:outline-none placeholder:text-ink-400 dark:placeholder:text-ink-500"
+                  className="w-full bg-transparent py-3 pl-12 pr-12 text-sm focus:outline-none placeholder:text-ink-400 dark:placeholder:text-ink-500"
                   autoComplete="off"
                 />
+                <div className="absolute right-2">
+                  <VoiceSearchInline onTranscript={(text) => { setInputValue(text); runSearch(text) }} />
+                </div>
               </div>
             </div>
 

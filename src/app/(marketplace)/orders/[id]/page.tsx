@@ -10,6 +10,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import PayNowButton from '@/components/order/PayNowButton'
 import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
 import OrderLiveMapSection from '@/components/delivery/OrderLiveMapSection'
+import { WhatsAppTrackingButton } from '@/components/order/WhatsAppTrackingButton'
 
 export default async function OrderPage({ params }: { params: { id: string } }) {
   const supabase = createServerClient()
@@ -111,6 +112,16 @@ export default async function OrderPage({ params }: { params: { id: string } }) 
         {order.status === 'out_for_delivery' && (
           <OrderLiveMapSection orderId={order.id} />
         )}
+
+        {/* WhatsApp tracking - large touch target for outdoor use */}
+        <div className="mt-4">
+          <WhatsAppTrackingButton orderId={order.id} phone={order.delivery_phone} total={order.total_amount} variant="customer" />
+          <p className="text-xs text-center text-muted-foreground mt-2">
+            <LText k="whatsappTrackingHint" /> {/* fallback if key missing */}
+            {order.delivery_phone ? '' : ''}
+            Pata taarifa kwa WhatsApp — share tracking na familia
+          </p>
+        </div>
 
         {order.status === 'delivered' && (
           <div className="mt-4">
