@@ -1,19 +1,20 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import Image from 'next/image'
-import { Trash2, Package, MapPin, CreditCard, CheckCircle } from 'lucide-react'
+import { Trash2, Package, MapPin, CreditCard, CheckCircle, Loader2 } from 'lucide-react'
 import { useCartStore, useLangStore, selectCartSubtotal } from '@/store'
-import { DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider } from '@/utils'
+import { DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider, whatsappTemplates } from '@/utils'
 import { formatTZS } from '@/utils'
 import { t, type Language } from '@/i18n/translations'
 import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
+import { PaymentStepper, PaymentStepperCompact } from '@/components/checkout/PaymentStepper'
 
 function makeSchema(lang: Language) {
   return z.object({
@@ -29,6 +30,8 @@ function makeSchema(lang: Language) {
 
 type FormData = z.infer<ReturnType<typeof makeSchema>>
 
+type PaymentStep = 'payment' | 'processing' | 'confirmed' | 'delivery'
+
 export default function CheckoutPage() {
   const router = useRouter()
   const { lang } = useLangStore()
@@ -39,6 +42,12 @@ export default function CheckoutPage() {
   const subtotal = useCartStore(selectCartSubtotal)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
+  
+  // Payment stepper state
+  const [paymentStep, setPaymentStep] = useState<PaymentStep>('payment')
+  const [orderId, setOrderId] = useState<string | null>(null)
+  const [polling, setPolling] = useState(false)
+  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed' | null>(null)
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(makeSchema(lang)),
@@ -82,12 +91,19 @@ export default function CheckoutPage() {
       }
 
       const order = json.data
+      setOrderId(order.id)
+      setPaymentStep('processing')
+      setPolling(true)
+      setPaymentStatus('pending')
 
       clearCart()
 
       const provider = toPaymentProvider(data.payment_method)
 
       if (provider === 'cash_on_delivery') {
+        setPaymentStep('confirmed')
+        setPaymentStatus('success')
+        setPolling(false)
         setSuccess(order.id)
         setSubmitting(false)
         return
@@ -110,33 +126,84 @@ export default function CheckoutPage() {
       }
 
       if (payRes.ok && payJson.reference) {
-        setSuccess(order.id)
-        setSubmitting(false)
+        // Start polling for payment status
+        pollPaymentStatus(order.id)
         return
       }
 
       toast.error(t('paymentInitError', lang))
+      setPaymentStep('payment')
+      setPolling(false)
     } catch {
       toast.error(t('networkError', lang))
+      setPaymentStep('payment')
+      setPolling(false)
     }
 
     setSubmitting(false)
-  }, [items, lang, clearCart])
+  }, [items, lang, clearCart, pollPaymentStatus])
 
-  if (success) {
+  // Poll payment status every 5 seconds
+  const pollPaymentStatusRef = useRef<((orderId: string) => Promise<void>) | null>(null)
+  
+  const pollPaymentStatus = useCallback(async (orderId: string) => {
+    if (!polling) return
+    
+    try {
+      const res = await fetch(`/api/orders/${orderId}`)
+      const json = await res.json()
+      
+      if (json.data?.payment_confirmed) {
+        setPaymentStatus('success')
+        setPaymentStep('confirmed')
+        setPolling(false)
+        setSuccess(orderId)
+        toast.success(t('paymentConfirmed', lang) || 'Malipo yamehakikishwa!')
+      } else if (json.data?.status === 'cancelled') {
+        setPaymentStatus('failed')
+        setPaymentStep('payment')
+        setPolling(false)
+        toast.error('Malipo yamekataliwa au yamefeli.')
+      } else {
+        // Continue polling
+        setTimeout(() => pollPaymentStatusRef.current?.(orderId), 5000)
+      }
+    } catch {
+      // On error, retry in 10 seconds
+      setTimeout(() => pollPaymentStatusRef.current?.(orderId), 10000)
+    }
+  }, [polling, lang])
+
+  // Update ref when callback changes
+  useEffect(() => {
+    pollPaymentStatusRef.current = pollPaymentStatus
+  }, [pollPaymentStatus])
+
+  // Show payment confirmation with stepper when order is placed
+  if (success && (paymentStep === 'confirmed' || paymentStep === 'delivery')) {
     return (
-      <div className="page-container py-16 text-center">
-        <div className="max-w-sm mx-auto">
-          <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
-          <h1 className="font-display font-black text-2xl text-ink-900 mb-2">{t('orderPlaced', lang)} 🎉</h1>
-          <p className="text-ink-500 text-sm mb-6">{t('willCallToConfirm', lang)}</p>
-          <div className="flex flex-col gap-3">
-            <Link href={`/orders/${success}`} className="btn-primary justify-center">
-              {t('trackOrder', lang)}
-            </Link>
-            <Link href="/" className="btn-secondary justify-center">
-              {t('continueShopping', lang)}
-            </Link>
+      <div className="page-container py-16">
+        <div className="max-w-md mx-auto">
+          <PaymentStepper currentStep={paymentStep} lang={lang} />
+          
+          <div className="mt-8 text-center">
+            <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
+            <h1 className="font-display font-black text-2xl text-ink-900 mb-2">
+              {t('orderPlaced', lang)} 🎉
+            </h1>
+            <p className="text-ink-500 text-sm mb-6">
+              {paymentStep === 'delivery' 
+                ? t('deliveryStep4Desc', lang) 
+                : t('willCallToConfirm', lang)}
+            </p>
+            <div className="flex flex-col gap-3">
+              <Link href={`/orders/${success}`} className="btn-primary justify-center">
+                {t('trackOrder', lang)}
+              </Link>
+              <Link href="/" className="btn-secondary justify-center">
+                {t('continueShopping', lang)}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -263,6 +330,23 @@ export default function CheckoutPage() {
 
           <div className="lg:col-span-2">
             <div className="card p-4 sticky top-20">
+              {/* Payment Stepper during payment */}
+              {(paymentStep === 'processing' || paymentStep === 'confirmed') && (
+                <div className="mb-4">
+                  <PaymentStepperCompact currentStep={paymentStep} lang={lang} />
+                  {paymentStep === 'processing' && (
+                    <div className="mt-4 text-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-brand-500 mx-auto mb-2" />
+                      <p className="text-sm text-ink-600 dark:text-ink-400">
+                        {lang === 'sw' 
+                          ? 'Tunasubiri uthibitisho wa malipo...' 
+                          : 'Waiting for payment confirmation...'}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <h2 className="font-semibold text-ink-800 mb-4">{t('orderSummary', lang)}</h2>
               <div className="space-y-2 text-sm mb-4">
                 <div className="flex justify-between text-ink-700">
@@ -280,10 +364,13 @@ export default function CheckoutPage() {
               </div>
               <button
                 onClick={handleSubmit(onSubmit)}
-                disabled={submitting}
-                className="btn-primary w-full justify-center py-3 text-base"
+                disabled={submitting || paymentStep === 'processing'}
+                className="btn-primary w-full justify-center py-4 text-base min-h-[48px]"
               >
-                {submitting ? t('placingOrder', lang) : t('placeOrder', lang)}
+                {submitting ? t('placingOrder', lang) : 
+                 paymentStep === 'processing' ? 
+                   (lang === 'sw' ? 'Tunasubiri malipo...' : 'Waiting for payment...') : 
+                   t('placeOrder', lang)}
               </button>
               <p className="text-xs text-ink-400 text-center mt-3">
                 {t('callToConfirmPayment', lang)}

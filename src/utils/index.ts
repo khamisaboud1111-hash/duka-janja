@@ -7,8 +7,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatTZS(amount: number): string {
-  return new Intl.NumberFormat('sw-TZ', {
+export function formatTZS(amount: number, lang: Language = 'sw'): string {
+  const locale = lang === 'sw' ? 'sw-TZ' : lang === 'ar' ? 'ar-TZ' : lang === 'fr' ? 'fr-TZ' : 'en-TZ'
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'TZS',
     minimumFractionDigits: 0,
@@ -17,7 +18,7 @@ export function formatTZS(amount: number): string {
 }
 
 export function formatDate(dateString: string, lang: Language = 'en'): string {
-  const locale = lang === 'sw' ? 'sw-TZ' : lang === 'ar' ? 'ar' : lang === 'fr' ? 'fr-FR' : 'en-TZ'
+  const locale = lang === 'sw' ? 'sw-TZ' : lang === 'ar' ? 'ar-TZ' : lang === 'fr' ? 'fr-TZ' : 'en-TZ'
   return new Intl.DateTimeFormat(locale, {
     day: 'numeric',
     month: 'short',
@@ -59,11 +60,11 @@ export function getOrderStatusIndex(status: OrderStatus): number {
 }
 
 export const PAYMENT_METHODS = [
-  { id: 'mpesa',       label: 'M-Pesa',       icon: '📱' },
-  { id: 'tigopesa',    label: 'Tigo Pesa',    icon: '📱' },
-  { id: 'airtelmoney', label: 'Airtel Money', icon: '📱' },
-  { id: 'halopesa',    label: 'Halopesa',     icon: '📱' },
-  { id: 'cod',         label: 'Malipo Mkononi', icon: '💵' },
+  { id: 'mpesa',       label: 'M-Pesa',       icon: '📱', swLabel: 'M-Pesa' },
+  { id: 'tigopesa',    label: 'Tigo Pesa',    icon: '📱', swLabel: 'Tigo Pesa' },
+  { id: 'airtelmoney', label: 'Airtel Money', icon: '📱', swLabel: 'Airtel Money' },
+  { id: 'halopesa',    label: 'Halopesa',     icon: '📱', swLabel: 'Halopesa' },
+  { id: 'cod',         label: 'Cash on Delivery', icon: '💵', swLabel: 'Malipo Mkononi' },
 ]
 
 // Maps the checkout UI's payment_method id to the payment_transactions.provider enum
@@ -81,6 +82,27 @@ export function whatsappUrl(phone: string, message: string): string {
   const cleaned = phone.replace(/\D/g, '')
   const encoded = encodeURIComponent(message)
   return `https://wa.me/${cleaned}?text=${encoded}`
+}
+
+// Swahili-first WhatsApp message templates
+export const whatsappTemplates = {
+  productInquiry: (productName: string, price: number, lang: Language = 'sw') => {
+    const formattedPrice = lang === 'sw' ? `TZS ${price.toLocaleString('sw-TZ')}` : `TZS ${price.toLocaleString()}`
+    return lang === 'sw'
+      ? `Habari! Ninahitaji ${productName} bei ${formattedPrice}. Je, ipo?`
+      : `Hello! I'm interested in ${productName} for ${formattedPrice}. Is it available?`
+  },
+  orderConfirmation: (orderId: string, total: number, lang: Language = 'sw') => {
+    const formattedTotal = lang === 'sw' ? `TZS ${total.toLocaleString('sw-TZ')}` : `TZS ${total.toLocaleString()}`
+    return lang === 'sw'
+      ? `Asante kwa agizo lako #${orderId.slice(-8).toUpperCase()} (${formattedTotal}). Tutakupigia simu kuthibitisha.`
+      : `Thanks for your order #${orderId.slice(-8).toUpperCase()} (${formattedTotal}). We'll call to confirm.`
+  },
+  deliveryTracking: (orderId: string, trackingUrl: string, lang: Language = 'sw') => {
+    return lang === 'sw'
+      ? `Fuatilia agizo lako #${orderId.slice(-8).toUpperCase()}: ${trackingUrl}`
+      : `Track your order #${orderId.slice(-8).toUpperCase()}: ${trackingUrl}`
+  },
 }
 
 export function getPublicImageUrl(bucket: string, path: string): string {

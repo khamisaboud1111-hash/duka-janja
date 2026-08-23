@@ -3,14 +3,29 @@ import { persist } from 'zustand/middleware'
 import type { CartItem, Product } from '@/types'
 import type { Language } from '@/i18n/translations'
 
+// ─── Helpers ────────────────────────────────────────────────────────────────────
+
+function detectLanguage(): Language {
+  if (typeof navigator === 'undefined') return 'sw'
+  const lang = navigator.language.toLowerCase()
+  if (lang.startsWith('sw')) return 'sw'
+  if (lang.startsWith('ar')) return 'ar'
+  if (lang.startsWith('fr')) return 'fr'
+  return 'en'
+}
+
 // ─── Cart Store ───────────────────────────────────────────────────────────────
 
 interface CartStore {
   items: CartItem[]
+  isOnline: boolean
+  lastSynced: number
   addItem: (product: Product, quantity?: number) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
+  setOnlineStatus: (online: boolean) => void
+  syncCart: () => void
 }
 
 // Selector functions — use these instead of store methods
@@ -31,6 +46,8 @@ export const useCartStore = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      isOnline: true,
+      lastSynced: 0,
 
       addItem: (product, quantity = 1) => {
         set((state) => {
@@ -67,6 +84,17 @@ export const useCartStore = create<CartStore>()(
       },
 
       clearCart: () => set({ items: [] }),
+
+      setOnlineStatus: (online) => {
+        set({ isOnline: online })
+        if (online) get().syncCart()
+      },
+
+      syncCart: () => {
+        set({ lastSynced: Date.now() })
+        // In a real app, this would sync with server
+        // For now, cart is already persisted in localStorage
+      },
     }),
     {
       name: 'duka-janja-cart',
@@ -86,6 +114,15 @@ export const useCartStore = create<CartStore>()(
   )
 )
 
+// Initialize online/offline listeners
+if (typeof window !== 'undefined') {
+  const handleOnline = () => useCartStore.getState().setOnlineStatus(true)
+  const handleOffline = () => useCartStore.getState().setOnlineStatus(false)
+  window.addEventListener('online', handleOnline)
+  window.addEventListener('offline', handleOffline)
+  useCartStore.getState().setOnlineStatus(navigator.onLine)
+}
+
 // ─── UI Store (mobile sidebar drawer) ─────────────────────────────────────────
 
 interface UiStore {
@@ -104,7 +141,6 @@ export const useUiStore = create<UiStore>()((set) => ({
 
 function applyDir(lang: Language) {
   if (typeof document !== 'undefined') {
-    // Arabic reads right-to-left; every other language is left-to-right.
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
     document.cookie = `lang=${lang}; path=/; max-age=31536000`
   }
@@ -118,7 +154,7 @@ interface LangStore {
 export const useLangStore = create<LangStore>()(
   persist(
     (set) => ({
-      lang: 'sw',
+      lang: detectLanguage(),
       setLang: (lang) => {
         applyDir(lang)
         set({ lang })
@@ -141,23 +177,18 @@ export type Theme = 'light' | 'dark'
 interface ThemeStore {
   theme: Theme
   hasHydrated: boolean
+  highContrast: boolean
   toggleTheme: () => void
   setTheme: (theme: Theme) => void
+  toggleHighContrast: () => void
 }
 
-// The server always renders `theme: 'light'` (it has no access to
-// localStorage). If the persisted value on the client is 'dark', zustand's
-// persist middleware rehydrates it right after the store is created —
-// before Navbar's first paint — so the icon React renders on the client
-// no longer matches what the server sent down. React then throws a
-// hydration-mismatch error the moment that component re-renders (e.g. on
-// the dark-mode click itself). `hasHydrated` lets consumers hold off on
-// theme-dependent UI for one tick until client and server agree.
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
       theme: 'light',
       hasHydrated: false,
+      highContrast: false,
       toggleTheme: () => {
         const next: Theme = get().theme === 'light' ? 'dark' : 'light'
         if (typeof document !== 'undefined') {
@@ -171,10 +202,17 @@ export const useThemeStore = create<ThemeStore>()(
         }
         set({ theme })
       },
+      toggleHighContrast: () => {
+        const next = !get().highContrast
+        if (typeof document !== 'undefined') {
+          document.documentElement.classList.toggle('high-contrast', next)
+        }
+        set({ highContrast: next })
+      },
     }),
     {
       name: 'duka-janja-theme',
-      partialize: (state) => ({ theme: state.theme }),
+      partialize: (state) => ({ theme: state.theme, highContrast: state.highContrast }),
       onRehydrateStorage: () => (state) => {
         state?.setTheme(state.theme)
         useThemeStore.setState({ hasHydrated: true })
