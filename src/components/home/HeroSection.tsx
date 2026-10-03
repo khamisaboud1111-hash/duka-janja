@@ -41,17 +41,6 @@ export default function HeroSection({ stats }: { stats: HomeStats }) {
   const lang = useLangStore((s) => s.lang)
   return (
     <section className="relative isolate overflow-hidden rounded-b-[2rem] sm:rounded-b-[2.5rem] bg-gradient-to-br from-teal-800 via-teal-600 to-emerald-500 animate-gradient-pan">
-      {/* Background hero image */}
-      <div className="absolute inset-0 z-0">
-        <Image
-          src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=1600&auto=format&fit=crop"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover opacity-15"
-          priority
-        />
-      </div>
 
       {/* Decorative orbs */}
       <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-white/10 animate-pulse-glow" />

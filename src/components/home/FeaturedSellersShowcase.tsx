@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { BadgeCheck, MapPin, Package, ShoppingBag, Star, Store } from 'lucide-react'
 import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
@@ -19,6 +18,26 @@ interface FeaturedSeller {
   location_label: string | null
   national_id_verified: boolean
   product_count?: number
+}
+
+function getStoreInitial(name: string): string {
+  return name.trim()[0]?.toUpperCase() || 'S'
+}
+
+function getStoreColor(name: string): string {
+  const colors = [
+    'from-brand-500 to-brand-600',
+    'from-emerald-500 to-emerald-600',
+    'from-amber-500 to-orange-500',
+    'from-violet-500 to-purple-600',
+    'from-rose-500 to-rose-600',
+    'from-sky-500 to-blue-600',
+  ]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return colors[Math.abs(hash) % 6]
 }
 
 export default function FeaturedSellersShowcase({ sellers }: { sellers: FeaturedSeller[] }) {
@@ -53,7 +72,7 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
             <p className="text-sm text-ink-500 dark:text-ink-300">{t('featuredSellersSubtitle', lang)}</p>
           </div>
           <Link href="/search?type=sellers" className="text-sm text-brand-600 dark:text-brand-300 font-semibold whitespace-nowrap">
-            {t('seeAll', lang)} →
+            {t('seeAll', lang)} �+
           </Link>
         </div>
 
@@ -64,29 +83,15 @@ export default function FeaturedSellersShowcase({ sellers }: { sellers: Featured
               href={`/sellers/${seller.store_slug}`}
               className="group rounded-2xl overflow-hidden bg-white dark:bg-ink-900 border border-ink-100 dark:border-ink-800 shadow-card hover:shadow-card-hover transition-shadow"
             >
-              {/* Banner */}
-              <div className="relative h-24 bg-gradient-to-br from-brand-500 to-brand-700">
-                {seller.banner_url && (
-                  <Image
-                    src={seller.banner_url}
-                    alt={`${t('bannerAlt', lang)} ${seller.store_name}`}
-                    fill
-                    sizes="400px"
-                    className="object-cover"
-                  />
-                )}
-              </div>
+              {/* Banner - CSS gradient instead of image */}
+              <div className={`relative h-24 ${getStoreColor(seller.store_name)}`} />
 
               <div className="p-4 -mt-8 relative">
-                {/* Logo */}
-                <div className="w-16 h-16 rounded-xl border-4 border-white dark:border-ink-900 bg-white dark:bg-ink-800 shadow-card overflow-hidden mb-2">
-                  {seller.logo_url ? (
-                    <Image src={seller.logo_url} alt={seller.store_name} width={64} height={64} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-brand-100 dark:bg-brand-900">
-                      <span className="text-brand-700 dark:text-brand-200 font-bold text-xl">{seller.store_name.charAt(0)}</span>
-                    </div>
-                  )}
+                {/* Logo - CSS gradient with initial instead of image */}
+                <div className="w-16 h-16 rounded-xl border-4 border-white dark:border-ink-900 bg-white dark:bg-ink-900 shadow-card overflow-hidden mb-2">
+                  <div className={`w-full h-full ${getStoreColor(seller.store_name)} flex items-center justify-center`}>
+                    <span className="text-white font-bold text-xl">{getStoreInitial(seller.store_name)}</span>
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-1.5 mb-1">

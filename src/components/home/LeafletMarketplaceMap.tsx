@@ -47,7 +47,7 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [notice, setNotice] = useState<string | null>(null)
 
-    useEffect(() => {
+useEffect(() => {
       let map: any
       let streetsLayer: any
       let satelliteLayer: any
@@ -68,60 +68,83 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
           maxZoom: 19,
           maxBounds: ARCHIPELAGO_BOUNDS,
           maxBoundsViscosity: 0.8,
+          preferCanvas: true, // Use canvas renderer for better performance
         })
         leafletMapRef.current = map
 
-        // Real, professional street map — CartoDB Voyager. This is actual
-        // cartographic imagery (roads, terrain, place names) of Zanzibar.
-        streetsLayer = L.tileLayer(
-          'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        // Primary: OpenStreetMap (completely free, no API key, no rate limits)
+        const primaryLayer = L.tileLayer(
+          'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
           {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-            maxZoom: 20,
-            maxNativeZoom: 19,
-            subdomains: 'abcd',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+            maxZoom: 19,
+            subdomains: 'abc',
+            crossOrigin: true, // Enable cross-origin for better caching
           }
         ).addTo(map)
 
-        // Real satellite imagery — Esri World Imagery. Esri only generates
-        // tiles to a certain level in each area; beyond that it serves a
-        // "Map data not yet available" placeholder tile. maxNativeZoom stops
-        // us ever requesting those — Leaflet upscales the best available
-        // imagery instead, so there is no no-data tile at any zoom.
+        // Backup 1: OpenStreetMap Humanitarian (high contrast, completely free)
+        const backupLayer1 = L.tileLayer(
+          'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+          {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://www.openstreetmap.fr/">OpenStreetMap France</a>',
+            maxZoom: 20,
+            subdomains: 'abc',
+          }
+        )
+
+        // Backup 2: OpenTopoMap (topographic, free)
+        const backupLayer2 = L.tileLayer(
+          'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+          {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://opentopomap.org/">OpenTopoMap</a>',
+            maxZoom: 17,
+            subdomains: 'abc',
+          }
+        )
+
+        // Satellite: Esri World Imagery (free for non-commercial)
         satelliteLayer = L.tileLayer(
           'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
           {
-            attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics',
+            attribution: 'Tiles &copy; Esri | Source: Esri, Maxar, Earthstar Geographics',
             maxZoom: 19,
             maxNativeZoom: 17,
           }
         )
-        streetsLayerRef.current = streetsLayer
+
+        streetsLayer = primaryLayer.addTo(map)
+        streetsLayerRef.current = primaryLayer
         satelliteLayerRef.current = satelliteLayer
 
-        // Fallback: if CartoDB fails (network/region block), swap to OpenStreetMap.
-        streetsLayer.on('tileerror', () => {
-          if (streetsLayerRef.current?._url?.includes('cartocdn')) {
-            const fallback = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-              maxZoom: 19,
-              maxNativeZoom: 18,
-            })
-            map.removeLayer(streetsLayer)
-            streetsLayer = fallback
-            streetsLayerRef.current = fallback
-            fallback.addTo(map)
+        // Robust fallback chain: primary -> backup1 -> backup2
+        const layers = [primaryLayer, backupLayer1, backupLayer2]
+        let currentLayerIndex = 0
+
+        const handleTileError = (err: any, layerIndex: number) => {
+          if (layerIndex < layers.length - 1) {
+            console.warn(`Tile layer ${layerIndex} failed, falling back to ${layerIndex + 1}`)
+            map.removeLayer(layers[layerIndex])
+            const nextLayer = layers[layerIndex + 1].addTo(map)
+            streetsLayerRef.current = nextLayer
+          } else {
+            console.error('All tile layers failed')
+            setNotice('Imeshindikana kupakia ramani. Jaribu tena baadaye.')
           }
-        })
+        }
 
-        // Hide the loading indicator once the first real tiles have loaded
-        // (also force-hide it after a few seconds so it never blocks the view).
-        streetsLayer.on('load', () => setTilesReady(true))
+        primaryLayer.on('tileerror', (err: any) => handleTileError(err, 0))
+        backupLayer1.on('tileerror', (err: any) => handleTileError(err, 1))
+        backupLayer2.on('tileerror', (err: any) => handleTileError(err, 2))
+
+        // Hide loading indicator once tiles load
+        primaryLayer.on('load', () => setTilesReady(true))
+        backupLayer1.on('load', () => setTilesReady(true))
+        backupLayer2.on('load', () => setTilesReady(true))
         satelliteLayer.on('load', () => setTilesReady(true))
-        setTimeout(() => setTilesReady(true), 6000)
+        setTimeout(() => setTilesReady(true), 8000)
 
-        // Initial view: fit Zanzibar's main island (or pick a center + warm
-        // tiles when the container is hidden, e.g. in the preloaded modal).
+        // Initial view
         if (mapRef.current.clientHeight > 0) {
           map.fitBounds(UNGUJA_BOUNDS)
         } else {
@@ -131,7 +154,7 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
         L.control.zoom({ position: 'topleft' }).addTo(map)
         L.control.scale({ position: 'bottomleft', imperial: false }).addTo(map)
 
-        // Seller pins as colored teardrop divIcons — no external image files.
+        // Seller pins
         pins.forEach((pin) => {
           const initial = (pin.store_name.trim()[0] || 'S').toUpperCase()
           const icon = L.divIcon({
@@ -144,7 +167,7 @@ const LeafletMarketplaceMap = forwardRef<LeafletMapHandle, { pins: SellerPin[]; 
           marker.bindPopup(
             `<div style="min-width:160px">
               <div style="font-weight:700;font-size:13px;margin-bottom:2px">${escapeHtml(pin.store_name)}</div>
-              <div style="font-size:12px;color:#777;margin-bottom:6px">⭐ ${pin.average_rating?.toFixed(1) ?? '0.0'}${pin.location_label ? ' · ' + escapeHtml(pin.location_label) : ''}</div>
+              <div style="font-size:12px;color:#777;margin-bottom:6px">⭐ ${pin.average_rating?.toFixed(1) ?? '0.0'}${pin.location_label ? ' 📍 ' + escapeHtml(pin.location_label) : ''}</div>
               <a href="/sellers/${pin.store_slug}" style="font-size:12px;font-weight:600;color:#1da8ab">Tembelea Duka →</a>
             </div>`
           )
