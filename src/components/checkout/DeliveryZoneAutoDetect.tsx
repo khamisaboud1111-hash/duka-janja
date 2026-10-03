@@ -3,7 +3,7 @@
 import { MapPin, Loader2, Navigation } from 'lucide-react'
 import { useAutoDetectZone } from '@/hooks/useAutoDetectZone'
 import { useLangStore } from '@/store'
-import { DELIVERY_ZONES } from '@/utils'
+import { getDefaultDeliveryZones } from '@/lib/deliveryZones'
 import type { DeliveryZone } from '@/types'
 
 interface Props {
@@ -26,10 +26,10 @@ export function DeliveryZoneAutoDetect({ onDetected, currentZone }: Props) {
         {detecting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Navigation className="w-4 h-4" />}
         {lang === 'sw' ? 'Tambua eneo langu' : 'Detect my zone'}
       </button>
-      {currentZone && DELIVERY_ZONES[currentZone as DeliveryZone] && (
+      {currentZone && getDefaultDeliveryZones().find(z => z.zone === currentZone) && (
         <p className="text-xs text-ink-500 flex items-center gap-1">
           <MapPin className="w-3 h-3" />
-          {lang === 'sw' ? DELIVERY_ZONES[currentZone as DeliveryZone].nameSw : DELIVERY_ZONES[currentZone as DeliveryZone].nameEn}
+          {lang === 'sw' ? getDefaultDeliveryZones().find(z => z.zone === currentZone)?.nameSw : getDefaultDeliveryZones().find(z => z.zone === currentZone)?.nameEn}
         </p>
       )}
       {error && <p className="text-xs text-red-500">{error}</p>}

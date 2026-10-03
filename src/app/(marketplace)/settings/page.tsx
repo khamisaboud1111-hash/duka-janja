@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useUser } from '@/hooks/useUser'
 import { PageLoader } from '@/components/ui'
 import { Modal } from '@/components/ui/Modal'
-import { DELIVERY_ZONES } from '@/utils'
+import { getDefaultDeliveryZones } from '@/lib/deliveryZones'
 import type { DeliveryZone } from '@/types'
 import toast from 'react-hot-toast'
 import { useLangStore } from '@/store'
@@ -222,7 +222,7 @@ export default function SettingsPage() {
               </svg>
             }
             label={t('zone', lang)}
-            value={profile.delivery_zone ? (DELIVERY_ZONES[profile.delivery_zone]?.nameEn ?? profile.delivery_zone) : '—'}
+            value={profile.delivery_zone ? (getDefaultDeliveryZones().find(z => z.zone === profile.delivery_zone)?.nameEn ?? profile.delivery_zone) : '—'}
             editing={editField === 'delivery_zone'}
             editValue={fieldValue}
             onEditValue={setFieldValue}
@@ -231,7 +231,7 @@ export default function SettingsPage() {
             onCancel={cancelEdit}
             saving={saving}
             isSelect
-            selectOptions={Object.entries(DELIVERY_ZONES).map(([k, v]) => ({ value: k, label: v.nameEn }))}
+            selectOptions={getDefaultDeliveryZones().map(z => ({ value: z.zone, label: z.nameEn }))}
           />
           <ProfileRow
             icon={

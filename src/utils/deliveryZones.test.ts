@@ -8,13 +8,13 @@ import { DELIVERY_ZONES } from './index'
  * Single-source-of-truth guard for delivery zones.
  *
  * Zone fees/names/days live in TWO places that must never drift:
- *   1. src/utils/index.ts  → DELIVERY_ZONES (used for client-side checkout math)
- *   2. supabase/migrations/001_initial_schema.sql → delivery_zones seed (source of truth in DB)
+ *   1. src/utils/index.ts  �+' DELIVERY_ZONES (used for client-side checkout math)
+ *   2. supabase/migrations/001_initial_schema.sql �+' delivery_zones seed (source of truth in DB)
  *
  * This test parses the SQL seed rows and asserts they match the TS constant
  * exactly, so a change in one place without the other fails CI.
  */
-function parseSqlZoneRows(): Array<{ zone: string; nameEn: string; nameSw: string; fee: number; days: number }> {
+function parseSqlZoneRows(): Array<{ zone: string; nameEn: string; nameSw: string; fee: number; estimated_days: number }> {
   const __filename = fileURLToPath(import.meta.url)
   const __dirname = dirname(__filename)
   const migrationPath = resolve(__dirname, '../../supabase/migrations/001_initial_schema.sql')
@@ -32,7 +32,7 @@ function parseSqlZoneRows(): Array<{ zone: string; nameEn: string; nameSw: strin
     nameEn: m[2],
     nameSw: m[3],
     fee: Number(m[4]),
-    days: Number(m[5]),
+    estimated_days: Number(m[5]),
   }))
 
   return rows
@@ -54,7 +54,7 @@ describe('DELIVERY_ZONES stays in sync with the database migration', () => {
       expect(tsRow.nameEn).toBe(sqlRow.nameEn)
       expect(tsRow.nameSw).toBe(sqlRow.nameSw)
       expect(tsRow.fee).toBe(sqlRow.fee)
-      expect(tsRow.days).toBe(sqlRow.days)
+      expect(tsRow.estimated_days).toBe(sqlRow.estimated_days)
     }
   })
 })

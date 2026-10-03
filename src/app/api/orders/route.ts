@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { DELIVERY_ZONES } from '@/utils'
+import { getDefaultDeliveryZones } from '@/lib/deliveryZones'
+import type { DeliveryZone } from '@/types'
 
 export async function GET(req: NextRequest) {
   const supabase = createServerClient()
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
 
 interface CreateOrderBody {
   items: Array<{ product_id: string; quantity: number }>
-  delivery_zone: keyof typeof DELIVERY_ZONES
+  delivery_zone: DeliveryZone
   delivery_address: string
   delivery_name: string
   delivery_phone: string

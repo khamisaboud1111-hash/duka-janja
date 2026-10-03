@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: vi.fn(),
@@ -28,27 +28,29 @@ function makeRequest(body: any, headers: Record<string, string> = {}) {
 describe('POST /api/payments/webhook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    process.env.FLUTTERWAVE_SECRET_HASH = 'test-secret-hash'
+  })
+
+  afterEach(() => {
+    delete process.env.FLUTTERWAVE_SECRET_HASH
   })
 
   it('rejects request without valid signature', async () => {
-    mockedIsValidSignature.mockReturnValue(false)
     const req = makeRequest({ data: { id: '123' } }, { 'verif-hash': 'invalid' })
     const res = await POST(req)
     expect(res.status).toBe(401)
   })
 
   it('rejects request with missing signature', async () => {
-    mockedIsValidSignature.mockReturnValue(false)
     const req = makeRequest({ data: { id: '123' } })
     const res = await POST(req)
     expect(res.status).toBe(401)
   })
 
   it('rejects invalid JSON', async () => {
-    mockedIsValidSignature.mockReturnValue(true)
     const req = new Request('http://localhost/api/payments/webhook', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'verif-hash': 'valid' },
+      headers: { 'Content-Type': 'application/json', 'verif-hash': 'test-secret-hash' },
       body: 'not json',
     })
     const res = await POST(req)
@@ -56,15 +58,18 @@ describe('POST /api/payments/webhook', () => {
   })
 
   it('rejects when transaction verification fails', async () => {
-    mockedIsValidSignature.mockReturnValue(true)
+    const { verifyTransaction } = await import('@/lib/payments/aggregator')
+    const mockedVerifyTransaction = vi.mocked(verifyTransaction)
     mockedVerifyTransaction.mockResolvedValue({ verified: false })
-    const req = makeRequest({ data: { id: 'tx-123' } }, { 'verif-hash': 'valid' })
+    
+    const req = makeRequest({ data: { id: 'tx-123' } }, { 'verif-hash': 'test-secret-hash' })
     const res = await POST(req)
     expect(res.status).toBe(502)
   })
 
   it('rejects when amount is less than order total', async () => {
-    mockedIsValidSignature.mockReturnValue(true)
+    const { verifyTransaction } = await import('@/lib/payments/aggregator')
+    const mockedVerifyTransaction = vi.mocked(verifyTransaction)
     mockedVerifyTransaction.mockResolvedValue({
       verified: true,
       status: 'successful',
@@ -80,14 +85,17 @@ describe('POST /api/payments/webhook', () => {
       single: vi.fn().mockResolvedValue({ data: { id: 'order-1', total_amount: 10000, payment_confirmed: false, status: 'pending' } }),
       update: vi.fn().mockReturnThis(),
     }
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const mockedCreateAdminClient = vi.mocked(createAdminClient)
     mockedCreateAdminClient.mockReturnValue(mockSupabase)
-    const req = makeRequest({ data: { id: 'tx-123' } }, { 'verif-hash': 'valid' })
+    const req = makeRequest({ data: { id: 'tx-123' } }, { 'verif-hash': 'test-secret-hash' })
     const res = await POST(req)
     expect(res.status).toBe(422)
   })
 
   it('accepts already-processed orders idempotently', async () => {
-    mockedIsValidSignature.mockReturnValue(true)
+    const { verifyTransaction } = await import('@/lib/payments/aggregator')
+    const mockedVerifyTransaction = vi.mocked(verifyTransaction)
     mockedVerifyTransaction.mockResolvedValue({
       verified: true,
       status: 'successful',
@@ -101,8 +109,10 @@ describe('POST /api/payments/webhook', () => {
       eq: vi.fn().mockReturnThis(),
       single: vi.fn().mockResolvedValue({ data: { id: 'order-1', total_amount: 10000, payment_confirmed: true, status: 'confirmed' } }),
     }
+    const { createAdminClient } = await import('@/lib/supabase/admin')
+    const mockedCreateAdminClient = vi.mocked(createAdminClient)
     mockedCreateAdminClient.mockReturnValue(mockSupabase)
-    const req = makeRequest({ data: { id: 'tx-123' } }, { 'verif-hash': 'valid' })
+    const req = makeRequest({ data: { id: 'tx-123' } }, { 'verif-hash': 'test-secret-hash' })
     const res = await POST(req)
     expect(res.status).toBe(200)
     const json = await res.json()

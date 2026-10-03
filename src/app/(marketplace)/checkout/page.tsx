@@ -8,7 +8,7 @@ import { z } from 'zod'
 import Image from 'next/image'
 import { Trash2, Package, MapPin, CreditCard, CheckCircle, Loader2 } from 'lucide-react'
 import { useCartStore, useLangStore, selectCartSubtotal } from '@/store'
-import { DELIVERY_ZONES, PAYMENT_METHODS, toPaymentProvider, whatsappTemplates } from '@/utils'
+import { PAYMENT_METHODS, toPaymentProvider, whatsappTemplates } from '@/utils'
 import { formatTZS } from '@/utils'
 import { t, type Language } from '@/i18n/translations'
 import type { DeliveryZone } from '@/types'
@@ -16,6 +16,7 @@ import toast from 'react-hot-toast'
 import Link from 'next/link'
 import { PaymentStepper, PaymentStepperCompact } from '@/components/checkout/PaymentStepper'
 import { DeliveryZoneAutoDetect } from '@/components/checkout/DeliveryZoneAutoDetect'
+import { getDefaultDeliveryZones } from '@/lib/deliveryZones'
 
 function makeSchema(lang: Language) {
   return z.object({
@@ -56,7 +57,8 @@ export default function CheckoutPage() {
   })
 
   const selectedZone = watch('delivery_zone') as string
-  const deliveryFee = selectedZone ? DELIVERY_ZONES[selectedZone as DeliveryZone]?.fee ?? 0 : 0
+  const fallbackZones = getDefaultDeliveryZones()
+  const deliveryFee = selectedZone ? fallbackZones.find(z => z.zone === selectedZone)?.fee ?? 0 : 0
   const total = subtotal + deliveryFee
 
   // Poll payment status every 5 seconds
@@ -291,7 +293,7 @@ export default function CheckoutPage() {
                   </div>
                   <select {...register('delivery_zone')} className="input min-h-[48px]">
                     <option value="">{t('chooseZone', lang)}</option>
-                    {Object.entries(DELIVERY_ZONES).map(([key, zone]) => (
+                    {getDefaultDeliveryZones().map((zone) => (
                       <option key={key} value={key}>
                         {lang === 'sw' ? zone.nameSw : zone.nameEn} — {formatTZS(zone.fee, lang)} ({zone.days} {t('days', lang)})
                       </option>
