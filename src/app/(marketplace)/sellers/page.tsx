@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import { useSearchParams, useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import { SlidersHorizontal, X, Search, TrendingUp, Store, MapPin, Star, Truck, Shield } from 'lucide-react'
-import { useSellers } from '@/hooks/useSellers'
-import { useLangStore } from '@/store'
-import { createClient } from '@/lib/supabase/client'
-import { EmptyState } from '@/components/ui'
-import { Skeleton } from '@/components/ui/Card'
-import type { Category } from '@/types'
-import SellerCard from '@/components/seller/SellerCard'
+import { useSearchParams, useRouter } from 'next/navigation';
+import { useRef, useState, useEffect } from 'react';
+import { SlidersHorizontal, X, Search, TrendingUp, Store, MapPin, Star, Truck, Shield } from 'lucide-react';
+import { useSellers } from '@/hooks/useSellers';
+import { useLangStore } from '@/store';
+import { createClient } from '@/lib/supabase/client';
+import { EmptyState } from '@/components/ui';
+import { Skeleton } from '@/components/ui/Card';
+import type { Category } from '@/types';
+import SellerCard from '@/components/seller/SellerCard';
 
 const POPULAR_SEARCHES = ['Kanga', 'Kikapu', 'Vazi', 'Samani', 'Vifaa vya Nyumbani']
 

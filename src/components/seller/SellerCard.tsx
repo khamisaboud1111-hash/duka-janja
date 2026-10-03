@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import Image from 'next/image'
-import { Star, MapPin, Truck, Shield, Store, MessageCircle, ArrowUpRight, Check } from 'lucide-react'
-import { cn } from '@/utils'
-import { t } from '@/i18n/translations'
-import { useLangStore } from '@/store'
-import type { Seller } from '@/types'
+import Link from 'next/link';
+import Image from 'next/image';
+import { Star, MapPin, Truck, Shield, Store, MessageCircle, ArrowUpRight, Check } from 'lucide-react';
+import { cn } from '@/utils';
+import { t } from '@/i18n/translations';
+import { useLangStore } from '@/store';
+import type { Seller } from '@/types';
 
 interface SellerCardProps {
   seller: Seller
