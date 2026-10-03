@@ -90,6 +90,12 @@ export default function ProductCard({ product, imageless = false }: ProductCardP
               {t('madeInZanzibar', lang)}
             </span>
           )}
+          {(product as any).videos?.length > 0 && (
+            <span className="badge bg-purple-500 text-white text-xs flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-white/30" />
+              {t('hasReel', lang)}
+            </span>
+          )}
         </div>
 
         <button
@@ -111,6 +117,16 @@ export default function ProductCard({ product, imageless = false }: ProductCardP
         >
           <Eye className="w-3.5 h-3.5" /> {t('view', lang)}
         </Link>
+
+        {(product as any).videos?.length > 0 && (
+          <Link
+            href={`/reels?productId=${product.id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 translate-y-[44px] opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500 text-white text-xs font-semibold shadow-sm"
+          >
+            <PlayCircle className="w-3.5 h-3.5" /> {t('watchReel', lang)}
+          </Link>
+        )}
 
         <div className="absolute bottom-2 right-2 flex items-center gap-1">
           {(product as any).videos?.length > 0 && (
