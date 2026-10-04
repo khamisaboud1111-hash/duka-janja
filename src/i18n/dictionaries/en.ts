@@ -465,6 +465,8 @@ export const en = {
   copyFailed: 'Failed to copy link',
   shopNow: 'Shop Now',
   yourReel: 'Your Reel',
+  navbarError: 'Navigation temporarily unavailable',
+  retry: 'Retry',
 
   // Settings
   photoUpdated: 'Photo updated',

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, Component } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   LogOut,
   ArrowRight,
+  AlertTriangle,
 } from "lucide-react";
 import { useUiStore, useLangStore, useThemeStore, useCartStore } from "@/store";
 import { t } from "@/i18n/translations";
@@ -64,6 +65,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
   const [suggesting, setSuggesting] = useState(false);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [navError, setNavError] = useState<Error | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const setSidebarOpen = useUiStore((s) => s.setSidebarOpen);
@@ -95,15 +97,21 @@ export default function Navbar({ categories = [] }: NavbarProps) {
     }
     setSuggesting(true);
     const handle = setTimeout(async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("id, slug, name, price, images:product_images(url, is_primary)")
-        .eq("status", "active")
-        .ilike("name", `%${q}%`)
-        .order("created_at", { ascending: false })
-        .limit(6);
-      if (!error) setSuggestions((data ?? []) as Suggestion[]);
-      setSuggesting(false);
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("id, slug, name, price, images:product_images(url, is_primary)")
+          .eq("status", "active")
+          .ilike("name", `%${q}%`)
+          .order("created_at", { ascending: false })
+          .limit(6);
+        if (!error) setSuggestions((data ?? []) as Suggestion[]);
+      } catch (err) {
+        console.error('Search suggestions error:', err);
+        setNavError(err instanceof Error ? err : new Error('Search failed'));
+      } finally {
+        setSuggesting(false);
+      }
     }, 300);
     return () => clearTimeout(handle);
   }, [searchQuery, supabase]);
@@ -138,6 +146,38 @@ export default function Navbar({ categories = [] }: NavbarProps) {
 
   const iconBtn =
     "p-2.5 rounded-2xl hover:bg-white/20 dark:hover:bg-white/10 text-ink-800 dark:text-white relative transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2";
+
+  // Error fallback UI
+  if (navError) {
+    return (
+      <header className="sticky top-0 z-50 bg-white/80 dark:bg-ink-900/80 backdrop-blur-2xl border-b border-white/20 dark:border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[72px] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-500 via-brand-400 to-amber-400 flex items-center justify-center">
+                <span className="text-white font-black text-sm tracking-tight">DJ</span>
+              </div>
+              <span className="text-lg font-black tracking-tight bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 bg-clip-text text-transparent">
+                DUKA JANJA
+              </span>
+            </Link>
+          </div>
+          <div className="flex items-center gap-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-200 dark:border-red-800">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
+            <span className="text-sm text-red-700 dark:text-red-300 max-w-xs truncate">
+              {t('navbarError', lang) || 'Navbar temporarily unavailable'}
+            </span>
+            <button
+              onClick={() => setNavError(null)}
+              className="ml-2 text-xs text-red-500 hover:underline"
+            >
+              {t('retry', lang)}
+            </button>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header
