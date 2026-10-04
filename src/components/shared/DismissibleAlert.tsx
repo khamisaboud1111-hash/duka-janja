@@ -11,7 +11,7 @@ interface DismissibleAlertProps {
   autoDismissMs?: number
 }
 
-export default function DismissibleAlert({
+export function DismissibleAlert({
   message,
   onDismiss,
   type = 'error',

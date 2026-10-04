@@ -6,6 +6,7 @@ import ThemeScript from '@/components/layout/ThemeScript'
 import { cookies } from 'next/headers'
 import { GlobalErrorBoundary } from '@/components/shared/GlobalErrorBoundary'
 import GlobalErrorHandler from '@/components/shared/GlobalErrorHandler'
+import { QueryProvider } from '@/lib/query/provider'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -122,9 +123,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
         {/* Semantic main container wrapper */}
         <main id="main-content">
-          <GlobalErrorBoundary>
-            {children}
-          </GlobalErrorBoundary>
+          <QueryProvider>
+            <GlobalErrorBoundary>
+              {children}
+            </GlobalErrorBoundary>
+          </QueryProvider>
         </main>
 
         <Toaster 

@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import { Search, Filter, Download, Archive, TrendingUp, Clock, CheckCircle, XCircle, Package, Truck, MapPin, User, Phone, FileText, PackageCheck, PackageX, AlertCircle, ChevronDown, Eye, Edit, Trash2 } from 'lucide-react'
+import { Search, Filter, Download, Archive, TrendingUp, Clock, CheckCircle, XCircle, Package, Truck, MapPin, User, Phone, FileText, PackageCheck, PackageX, AlertCircle, ChevronDown, Eye, Edit, Trash2, ArrowUpRight } from 'lucide-react'
 import { useSeller } from '@/hooks/useSeller'
-import { useSellerOrders } from '@/hooks/useOrders'
+import { useOrders, useUpdateOrderStatus, useBulkUpdateOrders } from '@/lib/query/hooks'
 import { OrderStatusBadge, Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { PageLoader, EmptyState } from '@/components/ui'
@@ -13,6 +13,7 @@ import type { Order, OrderStatus } from '@/types'
 import toast from 'react-hot-toast'
 import ReadyForPickupButton from '@/components/seller/ReadyForPickupButton'
 import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
+import { DismissibleAlert } from '@/components/shared/DismissibleAlert'
 
 const NEXT_STATUS: Record<string, OrderStatus> = {
   pending: 'confirmed', confirmed: 'packed', packed: 'out_for_delivery', out_for_delivery: 'delivered',
@@ -21,7 +22,6 @@ const STATUS_LABELS: Record<string, string> = {
   pending: 'Inasubiri', confirmed: 'Imethibitishwa', packed: 'Imefungashwa',
   out_for_delivery: 'Inasafirishwa', delivered: 'Imefikishwa', cancelled: 'Imefutwa',
 }
-
 const STATUS_ICONS: Record<string, any> = {
   pending: Clock,
   confirmed: CheckCircle,
@@ -30,7 +30,6 @@ const STATUS_ICONS: Record<string, any> = {
   delivered: PackageCheck,
   cancelled: XCircle,
 }
-
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -42,13 +41,18 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function SellerOrdersPage() {
   const { seller, loading: sellerLoading } = useSeller()
-  const { orders, loading, updateOrderStatus } = useSellerOrders(seller?.id ?? null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  const { data, isLoading, refetch, updateOrderStatus, bulkUpdateOrders } = useOrders(seller?.id ?? null)
+  
+  const orders = data?.orders ?? []
+  const pagination = data?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 }
 
   // Filter orders based on search and status
   const filteredOrders = orders.filter(order => {
@@ -67,21 +71,47 @@ export default function SellerOrdersPage() {
     const next = NEXT_STATUS[order.status]
     if (!next) return
     setUpdatingId(order.id)
-    await updateOrderStatus(order.id, next, note || undefined)
-    setNote('')
-    setActiveOrder(null)
-    setUpdatingId(null)
-    toast.success(`Hali imebadilishwa: ${STATUS_LABELS[next]}`)
+    try {
+      await updateOrderStatus.mutateAsync({ orderId: order.id, status: next, note })
+      setNote('')
+      setActiveOrder(null)
+      setUpdatingId(null)
+      toast.success(`Hali imebadilishwa: ${STATUS_LABELS[next]}`)
+    } catch {
+      toast.error('Imeshindwa kubadilisha hali')
+      setUpdatingId(null)
+    }
   }, [note, updateOrderStatus])
 
   const handleCancel = useCallback(async (order: Order) => {
     setUpdatingId(order.id)
-    await updateOrderStatus(order.id, 'cancelled', note || 'Imefutwa na muuzaji')
-    setNote('')
-    setActiveOrder(null)
-    setUpdatingId(null)
-    toast.success('Agizo limefutwa')
+    try {
+      await updateOrderStatus.mutateAsync({ orderId: order.id, status: 'cancelled', note: note || 'Imefutwa na muuzaji' })
+      setNote('')
+      setActiveOrder(null)
+      setUpdatingId(null)
+      toast.success('Agizo limefutwa')
+    } catch {
+      toast.error('Imeshindwa kufuta agizo')
+      setUpdatingId(null)
+    }
   }, [note, updateOrderStatus])
+
+  const handleBulkAction = useCallback(async (action: 'cancel' | 'confirm' | 'pack') => {
+    if (selectedOrders.length === 0) return
+    
+    setUpdatingId('bulk')
+    try {
+      const nextStatus = action === 'cancel' ? 'cancelled' : action === 'confirm' ? 'confirmed' : 'packed'
+      await bulkUpdateOrders.mutateAsync({ orderIds: selectedOrders, status: nextStatus, note: `${action === 'cancel' ? 'Imefutwa' : action === 'confirm' ? 'Imethibitishwa' : 'Imefungashwa'} kwa kikundi` })
+      toast.success(`Actions performed on ${selectedOrders.length} orders`)
+      setSelectedOrders([])
+    } catch {
+      toast.error('Kushindwa kufanya hatua kwa kikundi')
+    } finally {
+      setUpdatingId(null)
+    }
+  }, [selectedOrders, bulkUpdateOrders])
 
   function exportOrders() {
     const csvContent = 'data:text/csv;charset=utf-8,' +
@@ -113,32 +143,6 @@ export default function SellerOrdersPage() {
       setSelectedOrders(selectedOrders.filter(id => id !== orderId))
     } else {
       setSelectedOrders([...selectedOrders, orderId])
-    }
-  }
-
-  async function handleBulkAction(action: 'cancel' | 'confirm' | 'pack') {
-    if (selectedOrders.length === 0) return
-    
-    setUpdatingId('bulk')
-    try {
-      for (const orderId of selectedOrders) {
-        const order = orders.find(o => o.id === orderId)
-        if (!order) continue
-        
-        if (action === 'cancel') {
-          await updateOrderStatus(orderId, 'cancelled', 'Imefutwa kwa kikundi')
-        } else if (action === 'confirm') {
-          await updateOrderStatus(orderId, 'confirmed', 'Imethibitishwa kwa kikundi')
-        } else if (action === 'pack') {
-          await updateOrderStatus(orderId, 'packed', 'Imefungashwa kwa kikundi')
-        }
-      }
-      toast.success(`Actions performed on ${selectedOrders.length} orders`)
-      setSelectedOrders([])
-    } catch (error) {
-      toast.error('Kushindwa kufanya hatua kwa kikundi')
-    } finally {
-      setUpdatingId(null)
     }
   }
 
@@ -182,6 +186,13 @@ export default function SellerOrdersPage() {
         </div>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <DismissibleAlert type="error" onDismiss={() => { setError(null); refetch() }} className="mb-4">
+          Imeshindwa kupakia maagizo. Jaribu tena.
+        </DismissibleAlert>
+      )}
+
       {/* Filters */}
       <div className="card p-4 mb-6">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -214,7 +225,7 @@ export default function SellerOrdersPage() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-4">
           {[1,2,3,4].map(i => (
             <div key={i} className="card p-6 animate-pulse">
@@ -352,6 +363,7 @@ export default function SellerOrdersPage() {
                             disabled={!!updatingId}
                             className="btn-primary text-xs py-2 px-3 flex items-center gap-2"
                           >
+                            <ArrowUpRight className="w-3.5 h-3.5" />
                             {updatingId === order.id ? 'Inabadilisha...' : `→ ${STATUS_LABELS[next]}`}
                           </button>
                         ) : next ? (
@@ -378,77 +390,34 @@ export default function SellerOrdersPage() {
                     </div>
                   </div>
                 )}
-
-                {order.status === 'delivered' && seller && (
-                  <div className="mt-4 pt-4 border-t border-ink-100">
-                    <DeliveryRatingSection orderId={order.id} reviewerId={seller.user_id} reviewerRole="seller" />
-                  </div>
-                )}
               </div>
             )
           })}
+
+          {/* Pagination */}
+          {pagination.totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6">
+              <button
+                onClick={() => refetch({ ...pagination, page: Math.max(1, pagination.page - 1) })}
+                disabled={pagination.page <= 1}
+                className="btn-secondary disabled:opacity-50 gap-1.5 text-sm"
+              >
+                <ChevronDown className="w-4 h-4 rotate-180" /> Nyuma
+              </button>
+              <span className="text-sm text-ink-600 mx-2">
+                Ukurasa {pagination.page} / {pagination.totalPages}
+              </span>
+              <button
+                onClick={() => refetch({ ...pagination, page: Math.min(pagination.totalPages, pagination.page + 1) })}
+                disabled={pagination.page >= pagination.totalPages}
+                className="btn-secondary disabled:opacity-50 gap-1.5 text-sm"
+              >
+                Endelea <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
-
-      <Modal open={!!activeOrder} onClose={() => setActiveOrder(null)} title="Maagizo" size="lg">
-        {activeOrder && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-lg">#{activeOrder.id.slice(-8).toUpperCase()}</h3>
-                <p className="text-sm text-ink-500">{formatDate(activeOrder.created_at)}</p>
-              </div>
-              <OrderStatusBadge status={activeOrder.status} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-semibold text-ink-900 mb-2">Mteja</h4>
-                <div className="p-3 bg-ink-50 dark:bg-ink-900 rounded-lg">
-                  <p className="font-medium">{activeOrder.buyer?.full_name}</p>
-                  <p className="text-sm text-ink-500">{activeOrder.buyer?.email}</p>
-                  <div className="flex items-center gap-1 text-sm text-ink-500 mt-1">
-                    <Phone className="w-3 h-3" />
-                    <span>{activeOrder.delivery_phone}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-semibold text-ink-900 mb-2">Utoaji</h4>
-                <div className="p-3 bg-ink-50 dark:bg-ink-900 rounded-lg">
-                  <div className="flex items-center gap-1 text-sm">
-                    <MapPin className="w-3 h-3" />
-                    <span>{activeOrder.delivery_address}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-ink-900 mb-2">Bidhaa</h4>
-              <div className="space-y-2">
-                {activeOrder.items?.filter((i: any) => i.seller_id === seller?.id).map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-900 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-ink-100 flex-shrink-0">
-                        {item.product?.images?.[0] && (
-                          <Image src={item.product.images[0].url} alt="" fill sizes="48px" className="object-cover" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{item.product?.name}</p>
-                        <p className="text-xs text-ink-500">{item.quantity} x {formatTZS(item.unit_price)}</p>
-                      </div>
-                    </div>
-                    <p className="font-semibold">{formatTZS(item.total_price)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   )
 }

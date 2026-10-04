@@ -9,7 +9,7 @@ import { PageLoader } from '@/components/ui'
 import RiderDocumentUploader from '@/components/rider/RiderDocumentUploader'
 import { useLangStore } from '@/store'
 import { t, type Language } from '@/i18n/translations'
-import DismissibleAlert from '@/components/shared/DismissibleAlert'
+import { DismissibleAlert } from '@/components/shared/DismissibleAlert'
 
 interface FormState {
   full_name: string

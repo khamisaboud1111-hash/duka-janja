@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Plus, Pencil, Trash2, Eye, EyeOff, AlertTriangle, Search, Filter, Download, Grid3X3, List, CheckSquare, Square, ChevronDown, Package, ArrowUpDown } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
 import { useSeller } from '@/hooks/useSeller'
 import { ProductStatusBadge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
@@ -12,15 +11,14 @@ import { ConfirmDialog, PageLoader, EmptyState, StatCard } from '@/components/ui
 import { formatTZS } from '@/utils'
 import type { Product } from '@/types'
 import toast from 'react-hot-toast'
+import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/lib/query/hooks'
+import { DismissibleAlert } from '@/components/shared/DismissibleAlert'
 
 type SortKey = 'name' | 'price' | 'stock' | 'created'
 type FilterStatus = 'all' | 'active' | 'draft' | 'out_of_stock'
 
 export default function SellerProductsPage() {
-  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
-  const [products, setProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
 
@@ -34,38 +32,25 @@ export default function SellerProductsPage() {
   const [bulkLoading, setBulkLoading] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
-  async function load() {
-    if (!seller) return
-    const { data } = await supabase
-      .from('products')
-      .select(`*, category:categories(name_sw), images:product_images(*)`)
-      .eq('seller_id', seller.id)
-      .order('created_at', { ascending: false })
-    setProducts(data ?? [])
-    setLoading(false)
-  }
+  const { data, isLoading, error, refetch } = useProducts({
+    search,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    sortBy: sortBy === 'created' ? 'created_at' : sortBy,
+    sortOrder: sortAsc ? 'asc' : 'desc',
+    limit: 20,
+  })
 
-  useEffect(() => { if (seller) load() }, [seller])
+  const createProductMutation = useCreateProduct()
+  const updateProductMutation = useUpdateProduct()
+  const deleteProductMutation = useDeleteProduct()
 
-  const filtered = useMemo(() => {
-    let result = products
-    if (statusFilter !== 'all') result = result.filter(p => p.status === statusFilter)
-    if (search) {
-      const q = search.toLowerCase()
-      result = result.filter(p => p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q))
-    }
-    result.sort((a, b) => {
-      let cmp = 0
-      if (sortBy === 'name') cmp = a.name.localeCompare(b.name)
-      else if (sortBy === 'price') cmp = a.price - b.price
-      else if (sortBy === 'stock') cmp = a.stock_quantity - b.stock_quantity
-      else cmp = a.created_at.localeCompare(b.created_at)
-      return sortAsc ? cmp : -cmp
-    })
-    return result
-  }, [products, search, statusFilter, sortBy, sortAsc])
+  const products = data?.products ?? []
+  const stats = data?.stats ?? { total: 0, active: 0, draft: 0, lowStock: 0, totalValue: 0 }
+  const pagination = data?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 }
 
-  const stats = useMemo(() => ({
+  const filtered = useMemo(() => products, [products])
+
+  const statsMemo = useMemo(() => ({
     total: products.length,
     active: products.filter(p => p.status === 'active').length,
     draft: products.filter(p => p.status === 'draft').length,
@@ -94,19 +79,26 @@ export default function SellerProductsPage() {
 
   async function toggleStatus(product: Product) {
     const newStatus = product.status === 'active' ? 'draft' : 'active'
-    await supabase.from('products').update({ status: newStatus }).eq('id', product.id)
-    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, status: newStatus } : p))
-    toast.success(newStatus === 'active' ? 'Bidhaa imewekwa kwenye soko' : 'Bidhaa imefichwa')
+    try {
+      await updateProductMutation.mutateAsync({ id: product.id, data: { status: newStatus } })
+      toast.success(newStatus === 'active' ? 'Bidhaa imewekwa kwenye soko' : 'Bidhaa imefichwa')
+    } catch {
+      toast.error('Imeshindwa kubadilisha hali')
+    }
   }
 
   async function handleDelete() {
     if (!deleteId) return
     setDeleting(true)
-    await supabase.from('products').delete().eq('id', deleteId)
-    setProducts(prev => prev.filter(p => p.id !== deleteId))
-    setDeleteId(null)
-    setDeleting(false)
-    toast.success('Bidhaa imefutwa')
+    try {
+      await deleteProductMutation.mutateAsync(deleteId)
+      toast.success('Bidhaa imefutwa')
+    } catch {
+      toast.error('Imeshindwa kufuta')
+    } finally {
+      setDeleteId(null)
+      setDeleting(false)
+    }
   }
 
   async function handleBulkAction() {
@@ -114,20 +106,22 @@ export default function SellerProductsPage() {
     setBulkLoading(true)
     const ids = Array.from(selected)
 
-    if (bulkAction === 'delete') {
-      await supabase.from('products').delete().in('id', ids)
-      setProducts(prev => prev.filter(p => !selected.has(p.id)))
-      toast.success(`${ids.length} bidhaa zimefutwa`)
-    } else {
-      const newStatus = bulkAction === 'activate' ? 'active' : 'draft'
-      await supabase.from('products').update({ status: newStatus }).in('id', ids)
-      setProducts(prev => prev.map(p => selected.has(p.id) ? { ...p, status: newStatus as any } : p))
-      toast.success(`${ids.length} bidhaa zimebadilishwa hadi ${newStatus}`)
+    try {
+      if (bulkAction === 'delete') {
+        await Promise.all(ids.map(id => deleteProductMutation.mutateAsync(id)))
+        toast.success(`${ids.length} bidhaa zimefutwa`)
+      } else {
+        const newStatus = bulkAction === 'activate' ? 'active' : 'draft'
+        await Promise.all(ids.map(id => updateProductMutation.mutateAsync({ id, data: { status: newStatus } })))
+        toast.success(`${ids.length} bidhaa zimebadilishwa hadi ${newStatus}`)
+      }
+      setSelected(new Set())
+      setBulkAction(null)
+    } catch {
+      toast.error('Kushindwa kufanya hatua kwa kikundi')
+    } finally {
+      setBulkLoading(false)
     }
-
-    setSelected(new Set())
-    setBulkAction(null)
-    setBulkLoading(false)
   }
 
   function exportCSV() {
@@ -151,19 +145,26 @@ export default function SellerProductsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="font-display font-black text-2xl text-ink-900">Bidhaa Zangu</h1>
-          <p className="text-sm text-ink-500 mt-0.5">{stats.total} bidhaa jumla</p>
+          <p className="text-sm text-ink-500 mt-0.5">{statsMemo.total} bidhaa jumla</p>
         </div>
         <Link href="/seller/products/new" className="btn-primary gap-1.5 text-sm">
           <Plus className="w-4 h-4" /> Ongeza bidhaa
         </Link>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <DismissibleAlert type="error" onDismiss={() => refetch()} className="mb-4">
+          Imeshindwa kupakia bidhaa. Jaribu tena.
+        </DismissibleAlert>
+      )}
+
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Jumla" value={stats.total} icon={<Package className="w-5 h-5" />} accent="brand" />
-        <StatCard label="Hudumu" value={stats.active} icon={<Eye className="w-5 h-5" />} accent="green" />
-        <StatCard label="Rasimu" value={stats.draft} icon={<EyeOff className="w-5 h-5" />} accent="gold" />
-        <StatCard label="Hisa Chache" value={stats.lowStock} icon={<AlertTriangle className="w-5 h-5" />} accent="spice" />
+        <StatCard label="Jumla" value={statsMemo.total} icon={<Package className="w-5 h-5" />} accent="brand" />
+        <StatCard label="Hudumu" value={statsMemo.active} icon={<Eye className="w-5 h-5" />} accent="green" />
+        <StatCard label="Rasimu" value={statsMemo.draft} icon={<EyeOff className="w-5 h-5" />} accent="gold" />
+        <StatCard label="Hisa Chache" value={statsMemo.lowStock} icon={<AlertTriangle className="w-5 h-5" />} accent="spice" />
       </div>
 
       {/* Search & Toolbar */}
@@ -242,7 +243,7 @@ export default function SellerProductsPage() {
       )}
 
       {/* Product Grid / List */}
-      {loading ? (
+      {isLoading ? (
         <div className={viewMode === 'grid' ? 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3' : 'space-y-2'}>
           {Array.from({ length: 6 }).map((_, i) => <div key={i} className="card h-48 animate-pulse rounded-2xl" />)}
         </div>
@@ -263,7 +264,13 @@ export default function SellerProductsPage() {
                 {/* Image */}
                 <div className="relative aspect-square bg-ink-100">
                   {img ? (
-                    <Image src={img.url} alt={p.name} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <Image
+                      src={img.url}
+                      alt={p.name}
+                      fill
+                      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Package className="w-10 h-10 text-ink-300" />
@@ -348,7 +355,7 @@ export default function SellerProductsPage() {
                           <div className="relative w-10 h-10 rounded-lg overflow-hidden bg-ink-100 flex-shrink-0">
                             {img ? <Image src={img.url} alt="" fill sizes="40px" className="object-cover" /> : <div className="w-full h-full bg-ink-100 flex items-center justify-center"><Package className="w-5 h-5 text-ink-300" /></div>}
                           </div>
-                          <div className="min-w-0">
+                          <div className="flex-1 min-w-0">
                             <p className="font-medium text-ink-900 truncate max-w-[180px]">{p.name}</p>
                             {p.stock_quantity <= 5 && p.stock_quantity > 0 && (
                               <p className="text-xs text-amber-600 flex items-center gap-1"><AlertTriangle className="w-3 h-3" />Hisa chache</p>
@@ -389,6 +396,29 @@ export default function SellerProductsPage() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => refetch({ ...pagination, page: Math.max(1, pagination.page - 1) })}
+            disabled={pagination.page <= 1}
+            className="btn-secondary disabled:opacity-50 gap-1.5 text-sm"
+          >
+            <ChevronDown className="w-4 h-4 rotate-180" /> Nyuma
+          </button>
+          <span className="text-sm text-ink-600 mx-2">
+            Ukurasa {pagination.page} / {pagination.totalPages}
+          </span>
+          <button
+            onClick={() => refetch({ ...pagination, page: Math.min(pagination.totalPages, pagination.page + 1) })}
+            disabled={pagination.page >= pagination.totalPages}
+            className="btn-secondary disabled:opacity-50 gap-1.5 text-sm"
+          >
+            Endelea <ChevronDown className="w-4 h-4" />
+          </button>
         </div>
       )}
 

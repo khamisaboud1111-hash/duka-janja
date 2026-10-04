@@ -11,6 +11,20 @@ export function createServerClient() {
         get(name: string) {
           return cookieStore.get(name)?.value
         },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch {
+            // Handle cookie setting in Server Components
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({ name, value: '', ...options })
+          } catch {
+            // Handle cookie removal in Server Components
+          }
+        },
       },
     }
   )
