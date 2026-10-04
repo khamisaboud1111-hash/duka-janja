@@ -4,6 +4,7 @@ import { Inter, Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import ThemeScript from '@/components/layout/ThemeScript'
 import { cookies } from 'next/headers'
+import { GlobalErrorBoundary } from '@/components/shared/GlobalErrorBoundary'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -119,7 +120,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
         {/* Semantic main container wrapper */}
         <main id="main-content">
-          {children}
+          <GlobalErrorBoundary>
+            {children}
+          </GlobalErrorBoundary>
         </main>
 
         <Toaster 
