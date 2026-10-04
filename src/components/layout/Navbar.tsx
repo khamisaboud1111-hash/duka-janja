@@ -77,17 +77,23 @@ export default function Navbar({ categories = [] }: NavbarProps) {
   const { unreadCount } = useNotifications();
   const { profile, isAdmin, isSeller } = useUser();
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
+  const [supabase] = useState(() => createClient());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Scroll detection for glass effect
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Debounced search suggestions
+}, []);
+ 
+  // Debounced search suggestions (only after mount to avoid hydration issues)
   useEffect(() => {
+    if (!mounted) return;
     const q = searchQuery.trim();
     if (!q) {
       setSuggestions([]);
@@ -114,7 +120,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
       }
     }, 300);
     return () => clearTimeout(handle);
-  }, [searchQuery, supabase]);
+  }, [searchQuery, supabase, mounted]);
 
   // Close suggestions on outside click
   useEffect(() => {
