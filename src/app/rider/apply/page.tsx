@@ -9,6 +9,7 @@ import { PageLoader } from '@/components/ui'
 import RiderDocumentUploader from '@/components/rider/RiderDocumentUploader'
 import { useLangStore } from '@/store'
 import { t, type Language } from '@/i18n/translations'
+import DismissibleAlert from '@/components/shared/DismissibleAlert'
 
 interface FormState {
   full_name: string
@@ -37,6 +38,7 @@ export default function RiderApplyPage() {
   const [step, setStep] = useState(0)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
   const [form, setForm] = useState<FormState>({
     full_name: '',
     phone_number: '',
@@ -107,9 +109,10 @@ export default function RiderApplyPage() {
   function next() {
     const err = validateStep()
     if (err) {
-      toast.error(err)
+      setValidationError(err)
       return
     }
+    setValidationError(null)
     setStep((s) => Math.min(s + 1, STEPS.length - 1))
   }
 
@@ -186,6 +189,16 @@ export default function RiderApplyPage() {
       </header>
 
       <div className="max-w-lg mx-auto px-4 py-4">
+        {/* Validation Error Alert */}
+        {validationError && (
+          <DismissibleAlert
+            message={validationError}
+            onDismiss={() => setValidationError(null)}
+            type="error"
+            autoDismissMs={8000}
+          />
+        )}
+
         <div className="bg-neutral-900 rounded-2xl border border-neutral-800 p-4 space-y-3">
           {step === 0 && (
             <>
