@@ -18,6 +18,7 @@ import { SkeletonGrid } from '@/components/shared/SkeletonComposites'
 import type { Product } from '@/types'
 import Link from 'next/link'
 import type { HomeStats } from '@/components/home/HeroSection'
+import { SectionErrorBoundary } from '@/components/shared/SectionErrorBoundary'
 
 export const dynamic = 'force-dynamic'
 
@@ -118,90 +119,115 @@ export default async function MarketplaceHomePage() {
 
   return (
     <>
-      <HeroSection stats={stats} />
-      <QuickActionsCard />
+      <SectionErrorBoundary name="HeroSection">
+        <HeroSection stats={stats} />
+      </SectionErrorBoundary>
 
-      <FadeInView>
-        <TrustBadges />
-      </FadeInView>
+      <SectionErrorBoundary name="QuickActionsCard">
+        <QuickActionsCard />
+      </SectionErrorBoundary>
 
-      <GetStartedSteps />
+      <SectionErrorBoundary name="TrustBadges">
+        <FadeInView>
+          <TrustBadges />
+        </FadeInView>
+      </SectionErrorBoundary>
 
-      <CategoryGrid categories={categories} />
+      <SectionErrorBoundary name="GetStartedSteps">
+        <GetStartedSteps />
+      </SectionErrorBoundary>
+
+      <SectionErrorBoundary name="CategoryGrid">
+        <CategoryGrid categories={categories} />
+      </SectionErrorBoundary>
 
       {recentProducts.length > 0 && (
-        <FadeInView>
-          <Suspense fallback={
-            <div className="section"><SkeletonGrid count={4} className="grid-cols-2 sm:grid-cols-4" /></div>
-          }>
-            <section className="section">
-              <div className="page-container">
-                <SectionHeading
-                  title={<LText k="newProducts" />}
-                  action={
-                    <Link href="/search?sort=newest" className="text-sm font-semibold text-brand-600 dark:text-brand-300 whitespace-nowrap hover:underline">
-                      <LText k="seeAll" /> →
-                    </Link>
-                  }
-                  className="mb-4"
-                />
-                <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {recentProducts.slice(0, 4).map((product) => (
-                    <StaggerItem key={product.id}>
-                      <ProductCard product={product} />
-                    </StaggerItem>
-                  ))}
-                </StaggerGrid>
-              </div>
-            </section>
-          </Suspense>
-        </FadeInView>
+        <SectionErrorBoundary name="NewProducts">
+          <FadeInView>
+            <Suspense fallback={
+              <div className="section"><SkeletonGrid count={4} className="grid-cols-2 sm:grid-cols-4" /></div>
+            }>
+              <section className="section">
+                <div className="page-container">
+                  <SectionHeading
+                    title={<LText k="newProducts" />}
+                    action={
+                      <Link href="/search?sort=newest" className="text-sm font-semibold text-brand-600 dark:text-brand-300 whitespace-nowrap hover:underline">
+                        <LText k="seeAll" /> →
+                      </Link>
+                    }
+                    className="mb-4"
+                  />
+                  <StaggerGrid className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {recentProducts.slice(0, 4).map((product) => (
+                      <StaggerItem key={product.id}>
+                        <ProductCard product={product} />
+                      </StaggerItem>
+                    ))}
+                  </StaggerGrid>
+                </div>
+              </section>
+            </Suspense>
+          </FadeInView>
+        </SectionErrorBoundary>
       )}
 
-      <FadeInView>
-        <Suspense fallback={<div className="h-64 w-full rounded-2xl bg-muted animate-pulse" />}>
-          <FeaturedSellersShowcase sellers={featuredSellers} />
-        </Suspense>
-      </FadeInView>
+      <SectionErrorBoundary name="FeaturedSellersShowcase">
+        <FadeInView>
+          <Suspense fallback={<div className="h-64 w-full rounded-2xl bg-muted animate-pulse" />}>
+            <FeaturedSellersShowcase sellers={featuredSellers} />
+          </Suspense>
+        </FadeInView>
+      </SectionErrorBoundary>
 
-      <FadeInView>
-        <section className="section">
-          <div className="page-container">
-            <ShippingSteps />
-          </div>
-        </section>
-      </FadeInView>
+      <SectionErrorBoundary name="ShippingSteps">
+        <FadeInView>
+          <section className="section">
+            <div className="page-container">
+              <ShippingSteps />
+            </div>
+          </section>
+        </FadeInView>
+      </SectionErrorBoundary>
 
-      <TestimonialsSection testimonials={testimonials} />
+      <SectionErrorBoundary name="TestimonialsSection">
+        <TestimonialsSection testimonials={testimonials} />
+      </SectionErrorBoundary>
 
-      <ZanzibarDiscovery />
+      <SectionErrorBoundary name="ZanzibarDiscovery">
+        <ZanzibarDiscovery />
+      </SectionErrorBoundary>
 
       {/* Bottom CTA */}
-      <section className="relative isolate overflow-hidden bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 py-14 sm:py-16 animate-gradient-pan">
-        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 animate-pulse-glow" />
-        <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-white/10 animate-pulse-glow" style={{ animationDelay: '2s' }} />
-        <div className="page-container relative text-center">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] font-bold tracking-wide uppercase mb-4">
-            <LText k="limitedTimeOffer" />
-          </span>
-          <h2 className="font-display font-black text-2xl sm:text-3xl text-white mb-2">
-            <LText k="bottomCtaTitleV2" />
-          </h2>
-          <p className="text-white/85 text-sm sm:text-base mb-6 max-w-md mx-auto">
-            <LText k="bottomCtaSubtitleV2" />
-          </p>
-          <div className="flex flex-wrap justify-center gap-3">
-            <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95">
-              <LText k="gs1Cta" />
-            </Link>
-            <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-all border border-white/30 hover:-translate-y-0.5 active:scale-95">
-              <LText k="browse" />
-            </Link>
+      <SectionErrorBoundary name="BottomCTA">
+        <section className="relative isolate overflow-hidden bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 py-14 sm:py-16 animate-gradient-pan">
+          <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 animate-pulse-glow" />
+          <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-white/10 animate-pulse-glow" style={{ animationDelay: '2s' }} />
+          <div className="page-container relative text-center">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] font-bold tracking-wide uppercase mb-4">
+              <LText k="limitedTimeOffer" />
+            </span>
+            <h2 className="font-display font-black text-2xl sm:text-3xl text-white mb-2">
+              <LText k="bottomCtaTitleV2" />
+            </h2>
+            <p className="text-white/85 text-sm sm:text-base mb-6 max-w-md mx-auto">
+              <LText k="bottomCtaSubtitleV2" />
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95">
+                <LText k="gs1Cta" />
+              </Link>
+              <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-all border border-white/30 hover:-translate-y-0.5 active:scale-95">
+                <LText k="browse" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </SectionErrorBoundary>
 
-      <WhatsAppButton />
+      <SectionErrorBoundary name="WhatsAppButton">
+        <WhatsAppButton />
+      </SectionErrorBoundary>
     </>
   )
 }
