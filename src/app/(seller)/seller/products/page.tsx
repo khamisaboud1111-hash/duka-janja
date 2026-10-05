@@ -13,6 +13,7 @@ import type { Product } from '@/types'
 import toast from 'react-hot-toast'
 import { useProducts, useCreateProduct, useUpdateProduct, useDeleteProduct } from '@/lib/query/hooks'
 import { DismissibleAlert } from '@/components/shared/DismissibleAlert'
+import { VirtualList } from '@/components/shared/VirtualList'
 
 type SortKey = 'name' | 'price' | 'stock' | 'created'
 type FilterStatus = 'all' | 'active' | 'draft' | 'out_of_stock'
@@ -255,8 +256,11 @@ export default function SellerProductsPage() {
           action={!search && statusFilter === 'all' ? <Link href="/seller/products/new" className="btn-primary">Ongeza bidhaa</Link> : undefined}
         />
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          {filtered.map(p => {
+        <VirtualList
+          items={filtered}
+          itemHeight={320}
+          containerHeight={600}
+          renderItem={(p) => {
             const img = p.images?.find(i => i.is_primary) ?? p.images?.[0]
             const isSelected = selected.has(p.id)
             return (
@@ -317,8 +321,11 @@ export default function SellerProductsPage() {
                 </div>
               </div>
             )
-          })}
-        </div>
+          }}
+          itemKey={(p) => p.id}
+          overscan={3}
+          containerHeight={600}
+        />
       ) : (
         /* List View */
         <div className="card overflow-hidden rounded-2xl">

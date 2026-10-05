@@ -7,6 +7,7 @@ import { cookies } from 'next/headers'
 import { GlobalErrorBoundary } from '@/components/shared/GlobalErrorBoundary'
 import GlobalErrorHandler from '@/components/shared/GlobalErrorHandler'
 import { QueryProvider } from '@/lib/query/provider'
+import { ServiceWorkerRegistration } from '@/components/shared/ServiceWorkerRegistration'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -120,6 +121,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
         <PullToRefreshIndicator />
         <GlobalErrorHandler />
+        <ServiceWorkerRegistration />
 
         {/* Semantic main container wrapper */}
         <main id="main-content">

@@ -14,6 +14,7 @@ import toast from 'react-hot-toast'
 import ReadyForPickupButton from '@/components/seller/ReadyForPickupButton'
 import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
 import { DismissibleAlert } from '@/components/shared/DismissibleAlert'
+import { VirtualList } from '@/components/shared/VirtualList'
 
 const NEXT_STATUS: Record<string, OrderStatus> = {
   pending: 'confirmed', confirmed: 'packed', packed: 'out_for_delivery', out_for_delivery: 'delivered',
@@ -148,125 +149,58 @@ export default function SellerOrdersPage() {
 
   if (sellerLoading) return <PageLoader />
 
-  return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-display font-black text-2xl text-ink-900">Maagizo</h1>
-          <p className="text-sm text-ink-500 mt-1">{filteredOrders.length} maagizo ({orders.length} total)</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => handleBulkAction('confirm')}
-            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
-            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckCircle className="w-4 h-4" /> Thibitisha ({selectedOrders.length})
-          </button>
-          <button
-            onClick={() => handleBulkAction('pack')}
-            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
-            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <PackageCheck className="w-4 h-4" /> Funga ({selectedOrders.length})
-          </button>
-          <button
-            onClick={() => handleBulkAction('cancel')}
-            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
-            className="btn-danger gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <XCircle className="w-4 h-4" /> Futa ({selectedOrders.length})
-          </button>
-          <button
-            onClick={exportOrders}
-            className="btn-secondary gap-2"
-          >
-            <Download className="w-4 h-4" /> Hamisha
-          </button>
-        </div>
-      </div>
-
-      {/* Error Display */}
-      {error && (
-        <DismissibleAlert type="error" onDismiss={() => { setError(null); refetch() }} className="mb-4">
-          Imeshindwa kupakia maagizo. Jaribu tena.
-        </DismissibleAlert>
-      )}
-
-      {/* Filters */}
-      <div className="card p-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
-            <input
-              type="text"
-              placeholder="Tafuta kwa namba ya agizo, jina la mteja, anwani..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input pl-10 w-full"
-            />
-          </div>
-          <div className="relative min-w-[200px]">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input pl-10 appearance-none w-full cursor-pointer"
-            >
-              <option value="all">Mao Yote</option>
-              <option value="pending">Inasubiri</option>
-              <option value="confirmed">Imethibitishwa</option>
-              <option value="packed">Imefungashwa</option>
-              <option value="out_for_delivery">Inasafirishwa</option>
-              <option value="delivered">Imefikishwa</option>
-              <option value="cancelled">Imefutwa</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="card p-6 animate-pulse">
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-4 bg-ink-200 rounded w-32"></div>
-                <div className="h-6 bg-ink-200 rounded w-20"></div>
-              </div>
-              <div className="space-y-3">
-                <div className="h-3 bg-ink-200 rounded"></div>
-                <div className="h-3 bg-ink-200 rounded"></div>
-                <div className="h-3 bg-ink-200 rounded w-3/4"></div>
-              </div>
+  let content;
+  if (isLoading) {
+    content = (
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="card p-6 animate-pulse">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-4 bg-ink-200 rounded w-32"></div>
+              <div className="h-6 bg-ink-200 rounded w-20"></div>
             </div>
-          ))}
-        </div>
-      ) : filteredOrders.length === 0 ? (
-        <EmptyState
-          icon={<Search className="w-12 h-12" />}
-          title="Hakuna maagizo iliyofindwa"
-          description={searchQuery || statusFilter !== 'all' ? "Jaribu miongozo tofauti ya utafutaji" : "Maagizo kutoka kwa wateja yatakuja hapa"}
-        />
-      ) : (
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-ink-50 dark:bg-ink-900 rounded-xl text-sm font-medium text-ink-600">
-            <input
-              type="checkbox"
-              checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
-              onChange={handleSelectAll}
-              className="w-4 h-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
-            />
-            <div className="flex-1">Agizo</div>
-            <div className="hidden sm:block">Mteja</div>
-            <div className="hidden md:block">Tarehe</div>
-            <div className="hidden lg:block">Jumla</div>
-            <div className="hidden sm:block">Hali</div>
-            <div className="text-center">Vitendo</div>
+            <div className="space-y-3">
+              <div className="h-3 bg-ink-200 rounded"></div>
+              <div className="h-3 bg-ink-200 rounded"></div>
+              <div className="h-3 bg-ink-200 rounded w-3/4"></div>
+            </div>
           </div>
+        ))}
+      </div>
+    );
+  } else if (filteredOrders.length === 0) {
+    content = (
+      <EmptyState
+        icon={<Search className="w-12 h-12" />}
+        title="Hakuna maagizo iliyofindwa"
+        description={searchQuery || statusFilter !== 'all' ? "Jaribu miongozo tofauti ya utafutaji" : "Maagizo kutoka kwa wateja yatakuja hapa"}
+      />
+    );
+  } else {
+    content = (
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3 bg-ink-50 dark:bg-ink-900 rounded-xl text-sm font-medium text-ink-600">
+          <input
+            type="checkbox"
+            checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
+            onChange={handleSelectAll}
+            className="w-4 h-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+          />
+          <div className="flex-1">Agizo</div>
+          <div className="hidden sm:block">Mteja</div>
+          <div className="hidden md:block">Tarehe</div>
+          <div className="hidden lg:block">Jumla</div>
+          <div className="hidden sm:block">Hali</div>
+          <div className="text-center">Vitendo</div>
+        </div>
 
-          {/* Order Cards */}
-          {filteredOrders.map((order) => {
+        {/* Order Cards - VirtualList */}
+        <VirtualList
+          items={filteredOrders}
+          itemHeight={280}
+          containerHeight={600}
+          renderItem={(order) => {
             const sellerItems = order.items?.filter((i: any) => i.seller_id === seller?.id) ?? order.items ?? []
             const next = NEXT_STATUS[order.status]
             const StatusIcon = STATUS_ICONS[order.status]
@@ -392,32 +326,93 @@ export default function SellerOrdersPage() {
                 )}
               </div>
             )
-          })}
+          }}
+          itemKey={(order) => order.id}
+          overscan={3}
+          containerHeight={600}
+        />
+      </div>
+    );
+  }
 
-          {/* Pagination */}
-          {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-6">
-              <button
-                onClick={() => refetch({ ...pagination, page: Math.max(1, pagination.page - 1) })}
-                disabled={pagination.page <= 1}
-                className="btn-secondary disabled:opacity-50 gap-1.5 text-sm"
-              >
-                <ChevronDown className="w-4 h-4 rotate-180" /> Nyuma
-              </button>
-              <span className="text-sm text-ink-600 mx-2">
-                Ukurasa {pagination.page} / {pagination.totalPages}
-              </span>
-              <button
-                onClick={() => refetch({ ...pagination, page: Math.min(pagination.totalPages, pagination.page + 1) })}
-                disabled={pagination.page >= pagination.totalPages}
-                className="btn-secondary disabled:opacity-50 gap-1.5 text-sm"
-              >
-                Endelea <ChevronDown className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+  return (
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="font-display font-black text-2xl text-ink-900">Maagizo</h1>
+          <p className="text-sm text-ink-500 mt-1">{filteredOrders.length} maagizo ({orders.length} total)</p>
         </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => handleBulkAction('confirm')}
+            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
+            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <CheckCircle className="w-4 h-4" /> Thibitisha ({selectedOrders.length})
+          </button>
+          <button
+            onClick={() => handleBulkAction('pack')}
+            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
+            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <PackageCheck className="w-4 h-4" /> Funga ({selectedOrders.length})
+          </button>
+          <button
+            onClick={() => handleBulkAction('cancel')}
+            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
+            className="btn-danger gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <XCircle className="w-4 h-4" /> Futa ({selectedOrders.length})
+          </button>
+          <button
+            onClick={exportOrders}
+            className="btn-secondary gap-2"
+          >
+            <Download className="w-4 h-4" /> Hamisha
+          </button>
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <DismissibleAlert type="error" onDismiss={() => { setError(null); refetch() }} className="mb-4">
+          Imeshindwa kupakia maagizo. Jaribu tena.
+        </DismissibleAlert>
       )}
+
+      {/* Filters */}
+      <div className="card p-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
+            <input
+              type="text"
+              placeholder="Tafuta kwa namba ya agizo, jina la mteja, anwani..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input pl-10 w-full"
+            />
+          </div>
+          <div className="relative min-w-[200px]">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="input pl-10 appearance-none w-full cursor-pointer"
+            >
+              <option value="all">Mao Yote</option>
+              <option value="pending">Inasubiri</option>
+              <option value="confirmed">Imethibitishwa</option>
+              <option value="packed">Imefungashwa</option>
+              <option value="out_for_delivery">Inasafirishwa</option>
+              <option value="delivered">Imefikishwa</option>
+              <option value="cancelled">Imefutwa</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {content}
     </div>
   )
 }

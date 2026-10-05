@@ -49,6 +49,23 @@ const nextConfig = {
               "frame-ancestors 'none'",
             ].join('; '),
           },
+          // HTTP/2 Server Push for critical assets
+          {
+            key: 'Link',
+            value: [
+              '</_next/static/css/228f3dc5d3c92c1e.css>; rel=preload; as=style',
+              '</_next/static/css/b5b4f5fa168d8532.css>; rel=preload; as=style',
+              '</_next/static/chunks/webpack-eb12a09c74ecd682.js>; rel=preload; as=script',
+              '</_next/static/chunks/fd9d1056-158ac2c9d594a992.js>; rel=preload; as=script',
+              '</_next/static/chunks/7023-ce3bf3217b919106.js>; rel=preload; as=script',
+              '</_next/static/chunks/main-app-b8d8f654a4c3de8b.js>; rel=preload; as=script',
+              '</_next/static/media/e4af272ccee01ff0-s.p.woff2>; rel=preload; as=font; crossorigin',
+              '</_next/static/media/6245472ced48d3be-s.p.woff2>; rel=preload; as=font; crossorigin',
+              '</_next/static/media/7db6c35d839a711c-s.p.woff2>; rel=preload; as=font; crossorigin',
+              '</_next/static/media/8888a3826f4a3af4-s.p.woff2>; rel=preload; as=font; crossorigin',
+              '</_next/static/media/b957ea75a84b6ea7-s.p.woff2>; rel=preload; as=font; crossorigin',
+            ].join(', '),
+          },
         ],
       },
     ];
