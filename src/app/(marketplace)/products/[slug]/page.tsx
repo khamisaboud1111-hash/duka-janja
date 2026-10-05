@@ -18,7 +18,7 @@ import type { Product, ProductImage, ProductVideo, Review, Seller, Category } fr
 type ProductPageData = any
 
 interface Props {
-  params: { id: string }
+  params: { slug: string }
 }
 
 async function getProduct(slug: string) {
@@ -52,7 +52,7 @@ async function getRelated(categoryId: string, productId: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await getProduct(params.id)
+  const product = await getProduct(params.slug)
   if (!product) return { title: 'Product not found' }
 
   const productData = product as ProductPageData
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = (await getProduct(params.id)) as ProductPageData | null
+  const product = (await getProduct(params.slug)) as ProductPageData | null
   if (!product) notFound()
 
   const related = product.category_id ? await getRelated(product.category_id, product.id) : []

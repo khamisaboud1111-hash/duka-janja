@@ -37,9 +37,9 @@ export class GlobalErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-white to-ink-50 dark:from-ink-950 dark:to-ink-900">
           <div className="w-full max-w-md">
             <ErrorState
-              title="Kitu kimekosea"
-              description={this.state.error?.message || "Samahani, hitilafu imetokea."}
-              retryLabel="Jaribu tena"
+              title={t('globalError.title', lang)}
+              description={this.state.error?.message || t('globalError.description', lang)}
+              retryLabel={t('globalError.retryLabel', lang)}
               onClick={() => this.setState({ hasError: false, error: null })}
             />
           </div>

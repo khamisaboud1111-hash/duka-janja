@@ -694,6 +694,13 @@ export const sw: Record<TranslationKey, string> = {
   termsOfService: ' Masharti ya Huduma',
   footerLocation: 'Zanzibar, Tanzania',
   whatsapp: 'WhatsApp',
+
+  // Global Error Boundary
+  globalError: {
+    title: 'Kitu kimekosea',
+    description: 'Samahani, hitilafu imetokea. Tafadhali jaribu tena.',
+    retryLabel: 'Jaribu tena',
+  },
 } as const
 
 

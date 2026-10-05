@@ -691,6 +691,13 @@ export const en = {
   termsOfService: 'Terms of Service',
   footerLocation: 'Zanzibar, Tanzania',
   whatsapp: 'WhatsApp',
+
+  // Global Error Boundary
+  globalError: {
+    title: 'Something went wrong',
+    description: 'Sorry, an error occurred. Please try again.',
+    retryLabel: 'Try again',
+  },
 } as const
 
 export type TranslationKey = keyof typeof en
