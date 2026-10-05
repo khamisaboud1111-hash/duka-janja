@@ -158,6 +158,16 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 Find these under Supabase → Project Settings → API.
 
+`NEXT_PUBLIC_APP_URL` is the public origin used for auth emails, `sitemap.xml`, and metadata. Only these values are accepted (see `src/lib/site.ts`):
+
+| Value                                        | Purpose              |
+|----------------------------------------------|----------------------|
+| `https://duka-janja-pi.vercel.app`            | Canonical origin     |
+| `https://dukajanja.co.tz`                     | Production alias     |
+| `http://localhost:3000`                       | Local development    |
+
+Never set it to your `*.supabase.co` project host — that host is rejected, and any unrecognised value silently falls back to the canonical origin. Because `NEXT_PUBLIC_*` variables are inlined at build time, changing `NEXT_PUBLIC_APP_URL` on Vercel has no effect until you redeploy.
+
 ### 5. Install dependencies and run locally
 
 ```bash
@@ -198,8 +208,11 @@ Follow the prompts, then set environment variables:
 vercel env add NEXT_PUBLIC_SUPABASE_URL
 vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
 vercel env add SUPABASE_SERVICE_ROLE_KEY
+vercel env add NEXT_PUBLIC_APP_URL
 vercel --prod
 ```
+
+`NEXT_PUBLIC_APP_URL` must be one of the origins listed in the [Environment Variables Reference](#environment-variables-reference). Redeploy after changing it — Vercel only inlines `NEXT_PUBLIC_*` values at build time, so a new production deployment is required for the change to take effect.
 
 ### Option B — Dashboard
 
@@ -212,6 +225,7 @@ vercel --prod
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `NEXT_PUBLIC_APP_URL` → your production URL (e.g. `https://dukajanja.co.tz`)
 5. Deploy.
+6. If you change any `NEXT_PUBLIC_*` variable later, redeploy — edits to environment variables do not affect an existing deployment.
 
 ### Post-deploy checklist
 

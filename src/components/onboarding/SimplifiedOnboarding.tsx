@@ -47,7 +47,10 @@ export function SimplifiedOnboarding() {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
-        options: { data: { full_name: fullName.trim(), phone: phone.trim(), role } },
+        options: {
+          data: { full_name: fullName.trim(), phone: phone.trim(), role },
+          emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/onboarding`,
+        },
       })
       if (error) {
         toast.error(error.message === 'User already registered' ? t('emailAlreadyRegistered', lang) : error.message)

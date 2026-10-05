@@ -4,6 +4,7 @@ import { Inter, Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
 import ThemeScript from '@/components/layout/ThemeScript'
 import { cookies } from 'next/headers'
+import { getSiteOrigin } from '@/lib/site'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -25,7 +26,7 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://dukajanja.com'),
+  metadataBase: new URL(getSiteOrigin()),
   applicationName: 'Duka Janja',
   authors: [{ name: 'Duka Janja Team' }],
   creator: 'Duka Janja',
@@ -46,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Duka Janja - Soko Kuu la Mtandaoni Zanzibar na Tanzania',
     description: 'Buy electronics, fashion, groceries, furniture, beauty products and more across Zanzibar and Tanzania with secure payments and fast delivery.',
-    url: 'https://dukajanja.com',
+    url: getSiteOrigin(),
     siteName: 'Duka Janja',
     locale: 'sw_TZ',
     type: 'website',
@@ -85,10 +86,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
     "@context": "https://schema.org",
     "@type": "WebSite",
     "name": "Duka Janja",
-    "url": "https://dukajanja.com",
+    "url": getSiteOrigin(),
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://dukajanja.com/search?q={search_term_string}",
+      "target": `${getSiteOrigin()}/search?q={search_term_string}`,
       "query-input": "required name=search_term_string"
     }
   };

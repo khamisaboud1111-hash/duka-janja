@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
     if (!email) return
     setLoading(true)
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/update-password`,
+      redirectTo: `${window.location.origin}/api/auth/callback?next=/update-password`,
     })
     if (error) toast.error(error.message)
     else setSent(true)

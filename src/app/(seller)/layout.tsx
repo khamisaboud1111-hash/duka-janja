@@ -22,9 +22,9 @@ const NAV = [
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { profile, loading } = useUser()
-  const { seller } = useSeller()
+  const { seller, loading: sellerLoading } = useSeller()
 
-  if (loading) return <PageLoader />
+  if (loading || sellerLoading) return <PageLoader />
 
   if (!profile || (profile.role !== 'seller' && profile.role !== 'admin')) {
     return (
@@ -32,6 +32,32 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
         <div className="card p-8 text-center max-w-sm">
           <p className="font-semibold text-ink-700 mb-4">Lazima uwe muuzaji ili kufikia ukurasa huu</p>
           <Link href="/register?type=seller" className="btn-primary inline-flex">Omba kuwa muuzaji</Link>
+        </div>
+      </div>
+    )
+  }
+
+  // If user has seller role but no store created yet, redirect to store creation
+  if (profile.role === 'seller' && !seller) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card p-8 text-center max-w-sm">
+          <p className="font-semibold text-ink-700 mb-4">Haja ya kuunda duka lako</p>
+          <p className="text-sm text-ink-500 mb-4">Unahitaji kuunda duka lako kwanza ili kuanza kuuza.</p>
+          <Link href="/seller/settings?onboarding=true" className="btn-primary inline-flex">Unda Duka Sasa</Link>
+        </div>
+      </div>
+    )
+  }
+
+  // If seller record exists but is not approved, show pending state
+  if (seller && seller.status !== 'approved') {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="card p-8 text-center max-w-sm">
+          <p className="font-semibold text-ink-700 mb-4">Duka lako bado halijaidhiniwa</p>
+          <p className="text-sm text-ink-500 mb-4">Subiri idhini kutoka kwa msimamizi (kwa kawaida 24-48 saa).</p>
+          <Link href="/seller/settings" className="btn-primary inline-flex">Tazama Hali</Link>
         </div>
       </div>
     )

@@ -305,7 +305,10 @@ function SignUpForm({ onSwitch, initialType }: { onSwitch: () => void; initialTy
       const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
-        options: { data: { full_name: data.full_name, phone: data.phone, role: data.type } },
+        options: {
+          data: { full_name: data.full_name, phone: data.phone, role: data.type },
+          emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/onboarding`,
+        },
       })
 
       if (error) {
