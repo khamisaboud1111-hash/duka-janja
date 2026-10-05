@@ -204,7 +204,7 @@ function SignInForm({ onSwitch }: { onSwitch: () => void }) {
       }
 
       setSuccess(true)
-      toast.success(t('redirecting', lang))
+      toast.success(t('loggedInSuccessfully', lang))
 
       // NOTE: The ?redirect= param is lost if the user navigates away from the
       // onboarding shell (e.g. to email confirmation) and returns. This is a known

@@ -60,6 +60,7 @@ export const sw: Record<TranslationKey, string> = {
   welcomeBack: 'Karibu tena',
   loginSubtitle: 'Ingia kwenye akaunti yako ya Duka Janja',
   redirecting: 'Inaelekeza...',
+  loggedInSuccessfully: 'Umeingia kwa mafanikio!',
   loggingIn: 'Inaingia...',
   pleaseWait: 'Tafadhali subiri sekunde {seconds}',
   unrecognizedRole: 'Akaunti ina jukumu lisilofahamika.',

@@ -58,6 +58,7 @@ export const en = {
   welcomeBack: 'Welcome back',
   loginSubtitle: 'Sign in to your Duka Janja account',
   redirecting: 'Redirecting...',
+  loggedInSuccessfully: 'Logged in successfully!',
   loggingIn: 'Signing in...',
   pleaseWait: 'Please wait {seconds} seconds',
   unrecognizedRole: 'Unrecognized account role.',
