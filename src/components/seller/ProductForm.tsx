@@ -65,7 +65,7 @@ export default function ProductForm({ seller, product }: Props) {
       is_made_in_zanzibar: false,
       pickup_available: false,
       delivery_available: true,
-      status: 'draft',
+      status: 'active',
       stock_quantity: 0,
     }
   })

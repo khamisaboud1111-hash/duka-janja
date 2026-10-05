@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
         location_area,
         pickup_available: pickup_available ?? false,
         delivery_available: delivery_available ?? true,
-        status: status || 'draft',
+        status: status || 'active',
         slug,
       })
       .select()
