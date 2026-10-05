@@ -263,7 +263,7 @@ function SignInForm({ onSwitch }: { onSwitch: () => void }) {
 
       <GlassSubmit loading={loading || success} disabled={lockout > 0}>
         {success
-          ? t('redirecting', lang)
+          ? t('loggedInSuccessfully', lang)
           : lockout > 0
             ? t('pleaseWait', lang).replace('{seconds}', String(lockout))
             : loading

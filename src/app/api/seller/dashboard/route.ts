@@ -21,7 +21,22 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (sellerError || !seller) {
-      return NextResponse.json({ error: 'Seller not found' }, { status: 404 })
+      return NextResponse.json({ stats: {
+        totalRevenue: 0,
+        totalOrders: 0,
+        pendingOrders: 0,
+        completedOrders: 0,
+        totalProducts: 0,
+        lowStockProducts: 0,
+        unpaidCommissions: 0,
+        totalCustomers: 0,
+        averageOrderValue: 0,
+        conversionRate: 0,
+        recentRevenue: 0,
+        inventoryValue: 0,
+        walletBalance: 0,
+        pendingWithdrawals: 0,
+      } }, { status: 200 })
     }
 
     // Parse query parameters

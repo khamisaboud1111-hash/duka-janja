@@ -31,10 +31,10 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
 
   // Refetch seller when navigating to dashboard to handle fresh store creation
   useEffect(() => {
-    if (pathname === '/seller/dashboard' && !seller && !sellerLoading) {
+    if (pathname === '/seller/dashboard' && !sellerLoading) {
       refetch()
     }
-  }, [pathname, seller, sellerLoading, refetch])
+  }, [pathname, sellerLoading, refetch])
 
   if (loading || sellerLoading) return <PageLoader />
 

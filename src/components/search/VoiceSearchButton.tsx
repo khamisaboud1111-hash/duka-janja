@@ -17,7 +17,24 @@ export function VoiceSearchButton({ onTranscript, className, size = 'md' }: Voic
     onResult: onTranscript,
   })
 
-  if (!isSupported) return null
+  if (!isSupported) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-label={lang === 'sw' ? 'Tafuta kwa sauti haipatikani kwenye kivinjari hiki' : 'Voice search not supported in this browser'}
+        className={cn(
+          'flex items-center justify-center rounded-xl border-2 bg-ink-100 dark:bg-ink-800 border-ink-200 dark:border-ink-700 text-ink-400 dark:text-ink-500 cursor-not-allowed opacity-50',
+          'min-w-[44px] min-h-[44px]',
+          sizeClasses[size],
+          className
+        )}
+        title={lang === 'sw' ? 'Tafuta kwa sauti haipatikani kwenye kivinjari hiki' : 'Voice search not supported in this browser'}
+      >
+        <MicOff className="w-4 h-4" />
+      </button>
+    )
+  }
 
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -53,7 +70,22 @@ export function VoiceSearchInline({ onTranscript }: { onTranscript: (text: strin
     onResult: onTranscript,
   })
 
-  if (!isSupported) return null
+  if (!isSupported) {
+    return (
+      <button
+        type="button"
+        disabled
+        aria-label={lang === 'sw' ? 'Tafuta kwa sauti haipatikani kwenye kivinjari hiki' : 'Voice search not supported in this browser'}
+        className={cn(
+          'p-2 rounded-xl transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center',
+          'bg-ink-100 dark:bg-ink-800 text-ink-400 dark:text-ink-500 cursor-not-allowed opacity-50'
+        )}
+        title={lang === 'sw' ? 'Tafuta kwa sauti haipatikani kwenye kivinjari hiki' : 'Voice search not supported in this browser'}
+      >
+        <MicOff className="w-4 h-4" />
+      </button>
+    )
+  }
 
   return (
     <button
