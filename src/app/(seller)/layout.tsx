@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LayoutDashboard, Package, ShoppingBag, BarChart2, Settings, ArrowLeft, ShieldCheck, MessageCircle } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
@@ -21,6 +21,9 @@ const NAV = [
 
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const isOnboarding = searchParams.get('onboarding') === 'true'
+  const isSettingsPage = pathname === '/seller/settings'
   const { profile, loading } = useUser()
   const { seller, loading: sellerLoading } = useSeller()
 
@@ -37,8 +40,11 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     )
   }
 
+  // Allow settings page to render during onboarding even without seller record
+  const isStoreCreationFlow = isSettingsPage && isOnboarding && !seller
+
   // If user has seller role but no store created yet, redirect to store creation
-  if (profile.role === 'seller' && !seller) {
+  if (profile.role === 'seller' && !seller && !isStoreCreationFlow) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="card p-8 text-center max-w-sm">
@@ -51,7 +57,7 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   }
 
   // If seller record exists but is not approved, show pending state
-  if (seller && seller.status !== 'approved') {
+  if (seller && seller.status !== 'approved' && !isStoreCreationFlow) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="card p-8 text-center max-w-sm">
