@@ -1,42 +1,53 @@
 'use client'
 
-import Image from 'next/image'
 import { useLangStore } from '@/store'
 import { t, type TranslationKey } from '@/i18n/translations'
+import { MapPin, Star, Heart, Leaf, Waves, Sun, Camera, Building2 } from 'lucide-react'
 
 interface Place {
   name: string
-  src: string
   descKey: TranslationKey
+  icon: any
 }
 
 const PLACES: Place[] = [
   {
     name: 'Mji Mkongwe (Stone Town)',
-    src: 'https://images.unsplash.com/photo-1688904524620-527b42849240?q=80&w=1200&auto=format&fit=crop',
     descKey: 'place1Desc',
+    icon: Building2,
   },
   {
     name: 'Nyumba ya Maajabu',
-    src: 'https://images.unsplash.com/photo-1678042956696-e072ff82cff5?q=80&w=1200&auto=format&fit=crop',
     descKey: 'place2Desc',
+    icon: Camera,
   },
   {
     name: 'Bustani ya Forodhani',
-    src: 'https://images.unsplash.com/photo-1676480162770-ef5a83baba3b?q=80&w=1200&auto=format&fit=crop',
     descKey: 'place3Desc',
+    icon: Sun,
   },
   {
     name: 'Ngome Kongwe (Old Fort)',
-    src: '/images/zanzibar/old-fort.jpg',
     descKey: 'place4Desc',
+    icon: Building2,
   },
   {
     name: 'Msitu wa Jozani',
-    src: 'https://images.unsplash.com/photo-1679079998628-5f4677f474a1?q=80&w=1200&auto=format&fit=crop',
     descKey: 'place5Desc',
+    icon: Leaf,
   },
 ]
+
+function getPlaceColor(index: number): string {
+  const colors = [
+    'from-amber-500 to-orange-500',
+    'from-emerald-500 to-teal-500',
+    'from-sky-500 to-blue-500',
+    'from-violet-500 to-purple-500',
+    'from-rose-500 to-rose-500',
+  ]
+  return colors[index % 5]
+}
 
 export default function ZanzibarDiscovery() {
   const lang = useLangStore((s) => s.lang)
@@ -61,16 +72,15 @@ export default function ZanzibarDiscovery() {
               key={place.name}
               className={`relative rounded-2xl overflow-hidden group ${i === 0 ? 'col-span-2 row-span-2 aspect-square sm:aspect-auto' : 'aspect-square'}`}
             >
-              <Image
-                src={place.src}
-                alt={place.name}
-                fill
-                sizes="(max-width: 640px) 50vw, 25vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-              />
+              <div className={`absolute inset-0 ${getPlaceColor(i)}`} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-              <div className="absolute bottom-0 left-0 p-3">
-                <p className="text-white font-bold text-sm leading-tight">{place.name}</p>
+              <div className="absolute bottom-0 left-0 p-3 relative z-10">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                    {React.createElement(place.icon, { className: 'w-5 h-5 text-white' })}
+                  </div>
+                  <p className="text-white font-bold text-sm leading-tight">{place.name}</p>
+                </div>
                 <p className="text-white/80 text-[11px] leading-snug hidden sm:block mt-0.5">{t(place.descKey, lang)}</p>
               </div>
             </div>

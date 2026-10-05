@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatTZS, slugify, DELIVERY_ZONES } from '@/utils'
+import { formatTZS, slugify, DELIVERY_ZONES } from './index'
 
 describe('utility functions', () => {
   describe('formatTZS', () => {

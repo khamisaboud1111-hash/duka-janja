@@ -2,66 +2,12 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ShoppingBag, TrendingUp, TrendingDown, Package, Star, AlertTriangle, Plus, DollarSign, Users, Wallet, Bell, MessageSquare, BarChart2, Activity, CreditCard, Clock, CheckCircle, XCircle, Archive, Layers, Percent, Settings, PackagePlus, UsersRound, Store, PackageCheck, PackageX, Clock4, Gauge, Sparkles } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
+import { ShoppingBag, TrendingUp, TrendingDown, Package, Star, AlertTriangle, Plus, DollarSign, Users, Wallet, Bell, MessageSquare, BarChart2, Activity, CreditCard, Clock, CheckCircle, XCircle, Archive, Layers, Percent, Settings, PackagePlus, UsersRound, Store, PackageCheck, PackageX, Clock4, Gauge, Sparkles, ArrowUpRight, ArrowDownRight, Minus, Target, TrendingUp as TrendingUpIcon } from 'lucide-react'
 import { useSeller } from '@/hooks/useSeller'
 import { StatCard, PageLoader, EmptyState } from '@/components/ui'
 import { formatTZS, formatDate } from '@/utils'
-
-interface OrderItemRow {
-  order_id: string
-  total_price: number
-  quantity: number
-  created_at: string
-  seller_id: string
-  order: { status: string; created_at: string; buyer_id: string }[]
-}
-
-interface AggregatedOrder {
-  status?: string
-  created_at?: string
-  buyer_id?: string
-  total: number
-  quantity: number
-  items: OrderItemRow[]
-}
-
-interface ProductRow {
-  id: string
-  name: string
-  price: number
-  stock_quantity: number
-  total_sold: number
-  status: string
-  category_id: string
-}
-
-interface CommissionRow {
-  commission_amount: number
-  is_paid: boolean
-  created_at: string
-}
-
-interface CustomerRow {
-  buyer_id: string
-}
-
-interface DashboardStats {
-  totalRevenue: number
-  totalOrders: number
-  pendingOrders: number
-  completedOrders: number
-  totalProducts: number
-  lowStockProducts: number
-  unpaidCommissions: number
-  totalCustomers: number
-  averageOrderValue: number
-  conversionRate: number
-  recentRevenue: number
-  inventoryValue: number
-  walletBalance: number
-  pendingWithdrawals: number
-}
+import { useDashboardStats } from '@/lib/query/hooks'
+import { DismissibleAlert } from '@/components/shared/DismissibleAlert'
 
 interface Alert {
   id: string
@@ -72,189 +18,67 @@ interface Alert {
 }
 
 export default function SellerDashboardPage() {
-  const supabase = useMemo(() => createClient(), [])
   const { seller, loading: sellerLoading } = useSeller()
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [alerts, setAlerts] = useState<Alert[]>([])
+  const { data: stats, isLoading, error, refetch } = useDashboardStats()
+  const [alerts, setAlerts] = useState<Array<{ id: string; type: 'warning' | 'info' | 'success'; message: string; action?: () => void; actionLabel?: string }>>([])
   const [notifications, setNotifications] = useState(5)
   const [walletBalance, setWalletBalance] = useState(0)
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
 
-  const loadDashboardData = useCallback(async () => {
-    if (!seller) return
-    setLoading(true)
+  // Load alerts when stats change
+  useEffect(() => {
+    if (!stats) return
     
-    try {
-      // Load comprehensive analytics
-      const daysAgo = 30
-      const since = new Date(Date.now() - daysAgo * 86400000).toISOString()
-      
-      // Get orders data
-      const { data: ordersData } = await supabase
-        .from('order_items')
-        .select('order_id, total_price, quantity, created_at, seller_id, order:orders(status, created_at, buyer_id)')
-        .eq('seller_id', seller.id)
-        .gte('created_at', since)
-        .order('created_at', { ascending: false })
-      
-      // Get products data
-      const { data: productsData } = await supabase
-        .from('products')
-        .select('id, name, price, stock_quantity, total_sold, status, category_id')
-        .eq('seller_id', seller.id)
-      
-      // Get commissions data
-      const { data: commissionsData } = await supabase
-        .from('commissions')
-        .select('commission_amount, is_paid, created_at')
-        .eq('seller_id', seller.id)
-        .eq('is_paid', false)
-      
-      // Get unique customers
-      const { data: customersData } = await supabase
-        .from('order_items')
-        .select('buyer_id')
-        .eq('seller_id', seller.id)
-        .gte('created_at', since)
-      
-      // Calculate comprehensive stats
-      const items = ordersData ?? []
-      const products = productsData ?? []
-      const commissions = commissionsData ?? []
-      const customers = (customersData ?? []).filter((c: CustomerRow, i: number, arr: CustomerRow[]) =>
-        arr.findIndex((x: CustomerRow) => x.buyer_id === c.buyer_id) === i
-      )
-      
-      // Order aggregation
-      const orderMap = new Map<string, AggregatedOrder>()
-      items.forEach((item: OrderItemRow) => {
-        if (!orderMap.has(item.order_id)) {
-          orderMap.set(item.order_id, {
-            ...item.order?.[0],
-            total: 0,
-            quantity: 0,
-            items: []
-          })
-        }
-        const order = orderMap.get(item.order_id)
-        if (!order) return
-        order.total += item.total_price
-        order.quantity += item.quantity
-        order.items.push(item)
+    const newAlerts: Array<{ id: string; type: 'warning' | 'info' | 'success'; message: string; action?: () => void; actionLabel?: string }> = []
+    
+    if (stats.lowStockProducts > 0 && !dismissedAlerts.has('low-stock')) {
+      newAlerts.push({
+        id: 'low-stock',
+        type: 'warning',
+        message: `${stats.lowStockProducts} products are running low on stock (≤5 units)`,
+        actionLabel: 'View Products',
+        action: () => window.location.href = '/seller/products'
       })
-      
-      const allOrders = Array.from(orderMap.values())
-      const totalRevenue = items.reduce((s: number, i: OrderItemRow) => s + i.total_price, 0)
-      const totalOrders = orderMap.size
-      const completedOrders = allOrders.filter((o: AggregatedOrder) => o.status === 'delivered').length
-      const pendingOrders = allOrders.filter((o: AggregatedOrder) => ['pending','confirmed','packed'].includes(o?.status ?? '')).length
-      const totalProducts = products.length
-      const lowStockProducts = products.filter((p: ProductRow) => p.stock_quantity > 0 && p.stock_quantity <= 5).length
-      const unpaidCommissions = commissions.reduce((s: number, c: CommissionRow) => s + c.commission_amount, 0)
-      const totalCustomers = customers.length
-      const totalUnits = items.reduce((s: number, i: OrderItemRow) => s + i.quantity, 0)
-      const averageOrderValue = totalOrders ? Math.round(totalRevenue / totalOrders) : 0
-      
-      // Recent revenue (last 7 days)
-      const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString()
-      const weekItems = items.filter((i: OrderItemRow) => i.created_at >= weekAgo)
-      const recentRevenue = weekItems.reduce((s: number, i: OrderItemRow) => s + i.total_price, 0)
-      
-      // Inventory value
-      const inventoryValue = products.reduce((s: number, p: ProductRow) => s + (p.price * p.stock_quantity), 0)
-      
-      // Wallet balance (mock - would come from payment processor)
-      const calculatedWalletBalance = totalRevenue * 0.9 - unpaidCommissions // 90% payout minus unpaid commissions
-      setWalletBalance(calculatedWalletBalance)
-      
-      // Conversion rate (mock - would need buyer data)
-      const conversionRate = 0.12 // 12% conversion rate
-      
-      const newStats: DashboardStats = {
-        totalRevenue,
-        totalOrders,
-        pendingOrders,
-        completedOrders,
-        totalProducts,
-        lowStockProducts,
-        unpaidCommissions,
-        totalCustomers,
-        averageOrderValue,
-        conversionRate,
-        recentRevenue,
-        inventoryValue,
-        walletBalance: calculatedWalletBalance,
-        pendingWithdrawals: calculatedWalletBalance * 0.15 // 15% pending
-      }
-      
-      setStats(newStats)
-    } catch (error) {
-      console.error('Error loading dashboard data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [supabase, seller])
-
-  useEffect(() => {
-    if (seller?.id) {
-      loadDashboardData()
-    }
-  }, [seller, loadDashboardData])
-
-  const loadAlerts = useCallback(() => {
-    const newAlerts: Alert[] = []
-    
-    if (stats) {
-      if (stats.lowStockProducts > 0) {
-        newAlerts.push({
-          id: 'low-stock',
-          type: 'warning',
-          message: `${stats.lowStockProducts} products are running low on stock (≤5 units)`,          actionLabel: 'View Products',
-          action: () => window.location.href = '/seller/products'
-        })
-      }
-      
-      if (stats.unpaidCommissions > 0) {
-        newAlerts.push({
-          id: 'commissions',
-          type: 'warning',
-          message: `$${stats.unpaidCommissions.toFixed(2)} in commissions are pending payout`,
-          actionLabel: 'Pay Now',
-          action: () => window.location.href = '/seller/wallet'
-        })
-      }
-      
-      if (stats.pendingOrders > 0) {
-        newAlerts.push({
-          id: 'orders',
-          type: 'info',
-          message: `${stats.pendingOrders} orders are pending processing`,
-          actionLabel: 'Process Orders',
-          action: () => window.location.href = '/seller/orders'
-        })
-      }
-      
-      if (stats.totalRevenue < stats.recentRevenue * 0.8) {
-        newAlerts.push({
-          id: 'revenue',
-          type: 'warning',
-          message: 'Revenue has decreased by 20% this week. Consider promotional campaigns.',
-          actionLabel: 'View Insights',
-          action: () => window.location.href = '/seller/analytics'
-        })
-      }
     }
     
-    setAlerts(newAlerts)
-  }, [stats])
+    if (stats.unpaidCommissions > 0 && !dismissedAlerts.has('commissions')) {
+      newAlerts.push({
+        id: 'commissions',
+        type: 'warning',
+        message: `$${stats.unpaidCommissions.toFixed(2)} in commissions are pending payout`,
+        actionLabel: 'Pay Now',
+        action: () => window.location.href = '/seller/wallet'
+      })
+    }
+    
+    if (stats.pendingOrders > 0 && !dismissedAlerts.has('orders')) {
+      newAlerts.push({
+        id: 'orders',
+        type: 'info',
+        message: `${stats.pendingOrders} orders are pending processing`,
+        actionLabel: 'Process Orders',
+        action: () => window.location.href = '/seller/orders'
+      })
+    }
+    
+    if (stats.totalRevenue < stats.recentRevenue * 0.8 && !dismissedAlerts.has('revenue')) {
+      newAlerts.push({
+        id: 'revenue',
+        type: 'warning',
+        message: 'Revenue has decreased by 20% this week. Consider promotional campaigns.',
+        actionLabel: 'View Insights',
+        action: () => window.location.href = '/seller/analytics'
+      })
+    }
+    
+    setAlerts(newAlerts.filter(a => !dismissedAlerts.has(a.id)))
+  }, [stats, dismissedAlerts])
 
-  useEffect(() => {
-    loadAlerts()
-  }, [loadAlerts])
+  const handleDismissAlert = (id: string) => {
+    setDismissedAlerts(prev => new Set([...prev, id]))
+  }
 
-
-
-  if (sellerLoading || loading) return <PageLoader />
+  if (sellerLoading) return <PageLoader />
 
   if (seller?.status === 'pending') {
     return (
@@ -269,6 +93,13 @@ export default function SellerDashboardPage() {
       </div>
     )
   }
+
+  // Calculate wallet balance from stats
+  useEffect(() => {
+    if (stats) {
+      setWalletBalance(stats.walletBalance)
+    }
+  }, [stats])
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto dark:bg-ink-950 min-h-screen">
@@ -296,29 +127,29 @@ export default function SellerDashboardPage() {
         </div>
       </div>
 
+      {/* Error State */}
+      {error && (
+        <DismissibleAlert
+          type="error"
+          onDismiss={() => refetch()}
+        >
+          Failed to load dashboard data. Please try again.
+        </DismissibleAlert>
+      )}
+
       {/* Alerts */}
       {alerts.length > 0 && (
         <div className="space-y-3 mb-6">
           {alerts.map(alert => (
-            <div key={alert.id} className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${
-              alert.type === 'warning' ? 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-800' :
-              alert.type === 'info' ? 'bg-brand-50 dark:bg-brand-500/10 border-brand-200 dark:border-brand-800' :
-              'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-800'
-            }`}>            <AlertTriangle className={`w-5 h-5 flex-shrink-0 ${
-              alert.type === 'warning' ? 'text-amber-500' :
-              alert.type === 'info' ? 'text-brand-500' : 'text-emerald-500'
-            }`} />
-            <p className={`text-sm flex-1 ${
-              alert.type === 'warning' ? 'text-amber-800 dark:text-amber-300' :
-              alert.type === 'info' ? 'text-brand-800 dark:text-brand-300' : 'text-emerald-800 dark:text-emerald-300'
-            }`}>{alert.message}</p>
-            {alert.actionLabel && alert.action && (
-              <button onClick={alert.action} className={`text-sm font-medium hover:underline ${
-                alert.type === 'warning' ? 'text-amber-600 dark:text-amber-400' :
-                alert.type === 'info' ? 'text-brand-600 dark:text-brand-400' : 'text-emerald-600 dark:text-emerald-400'
-              }`}>{alert.actionLabel}</button>
-            )}
-          </div>
+            <DismissibleAlert
+              key={alert.id}
+              type={alert.type}
+              onDismiss={() => handleDismissAlert(alert.id)}
+              actionLabel={alert.actionLabel}
+              action={alert.action}
+            >
+              {alert.message}
+            </DismissibleAlert>
           ))}
         </div>
       )}
@@ -331,7 +162,7 @@ export default function SellerDashboardPage() {
             value={formatTZS(stats.totalRevenue)} 
             icon={<DollarSign className="w-5 h-5" />} 
             accent="brand" 
-            subtitle={`+$${stats.recentRevenue.toFixed(0)} this week`} 
+            subtitle={<><ArrowUpRight className="w-3 h-3 inline mr-1" />{formatTZS(stats.recentRevenue)} this week</>} 
           />
           <StatCard 
             label="Orders" 
@@ -359,14 +190,14 @@ export default function SellerDashboardPage() {
             value={stats.totalCustomers} 
             icon={<Users className="w-5 h-5" />} 
             accent="brand"
-            subtitle={`${stats.conversionRate * 100}% conversion`} 
+            subtitle={`${(stats.conversionRate * 100).toFixed(1)}% conversion`} 
           />
           <StatCard 
             label="Wallet" 
             value={formatTZS(stats.walletBalance)} 
             icon={<Wallet className="w-5 h-5" />} 
             accent="spice"
-            subtitle={`${stats.pendingWithdrawals > 0 ? '$' + stats.pendingWithdrawals.toFixed(2) : 'Available for withdrawal'}`} 
+            subtitle={stats.pendingWithdrawals > 0 ? `${formatTZS(stats.pendingWithdrawals)} pending` : 'Available for withdrawal'} 
           />
         </div>
       )}
@@ -413,7 +244,7 @@ export default function SellerDashboardPage() {
                     </div>
                     <div>
                       <p className="text-xs text-ink-500 dark:text-ink-400">Available</p>
-                      <p className="font-semibold text-ink-900 dark:text-white">${stats.walletBalance.toFixed(2)}</p>
+                      <p className="font-semibold text-ink-900 dark:text-white">{formatTZS(stats.walletBalance)}</p>
                     </div>
                   </div>
                   <button className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg transition-colors">
@@ -455,10 +286,10 @@ export default function SellerDashboardPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs text-ink-500 dark:text-ink-400">Avg. Order Value</p>
-                    <p className="text-xs font-medium text-ink-900 dark:text-white">${stats.averageOrderValue}</p>
+                    <p className="text-xs font-medium text-ink-900 dark:text-white">{formatTZS(stats.averageOrderValue)}</p>
                   </div>
                   <div className="h-2 bg-ink-100 dark:bg-ink-800 rounded-full overflow-hidden">
-                    <div className="h-full bg-emerald-400 rounded-full" style={{ width: Math.min(stats.averageOrderValue / 10, 100) }}></div>
+                    <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${Math.min(stats.averageOrderValue / 10, 100)}%` }}></div>
                   </div>
                 </div>
                 <div>
@@ -475,14 +306,17 @@ export default function SellerDashboardPage() {
           </div>
         </div>
 
-        {/* Recent Orders */}
+        {/* Recent Orders & Top Products */}
         <div className="xl:col-span-2 space-y-4">
+          {/* Recent Orders */}
           <div className="card dark:bg-ink-900 dark:border-ink-800 p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-ink-800 dark:text-ink-100">Recent Orders</h2>
               <Link href="/seller/orders" className="text-xs text-brand-600 dark:text-brand-300 font-medium hover:underline">View all →</Link>
             </div>
-            {/* Orders content */}
+            <div className="space-y-3">
+              <p className="text-sm text-ink-500 dark:text-ink-400 text-center py-4">Orders data loads from /seller/orders page</p>
+            </div>
           </div>
 
           {/* Top Products */}
@@ -491,13 +325,13 @@ export default function SellerDashboardPage() {
               <h2 className="font-semibold text-ink-800 dark:text-ink-100">Top Products</h2>
               <Link href="/seller/products" className="text-xs text-brand-600 dark:text-brand-300 font-medium hover:underline">View all →</Link>
             </div>
-            {/* Products content */}
+            <p className="text-sm text-ink-500 dark:text-ink-400 text-center py-4">Product data loads from /seller/products page</p>
           </div>
 
           {/* Customer Insights */}
           <div className="card dark:bg-ink-900 dark:border-ink-800 p-5">
             <h2 className="font-semibold text-ink-800 dark:text-ink-100 mb-4">Customer Insights</h2>
-            {/* Customer insights content */}
+            <p className="text-sm text-ink-500 dark:text-ink-400 text-center py-4">Analytics data available in /seller/analytics</p>
           </div>
         </div>
       </div>

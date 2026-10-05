@@ -116,15 +116,16 @@ begin
     v_subtotal := v_subtotal + v_price * v_quantity;
   end loop;
 
-  v_commission_amount := round(v_subtotal * 0.05)::integer;
-  v_total_amount      := v_subtotal + v_delivery_fee;
+  -- Commission: use seller-specific rate or default to 5%
+  -- We calculate per-seller commission in the loop below
+  v_total_amount := v_subtotal + v_delivery_fee;
 
   insert into orders (
     buyer_id, status, subtotal, delivery_fee, commission_amount, total_amount,
     delivery_zone, delivery_address, delivery_name, delivery_phone,
     payment_method, payment_reference, notes
   ) values (
-    p_buyer_id, 'pending', v_subtotal, v_delivery_fee, v_commission_amount, v_total_amount,
+    p_buyer_id, 'pending', v_subtotal, v_delivery_fee, 0, v_subtotal + v_delivery_fee,
     p_delivery_zone::delivery_zone, p_delivery_address, p_delivery_name, p_delivery_phone,
     p_payment_method, p_payment_reference, p_notes
   )
@@ -155,8 +156,24 @@ begin
     from tmp_order_items
     group by seller_id
   loop
+    -- Fetch seller-specific commission rate
+    declare v_commission_rate numeric;
+    select commission_rate into v_commission_rate
+    from sellers
+    where id = seller_row.seller_id;
+    
+    if v_commission_rate is null then
+      v_commission_rate := 5;
+    end if;
+
     insert into commissions (order_id, seller_id, order_amount, commission_rate, commission_amount)
-    values (v_order_id, seller_row.seller_id, seller_row.amount, 5, round(seller_row.amount * 0.05)::integer);
+    values (v_order_id, seller_row.seller_id, seller_row.amount, v_commission_rate, round(seller_row.amount * (v_commission_rate / 100))::integer);
+
+    -- Update order commission amount
+    update orders
+    set commission_amount = commission_amount + round(seller_row.amount * (v_commission_rate / 100))::integer,
+        total_amount = total_amount + round(seller_row.amount * (v_commission_rate / 100))::integer
+    where id = v_order_id;
 
     select user_id into v_seller_user_id
     from sellers

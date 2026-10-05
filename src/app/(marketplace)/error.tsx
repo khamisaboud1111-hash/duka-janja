@@ -1,12 +1,22 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { ErrorState } from '@/components/shared/ErrorState'
+import { useLangStore } from '@/store'
+import { t } from '@/i18n/translations'
 
-export default function MarketplaceError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function MarketplaceError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
   useEffect(() => {
-    console.error(error)
+    console.error('Marketplace error:', error)
   }, [error])
+
+  const lang = useLangStore.getState().lang
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-white to-ink-50 dark:from-ink-950 dark:to-ink-900">
@@ -15,7 +25,7 @@ export default function MarketplaceError({ error, reset }: { error: Error & { di
           title="Kitu kimekosea"
           description="Samahani, hitilafu imetokea wakati wa kupakia duka."
           retryLabel="Jaribu tena"
-          onRetry={reset}
+          onClick={reset}
         />
         {error.digest && (
           <p className="text-center text-xs text-ink-400 dark:text-ink-500 mt-4 font-mono">

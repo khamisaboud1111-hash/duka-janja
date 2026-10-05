@@ -2,6 +2,17 @@ import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import type { DeliveryZone, OrderStatus } from '@/types'
 import type { Language } from '@/i18n/translations'
+import { getDefaultDeliveryZones } from '@/lib/deliveryZones'
+
+// Re-export DELIVERY_ZONES for backward compatibility (as an object keyed by zone)
+export const DELIVERY_ZONES = Object.fromEntries(
+  getDefaultDeliveryZones().map(z => [z.zone, {
+    nameEn: z.name_en,
+    nameSw: z.name_sw,
+    fee: z.fee,
+    estimated_days: z.estimated_days,
+  }])
+)
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -42,17 +53,8 @@ export function generateSKU(storeName: string, productName: string): string {
   return `${storeCode}-${productCode}-${random}`
 }
 
-export const DELIVERY_ZONES: Record<DeliveryZone, { nameEn: string; nameSw: string; fee: number; days: number }> = {
-  stone_town:     { nameEn: 'Stone Town',     nameSw: 'Stone Town (Mji Mkongwe)', fee: 2000,  days: 1 },
-  north_zanzibar: { nameEn: 'North Zanzibar', nameSw: 'Kaskazini Unguja',         fee: 4000,  days: 1 },
-  south_zanzibar: { nameEn: 'South Zanzibar', nameSw: 'Kusini Unguja',            fee: 4000,  days: 1 },
-  east_zanzibar:  { nameEn: 'East Zanzibar',  nameSw: 'Mashariki Unguja',         fee: 5000,  days: 2 },
-  west_zanzibar:  { nameEn: 'West Zanzibar',  nameSw: 'Magharibi Unguja',         fee: 3500,  days: 1 },
-  pemba_island:   { nameEn: 'Pemba Island',   nameSw: 'Kisiwa cha Pemba',         fee: 15000, days: 3 },
-}
-
 export const ORDER_STATUS_STEPS: OrderStatus[] = [
-  'pending', 'confirmed', 'packed', 'out_for_delivery', 'delivered',
+  'pending', 'confirmed', 'packed', 'assigned', 'picked_up', 'out_for_delivery', 'delivered', 'cancelled', 'refunded'
 ]
 
 export function getOrderStatusIndex(status: OrderStatus): number {

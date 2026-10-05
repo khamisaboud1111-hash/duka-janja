@@ -1,12 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { isValidWebhookSignature, verifyTransaction } from '@/lib/payments/aggregator'
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const signature = req.headers.get('verif-hash')
 
-  if (!isValidWebhookSignature(signature)) {
-    console.warn('[payments/webhook] rejected: invalid or missing verif-hash')
+  if (!signature) {
+    console.warn('[payments/webhook] rejected: missing verif-hash')
+    return NextResponse.json({ error: 'Missing signature' }, { status: 401 })
+  }
+
+  // Validate webhook signature using FLUTTERWAVE_SECRET_HASH
+  const expectedHash = process.env.FLUTTERWAVE_SECRET_HASH
+  if (!expectedHash || signature !== expectedHash) {
+    console.warn('[payments/webhook] rejected: invalid verif-hash')
     return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
   }
 
@@ -17,86 +23,35 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
+  const provider = 'flutterwave'
   const transactionId = body?.data?.id
-  if (!transactionId) {
-    return NextResponse.json({ error: 'Missing transaction id' }, { status: 400 })
-  }
+  const providerReference = body?.data?.tx_ref
+  const status = body?.data?.status
+  const amount = body?.data?.amount
+  const currency = body?.data?.currency ?? 'TZS'
 
-  const verification = await verifyTransaction(transactionId)
-
-  if (!verification.verified) {
-    console.error('[payments/webhook] could not verify transaction', transactionId)
-    return NextResponse.json({ error: 'Verification failed' }, { status: 502 })
+  if (!transactionId || !providerReference) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
   const supabase = createAdminClient()
 
-  let orderId = verification.orderId
+  // Call the atomic database function to process the webhook
+  const { data, error } = await supabase.rpc('process_payment_webhook', {
+    p_provider: 'flutterwave',
+    p_provider_reference: body.data.tx_ref,
+    p_transaction_id: String(transactionId),
+    p_status: body.data.status,
+    p_amount: body.data.amount,
+    p_currency: body.data.currency ?? 'TZS',
+    p_raw_payload: body,
+  })
 
-  if (!orderId && verification.txRef) {
-    const { data: matched } = await supabase
-      .from('orders')
-      .select('id')
-      .eq('payment_reference', verification.txRef)
-      .maybeSingle()
-    orderId = matched?.id
+  if (error) {
+    console.error('[payments/webhook] RPC error:', error)
+    // Return success to prevent webhook retries for non-retryable errors
+    return NextResponse.json({ success: true, error: error.message })
   }
 
-  if (!orderId) {
-    console.error('[payments/webhook] could not match transaction to an order', verification.txRef)
-    return NextResponse.json({ error: 'Order not found for transaction' }, { status: 404 })
-  }
-
-  const { data: order } = await supabase
-    .from('orders')
-    .select('id, total_amount, payment_confirmed, status')
-    .eq('id', orderId)
-    .single()
-
-  if (!order) {
-    return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-  }
-
-  if (order.payment_confirmed) {
-    return NextResponse.json({ success: true, already_processed: true })
-  }
-
-  if (verification.status !== 'successful') {
-    console.warn(`[payments/webhook] transaction ${transactionId} not successful: ${verification.status}`)
-    return NextResponse.json({ success: true, payment_status: verification.status })
-  }
-
-  if (verification.amount !== undefined && verification.amount < order.total_amount) {
-    console.error(`[payments/webhook] amount mismatch for order ${orderId}: paid ${verification.amount}, expected ${order.total_amount}`)
-    return NextResponse.json({ error: 'Amount mismatch' }, { status: 422 })
-  }
-
-  const { error: updateErr } = await supabase
-    .from('orders')
-    .update({
-      payment_confirmed: true,
-      status: order.status === 'pending' ? 'confirmed' : order.status,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', orderId)
-
-  if (updateErr) {
-    console.error('[payments/webhook] order update failed:', updateErr)
-    return NextResponse.json({ error: 'Could not update order' }, { status: 500 })
-  }
-
-  const { data: orderRow } = await supabase.from('orders').select('buyer_id').eq('id', orderId).single()
-  if (orderRow) {
-    await supabase.from('notifications').insert({
-      user_id: orderRow.buyer_id,
-      type: 'order_placed',
-      title_en: 'Payment confirmed',
-      title_sw: 'Malipo Yamethibitishwa',
-      body_en: 'Your payment was received. Your order is now confirmed.',
-      body_sw: 'Malipo yako yamepokelewa. Agizo lako limethibitishwa.',
-      link: `/orders/${orderId}`,
-    })
-  }
-
-  return NextResponse.json({ success: true })
+  return NextResponse.json(data ?? { success: true })
 }

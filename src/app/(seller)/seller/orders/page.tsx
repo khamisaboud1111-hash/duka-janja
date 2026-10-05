@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import { Search, Filter, Download, Archive, TrendingUp, Clock, CheckCircle, XCircle, Package, Truck, MapPin, User, Phone, FileText, PackageCheck, PackageX, AlertCircle, ChevronDown, Eye, Edit, Trash2 } from 'lucide-react'
+import { Search, Filter, Download, Archive, TrendingUp, Clock, CheckCircle, XCircle, Package, Truck, MapPin, User, Phone, FileText, PackageCheck, PackageX, AlertCircle, ChevronDown, Eye, Edit, Trash2, ArrowUpRight } from 'lucide-react'
 import { useSeller } from '@/hooks/useSeller'
-import { useSellerOrders } from '@/hooks/useOrders'
+import { useOrders, useUpdateOrderStatus, useBulkUpdateOrders } from '@/lib/query/hooks'
 import { OrderStatusBadge, Badge } from '@/components/ui/Badge'
 import { Modal } from '@/components/ui/Modal'
 import { PageLoader, EmptyState } from '@/components/ui'
@@ -13,6 +13,8 @@ import type { Order, OrderStatus } from '@/types'
 import toast from 'react-hot-toast'
 import ReadyForPickupButton from '@/components/seller/ReadyForPickupButton'
 import DeliveryRatingSection from '@/components/delivery/DeliveryRatingSection'
+import { DismissibleAlert } from '@/components/shared/DismissibleAlert'
+import { VirtualList } from '@/components/shared/VirtualList'
 
 const NEXT_STATUS: Record<string, OrderStatus> = {
   pending: 'confirmed', confirmed: 'packed', packed: 'out_for_delivery', out_for_delivery: 'delivered',
@@ -21,7 +23,6 @@ const STATUS_LABELS: Record<string, string> = {
   pending: 'Inasubiri', confirmed: 'Imethibitishwa', packed: 'Imefungashwa',
   out_for_delivery: 'Inasafirishwa', delivered: 'Imefikishwa', cancelled: 'Imefutwa',
 }
-
 const STATUS_ICONS: Record<string, any> = {
   pending: Clock,
   confirmed: CheckCircle,
@@ -30,7 +31,6 @@ const STATUS_ICONS: Record<string, any> = {
   delivered: PackageCheck,
   cancelled: XCircle,
 }
-
 const STATUS_COLORS: Record<string, string> = {
   pending: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
   confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -42,13 +42,18 @@ const STATUS_COLORS: Record<string, string> = {
 
 export default function SellerOrdersPage() {
   const { seller, loading: sellerLoading } = useSeller()
-  const { orders, loading, updateOrderStatus } = useSellerOrders(seller?.id ?? null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activeOrder, setActiveOrder] = useState<Order | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [note, setNote] = useState('')
   const [selectedOrders, setSelectedOrders] = useState<string[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  const { data, isLoading, refetch, updateOrderStatus, bulkUpdateOrders } = useOrders(seller?.id ?? null)
+  
+  const orders = data?.orders ?? []
+  const pagination = data?.pagination ?? { page: 1, limit: 20, total: 0, totalPages: 0 }
 
   // Filter orders based on search and status
   const filteredOrders = orders.filter(order => {
@@ -67,21 +72,47 @@ export default function SellerOrdersPage() {
     const next = NEXT_STATUS[order.status]
     if (!next) return
     setUpdatingId(order.id)
-    await updateOrderStatus(order.id, next, note || undefined)
-    setNote('')
-    setActiveOrder(null)
-    setUpdatingId(null)
-    toast.success(`Hali imebadilishwa: ${STATUS_LABELS[next]}`)
+    try {
+      await updateOrderStatus.mutateAsync({ orderId: order.id, status: next, note })
+      setNote('')
+      setActiveOrder(null)
+      setUpdatingId(null)
+      toast.success(`Hali imebadilishwa: ${STATUS_LABELS[next]}`)
+    } catch {
+      toast.error('Imeshindwa kubadilisha hali')
+      setUpdatingId(null)
+    }
   }, [note, updateOrderStatus])
 
   const handleCancel = useCallback(async (order: Order) => {
     setUpdatingId(order.id)
-    await updateOrderStatus(order.id, 'cancelled', note || 'Imefutwa na muuzaji')
-    setNote('')
-    setActiveOrder(null)
-    setUpdatingId(null)
-    toast.success('Agizo limefutwa')
+    try {
+      await updateOrderStatus.mutateAsync({ orderId: order.id, status: 'cancelled', note: note || 'Imefutwa na muuzaji' })
+      setNote('')
+      setActiveOrder(null)
+      setUpdatingId(null)
+      toast.success('Agizo limefutwa')
+    } catch {
+      toast.error('Imeshindwa kufuta agizo')
+      setUpdatingId(null)
+    }
   }, [note, updateOrderStatus])
+
+  const handleBulkAction = useCallback(async (action: 'cancel' | 'confirm' | 'pack') => {
+    if (selectedOrders.length === 0) return
+    
+    setUpdatingId('bulk')
+    try {
+      const nextStatus = action === 'cancel' ? 'cancelled' : action === 'confirm' ? 'confirmed' : 'packed'
+      await bulkUpdateOrders.mutateAsync({ orderIds: selectedOrders, status: nextStatus, note: `${action === 'cancel' ? 'Imefutwa' : action === 'confirm' ? 'Imethibitishwa' : 'Imefungashwa'} kwa kikundi` })
+      toast.success(`Actions performed on ${selectedOrders.length} orders`)
+      setSelectedOrders([])
+    } catch {
+      toast.error('Kushindwa kufanya hatua kwa kikundi')
+    } finally {
+      setUpdatingId(null)
+    }
+  }, [selectedOrders, bulkUpdateOrders])
 
   function exportOrders() {
     const csvContent = 'data:text/csv;charset=utf-8,' +
@@ -116,146 +147,60 @@ export default function SellerOrdersPage() {
     }
   }
 
-  async function handleBulkAction(action: 'cancel' | 'confirm' | 'pack') {
-    if (selectedOrders.length === 0) return
-    
-    setUpdatingId('bulk')
-    try {
-      for (const orderId of selectedOrders) {
-        const order = orders.find(o => o.id === orderId)
-        if (!order) continue
-        
-        if (action === 'cancel') {
-          await updateOrderStatus(orderId, 'cancelled', 'Imefutwa kwa kikundi')
-        } else if (action === 'confirm') {
-          await updateOrderStatus(orderId, 'confirmed', 'Imethibitishwa kwa kikundi')
-        } else if (action === 'pack') {
-          await updateOrderStatus(orderId, 'packed', 'Imefungashwa kwa kikundi')
-        }
-      }
-      toast.success(`Actions performed on ${selectedOrders.length} orders`)
-      setSelectedOrders([])
-    } catch (error) {
-      toast.error('Kushindwa kufanya hatua kwa kikundi')
-    } finally {
-      setUpdatingId(null)
-    }
-  }
-
   if (sellerLoading) return <PageLoader />
 
-  return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="font-display font-black text-2xl text-ink-900">Maagizo</h1>
-          <p className="text-sm text-ink-500 mt-1">{filteredOrders.length} maagizo ({orders.length} total)</p>
-        </div>
-        <div className="flex gap-3">
-          <button
-            onClick={() => handleBulkAction('confirm')}
-            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
-            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CheckCircle className="w-4 h-4" /> Thibitisha ({selectedOrders.length})
-          </button>
-          <button
-            onClick={() => handleBulkAction('pack')}
-            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
-            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <PackageCheck className="w-4 h-4" /> Funga ({selectedOrders.length})
-          </button>
-          <button
-            onClick={() => handleBulkAction('cancel')}
-            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
-            className="btn-danger gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <XCircle className="w-4 h-4" /> Futa ({selectedOrders.length})
-          </button>
-          <button
-            onClick={exportOrders}
-            className="btn-secondary gap-2"
-          >
-            <Download className="w-4 h-4" /> Hamisha
-          </button>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="card p-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
-            <input
-              type="text"
-              placeholder="Tafuta kwa namba ya agizo, jina la mteja, anwani..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input pl-10 w-full"
-            />
-          </div>
-          <div className="relative min-w-[200px]">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input pl-10 appearance-none w-full cursor-pointer"
-            >
-              <option value="all">Mao Yote</option>
-              <option value="pending">Inasubiri</option>
-              <option value="confirmed">Imethibitishwa</option>
-              <option value="packed">Imefungashwa</option>
-              <option value="out_for_delivery">Inasafirishwa</option>
-              <option value="delivered">Imefikishwa</option>
-              <option value="cancelled">Imefutwa</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="space-y-4">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="card p-6 animate-pulse">
-              <div className="flex items-center justify-between mb-4">
-                <div className="h-4 bg-ink-200 rounded w-32"></div>
-                <div className="h-6 bg-ink-200 rounded w-20"></div>
-              </div>
-              <div className="space-y-3">
-                <div className="h-3 bg-ink-200 rounded"></div>
-                <div className="h-3 bg-ink-200 rounded"></div>
-                <div className="h-3 bg-ink-200 rounded w-3/4"></div>
-              </div>
+  let content;
+  if (isLoading) {
+    content = (
+      <div className="space-y-4">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="card p-6 animate-pulse">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-4 bg-ink-200 rounded w-32"></div>
+              <div className="h-6 bg-ink-200 rounded w-20"></div>
             </div>
-          ))}
-        </div>
-      ) : filteredOrders.length === 0 ? (
-        <EmptyState
-          icon={<Search className="w-12 h-12" />}
-          title="Hakuna maagizo iliyofindwa"
-          description={searchQuery || statusFilter !== 'all' ? "Jaribu miongozo tofauti ya utafutaji" : "Maagizo kutoka kwa wateja yatakuja hapa"}
-        />
-      ) : (
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center gap-3 px-4 py-3 bg-ink-50 dark:bg-ink-900 rounded-xl text-sm font-medium text-ink-600">
-            <input
-              type="checkbox"
-              checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
-              onChange={handleSelectAll}
-              className="w-4 h-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
-            />
-            <div className="flex-1">Agizo</div>
-            <div className="hidden sm:block">Mteja</div>
-            <div className="hidden md:block">Tarehe</div>
-            <div className="hidden lg:block">Jumla</div>
-            <div className="hidden sm:block">Hali</div>
-            <div className="text-center">Vitendo</div>
+            <div className="space-y-3">
+              <div className="h-3 bg-ink-200 rounded"></div>
+              <div className="h-3 bg-ink-200 rounded"></div>
+              <div className="h-3 bg-ink-200 rounded w-3/4"></div>
+            </div>
           </div>
+        ))}
+      </div>
+    );
+  } else if (filteredOrders.length === 0) {
+    content = (
+      <EmptyState
+        icon={<Search className="w-12 h-12" />}
+        title="Hakuna maagizo iliyofindwa"
+        description={searchQuery || statusFilter !== 'all' ? "Jaribu miongozo tofauti ya utafutaji" : "Maagizo kutoka kwa wateja yatakuja hapa"}
+      />
+    );
+  } else {
+    content = (
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-3 px-4 py-3 bg-ink-50 dark:bg-ink-900 rounded-xl text-sm font-medium text-ink-600">
+          <input
+            type="checkbox"
+            checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
+            onChange={handleSelectAll}
+            className="w-4 h-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+          />
+          <div className="flex-1">Agizo</div>
+          <div className="hidden sm:block">Mteja</div>
+          <div className="hidden md:block">Tarehe</div>
+          <div className="hidden lg:block">Jumla</div>
+          <div className="hidden sm:block">Hali</div>
+          <div className="text-center">Vitendo</div>
+        </div>
 
-          {/* Order Cards */}
-          {filteredOrders.map((order) => {
+        {/* Order Cards - VirtualList */}
+        <VirtualList
+          items={filteredOrders}
+          itemHeight={280}
+          containerHeight={600}
+          renderItem={(order) => {
             const sellerItems = order.items?.filter((i: any) => i.seller_id === seller?.id) ?? order.items ?? []
             const next = NEXT_STATUS[order.status]
             const StatusIcon = STATUS_ICONS[order.status]
@@ -352,6 +297,7 @@ export default function SellerOrdersPage() {
                             disabled={!!updatingId}
                             className="btn-primary text-xs py-2 px-3 flex items-center gap-2"
                           >
+                            <ArrowUpRight className="w-3.5 h-3.5" />
                             {updatingId === order.id ? 'Inabadilisha...' : `→ ${STATUS_LABELS[next]}`}
                           </button>
                         ) : next ? (
@@ -378,77 +324,95 @@ export default function SellerOrdersPage() {
                     </div>
                   </div>
                 )}
-
-                {order.status === 'delivered' && seller && (
-                  <div className="mt-4 pt-4 border-t border-ink-100">
-                    <DeliveryRatingSection orderId={order.id} reviewerId={seller.user_id} reviewerRole="seller" />
-                  </div>
-                )}
               </div>
             )
-          })}
+          }}
+          itemKey={(order) => order.id}
+          overscan={3}
+          containerHeight={600}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="font-display font-black text-2xl text-ink-900">Maagizo</h1>
+          <p className="text-sm text-ink-500 mt-1">{filteredOrders.length} maagizo ({orders.length} total)</p>
         </div>
+        <div className="flex gap-3">
+          <button
+            onClick={() => handleBulkAction('confirm')}
+            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
+            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <CheckCircle className="w-4 h-4" /> Thibitisha ({selectedOrders.length})
+          </button>
+          <button
+            onClick={() => handleBulkAction('pack')}
+            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
+            className="btn-primary gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <PackageCheck className="w-4 h-4" /> Funga ({selectedOrders.length})
+          </button>
+          <button
+            onClick={() => handleBulkAction('cancel')}
+            disabled={selectedOrders.length === 0 || updatingId === 'bulk'}
+            className="btn-danger gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <XCircle className="w-4 h-4" /> Futa ({selectedOrders.length})
+          </button>
+          <button
+            onClick={exportOrders}
+            className="btn-secondary gap-2"
+          >
+            <Download className="w-4 h-4" /> Hamisha
+          </button>
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <DismissibleAlert type="error" onDismiss={() => { setError(null); refetch() }} className="mb-4">
+          Imeshindwa kupakia maagizo. Jaribu tena.
+        </DismissibleAlert>
       )}
 
-      <Modal open={!!activeOrder} onClose={() => setActiveOrder(null)} title="Maagizo" size="lg">
-        {activeOrder && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-lg">#{activeOrder.id.slice(-8).toUpperCase()}</h3>
-                <p className="text-sm text-ink-500">{formatDate(activeOrder.created_at)}</p>
-              </div>
-              <OrderStatusBadge status={activeOrder.status} />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 className="text-sm font-semibold text-ink-900 mb-2">Mteja</h4>
-                <div className="p-3 bg-ink-50 dark:bg-ink-900 rounded-lg">
-                  <p className="font-medium">{activeOrder.buyer?.full_name}</p>
-                  <p className="text-sm text-ink-500">{activeOrder.buyer?.email}</p>
-                  <div className="flex items-center gap-1 text-sm text-ink-500 mt-1">
-                    <Phone className="w-3 h-3" />
-                    <span>{activeOrder.delivery_phone}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="text-sm font-semibold text-ink-900 mb-2">Utoaji</h4>
-                <div className="p-3 bg-ink-50 dark:bg-ink-900 rounded-lg">
-                  <div className="flex items-center gap-1 text-sm">
-                    <MapPin className="w-3 h-3" />
-                    <span>{activeOrder.delivery_address}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-semibold text-ink-900 mb-2">Bidhaa</h4>
-              <div className="space-y-2">
-                {activeOrder.items?.filter((i: any) => i.seller_id === seller?.id).map((item: any) => (
-                  <div key={item.id} className="flex items-center justify-between p-3 bg-ink-50 dark:bg-ink-900 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-ink-100 flex-shrink-0">
-                        {item.product?.images?.[0] && (
-                          <Image src={item.product.images[0].url} alt="" fill sizes="48px" className="object-cover" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm">{item.product?.name}</p>
-                        <p className="text-xs text-ink-500">{item.quantity} x {formatTZS(item.unit_price)}</p>
-                      </div>
-                    </div>
-                    <p className="font-semibold">{formatTZS(item.total_price)}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* Filters */}
+      <div className="card p-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
+            <input
+              type="text"
+              placeholder="Tafuta kwa namba ya agizo, jina la mteja, anwani..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="input pl-10 w-full"
+            />
           </div>
-        )}
-      </Modal>
+          <div className="relative min-w-[200px]">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-ink-400" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="input pl-10 appearance-none w-full cursor-pointer"
+            >
+              <option value="all">Mao Yote</option>
+              <option value="pending">Inasubiri</option>
+              <option value="confirmed">Imethibitishwa</option>
+              <option value="packed">Imefungashwa</option>
+              <option value="out_for_delivery">Inasafirishwa</option>
+              <option value="delivered">Imefikishwa</option>
+              <option value="cancelled">Imefutwa</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {content}
     </div>
   )
 }

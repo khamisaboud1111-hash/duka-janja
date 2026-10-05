@@ -1,139 +1,203 @@
-// Duka Janja Enterprise Service Worker (PWA)
-const CACHE_VERSION = "2026-07-25";
-const STATIC_CACHE = `duka-janja-static-${CACHE_VERSION}`;
-const IMAGE_CACHE = `duka-janja-images-${CACHE_VERSION}`;
-const FONT_CACHE = `duka-janja-fonts-${CACHE_VERSION}`;
+// Service Worker for Duka Janja - Offline Support
+const CACHE_NAME = 'duka-janja-v1';
+const STATIC_CACHE = 'duka-janja-static-v1';
+const DYNAMIC_CACHE = 'duka-janja-dynamic-v1';
+const API_CACHE = 'duka-janja-api-v1';
 
-const ASSETS_TO_CACHE = [
-  "/",
-  "/favicon.ico",
-  "/manifest.json",
-  "/offline.html" // Dedicated offline fallback page
+// Assets to cache on install
+const STATIC_ASSETS = [
+  '/',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
 ];
 
-// Step 8: Handle Failed Installs with Promise.allSettled
-self.addEventListener("install", (event) => {
+// Cache strategies
+const CACHE_STRATEGIES = {
+  // Cache first - for static assets
+  cacheFirst: async (request, cacheName) => {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    try {
+      const networkResponse = await fetch(request);
+      if (networkResponse.ok) {
+        cache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    } catch (error) {
+      return new Response('Offline', { status: 503 });
+    }
+  },
+
+  // Network first - for API calls
+  networkFirst: async (request, cacheName) => {
+    const cache = await caches.open(cacheName);
+    try {
+      const networkResponse = await fetch(request);
+      if (networkResponse.ok) {
+        cache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    } catch (error) {
+      const cachedResponse = await cache.match(request);
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+      return new Response(JSON.stringify({ error: 'Offline', offline: true }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+  },
+
+  // Stale while revalidate - for API data
+  staleWhileRevalidate: async (request, cacheName) => {
+    const cache = await caches.open(cacheName);
+    const cachedResponse = await cache.match(request);
+
+    const fetchPromise = fetch(request).then(async (networkResponse) => {
+      if (networkResponse.ok) {
+        cache.put(request, networkResponse.clone());
+      }
+      return networkResponse;
+    });
+
+    return cachedResponse || fetchPromise;
+  },
+};
+
+// Install event - cache static assets
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then(async (cache) => {
-      await Promise.allSettled(
-        ASSETS_TO_CACHE.map(async (asset) => {
-          try {
-            const response = await fetch(asset);
-            if (response.ok) {
-              await cache.put(asset, response);
-            }
-          } catch (err) {
-            console.warn(`[ServiceWorker] Failed to optional-cache asset: ${asset}`, err);
-          }
-        })
-      );
+    caches.open(STATIC_CACHE).then((cache) => {
+      return cache.addAll(STATIC_ASSETS);
     })
   );
   self.skipWaiting();
 });
 
-// Step 9: Better Activate Cleanup (Targeting only duka-janja prefixes)
-self.addEventListener("activate", (event) => {
+// Activate event - clean up old caches
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) => {
+    caches.keys().then((cacheNames) => {
       return Promise.all(
-        keys
-          .filter((key) => key.startsWith("duka-janja-") && ![STATIC_CACHE, IMAGE_CACHE, FONT_CACHE].includes(key))
-          .map((key) => {
-            console.log(`[ServiceWorker] Removing legacy cache: ${key}`);
-            return caches.delete(key);
-          })
+        cacheNames
+          .filter((name) => name !== STATIC_CACHE && name !== DYNAMIC_CACHE && name !== API_CACHE)
+          .map((name) => caches.delete(name))
       );
     })
   );
   self.clients.claim();
 });
 
-self.addEventListener("fetch", (event) => {
-  const url = new URL(event.request.url);
+// Fetch event - handle requests
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // Step 5: Skip Cross-Origin Requests (e.g., Supabase, external APIs, payment gateways)
-  if (url.origin !== self.location.origin) {
+  // Skip non-GET requests
+  if (request.method !== 'GET') {
     return;
   }
 
-  // Step 6: Ignore Non-GET Requests (POST, PUT, PATCH, DELETE)
-  if (event.request.method !== "GET") {
+  // Skip chrome-extension and other non-http(s) requests
+  if (!url.protocol.startsWith('http')) {
     return;
   }
 
-  // Step 1 & 16: Exclude dynamic routes, auth, APIs, checkout, payments, and admin portals from caching
-  const excludedPaths = ["/api/", "/auth/", "/storage/", "/payments/", "/login", "/register", "/checkout", "/admin", "/seller", "/rider"];
-  if (excludedPaths.some((path) => url.pathname.startsWith(path))) {
-    return;
+  // Handle different types of requests
+  if (url.pathname.startsWith('/api/')) {
+    // API calls - use stale while revalidate for GET, network first for others
+    if (request.method === 'GET') {
+      event.respondWith(CACHE_STRATEGIES.staleWhileRevalidate(request, API_CACHE));
+    } else {
+      event.respondWith(CACHE_STRATEGIES.networkFirst(request, API_CACHE));
+    }
+  } else if (
+    url.pathname.match(/\.(js|css|png|jpg|jpeg|webp|avif|woff2|woff|ico|svg)$/)
+  ) {
+    // Static assets - cache first
+    event.respondWith(CACHE_STRATEGIES.cacheFirst(request, STATIC_CACHE));
+  } else if (url.pathname.startsWith('/_next/static/')) {
+    // Next.js static assets - cache first
+    event.respondWith(CACHE_STRATEGIES.cacheFirst(request, STATIC_CACHE));
+  } else if (url.pathname === '/' || url.pathname.startsWith('/products') || url.pathname.startsWith('/seller') || url.pathname.startsWith('/rider')) {
+    // Page routes - stale while revalidate
+    event.respondWith(CACHE_STRATEGIES.staleWhileRevalidate(request, DYNAMIC_CACHE));
+  } else {
+    // Default - network first
+    event.respondWith(CACHE_STRATEGIES.networkFirst(request, DYNAMIC_CACHE));
   }
-
-  // Step 11: Navigation Requests (HTML Pages / Product Pages) -> Network First with Offline Fallback
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request)
-        .then((networkResponse) => {
-          return networkResponse;
-        })
-        .catch(async () => {
-          const cache = await caches.open(STATIC_CACHE);
-          const cachedNavigate = await cache.match(event.request);
-          if (cachedNavigate) return cachedNavigate;
-          
-          // Fallback to offline page
-          const offlinePage = await cache.match("/offline.html");
-          return offlinePage || new Response("Network error and offline page missing.", { status: 503, headers: { "Content-Type": "text/plain" } });
-        })
-    );
-    return;
-  }
-
-  // Step 4 & 7: Stale While Revalidate for Images (Product Thumbnails & Avatars)
-  if (url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)) {
-    event.respondWith(
-      caches.open(IMAGE_CACHE).then(async (cache) => {
-        const cachedResponse = await cache.match(event.request);
-        const fetchPromise = fetch(event.request).then((networkResponse) => {
-          if (networkResponse.ok) {
-            cache.put(event.request, networkResponse.clone());
-          }
-          return networkResponse;
-        }).catch(() => null);
-
-        return cachedResponse || fetchPromise;
-      })
-    );
-    return;
-  }
-
-  // Step 10: Cache Fonts (Cache First Strategy)
-  if (url.pathname.match(/\.(woff|woff2|ttf|otf)$/) || url.hostname.includes("fonts.gstatic.com")) {
-    event.respondWith(
-      caches.open(FONT_CACHE).then(async (cache) => {
-        const cachedResponse = await cache.match(event.request);
-        if (cachedResponse) return cachedResponse;
-
-        const networkResponse = await fetch(event.request);
-        if (networkResponse.ok) {
-          cache.put(event.request, networkResponse.clone());
-        }
-        return networkResponse;
-      })
-    );
-    return;
-  }
-
-  // Default Strategy for Static Assets (Cache First)
-  event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        return networkResponse;
-      }).catch((err) => {
-        console.warn("[ServiceWorker] Fetch failed for static asset:", event.request.url, err);
-      });
-    })
-  );
 });
+
+// Background sync for offline actions
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-orders') {
+    event.waitUntil(syncOrders());
+  }
+  if (event.tag === 'sync-products') {
+    event.waitUntil(syncProducts());
+  }
+});
+
+// Push notifications
+self.addEventListener('push', (event) => {
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/badge-72x72.png',
+      vibrate: [100, 50, 100],
+      data: data.data,
+      actions: data.actions || [],
+    };
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  }
+});
+
+// Notification click
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  if (event.action === 'view') {
+    event.waitUntil(
+      clients.openWindow(event.notification.data?.url || '/')
+    );
+  }
+});
+
+// Sync functions
+async function syncOrders() {
+  // Implementation for syncing offline orders
+  const cache = await caches.open(API_CACHE);
+  const requests = await cache.keys();
+  for (const request of requests) {
+    if (request.url.includes('/orders') && request.method !== 'GET') {
+      try {
+        await fetch(request);
+      } catch (error) {
+        console.error('Failed to sync order:', error);
+      }
+    }
+  }
+}
+
+async function syncProducts() {
+  // Implementation for syncing offline product updates
+  const cache = await caches.open(API_CACHE);
+  const requests = await cache.keys();
+  for (const request of requests) {
+    if (request.url.includes('/products') && request.method !== 'GET') {
+      try {
+        await fetch(request);
+      } catch (error) {
+        console.error('Failed to sync product:', error);
+      }
+    }
+  }
+}
