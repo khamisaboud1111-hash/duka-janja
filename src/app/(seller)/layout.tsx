@@ -1,6 +1,7 @@
 'use client'
 
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { LayoutDashboard, Package, ShoppingBag, BarChart2, Settings, ArrowLeft, ShieldCheck, MessageCircle } from 'lucide-react'
 import { useUser } from '@/hooks/useUser'
@@ -22,22 +23,24 @@ const NAV = [
 export default function SellerLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const router = useRouter()
   const isOnboarding = searchParams.get('onboarding') === 'true'
   const isSettingsPage = pathname === '/seller/settings'
   const { profile, loading } = useUser()
-  const { seller, loading: sellerLoading } = useSeller()
+  const { seller, loading: sellerLoading, refetch } = useSeller()
+
+  // Refetch seller when navigating to dashboard to handle fresh store creation
+  useEffect(() => {
+    if (pathname === '/seller/dashboard' && !seller && !sellerLoading) {
+      refetch()
+    }
+  }, [pathname, seller, sellerLoading, refetch])
 
   if (loading || sellerLoading) return <PageLoader />
 
   if (!profile || (profile.role !== 'seller' && profile.role !== 'admin')) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="card p-8 text-center max-w-sm">
-          <p className="font-semibold text-ink-700 mb-4">Lazima uwe muuzaji ili kufikia ukurasa huu</p>
-          <Link href="/register?type=seller" className="btn-primary inline-flex">Omba kuwa muuzaji</Link>
-        </div>
-      </div>
-    )
+    router.push('/register?type=seller')
+    return <PageLoader />
   }
 
   // Allow settings page to render during onboarding even without seller record
@@ -45,15 +48,8 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
 
   // If user has seller role but no store created yet, redirect to store creation
   if (profile.role === 'seller' && !seller && !isStoreCreationFlow) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="card p-8 text-center max-w-sm">
-          <p className="font-semibold text-ink-700 mb-4">Haja ya kuunda duka lako</p>
-          <p className="text-sm text-ink-500 mb-4">Unahitaji kuunda duka lako kwanza ili kuanza kuuza.</p>
-          <Link href="/seller/settings?onboarding=true" className="btn-primary inline-flex">Unda Duka Sasa</Link>
-        </div>
-      </div>
-    )
+    router.push('/seller/settings?onboarding=true')
+    return <PageLoader />
   }
 
   // If seller record exists but is not approved, show pending state
