@@ -14,6 +14,8 @@ import type { Metadata } from 'next'
 
 import type { Product, ProductImage, ProductVideo, Review, Seller, Category } from '@/types'
 
+export const dynamic = 'force-dynamic'
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ProductPageData = any
 

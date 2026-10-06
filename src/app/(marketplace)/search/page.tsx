@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SlidersHorizontal, X, Search, Clock, TrendingUp, Grid3X3, List } from 'lucide-react'
 import ProductCard from '@/components/product/ProductCard'
-import { useProducts } from '@/hooks/useProducts'
+import { useMarketplaceProducts } from '@/hooks/useMarketplaceProducts'
 import { useLangStore } from '@/store'
 import { t, type Language } from '@/i18n/translations'
 import { createClient } from '@/lib/supabase/client'
@@ -76,7 +76,7 @@ export default function SearchPage() {
   const madeInZnz  = params.get('made_in_zanzibar') === 'true'
   const page       = Number(params.get('page') ?? '1')
 
-  const { products, loading, count, totalPages } = useProducts({
+  const { products, loading, count, totalPages } = useMarketplaceProducts({
     search: q, category, sort, madeInZanzibar: madeInZnz, page, pageSize: 24,
   })
 

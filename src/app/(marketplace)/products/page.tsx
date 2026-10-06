@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { useRef, useState, useEffect } from 'react';
 import { SlidersHorizontal, X, Search, TrendingUp, Shield, Award, Clock } from 'lucide-react';
 import ProductCard from '@/components/product/ProductCard';
-import { useProducts } from '@/hooks/useProducts';
+import { useMarketplaceProducts } from '@/hooks/useMarketplaceProducts';
 import { useLangStore } from '@/store';
 import { createClient } from '@/lib/supabase/client';
 import { EmptyState } from '@/components/ui';
@@ -48,7 +48,7 @@ export default function ProductsPage() {
   const madeInZnz  = params.get('made_in_zanzibar') === 'true'
   const page       = Number(params.get('page') ?? '1')
 
-  const { products, loading, count, totalPages } = useProducts({
+  const { products, loading, count, totalPages } = useMarketplaceProducts({
     search: q, category, sort, madeInZanzibar: madeInZnz, page, pageSize: 24,
   })
 
