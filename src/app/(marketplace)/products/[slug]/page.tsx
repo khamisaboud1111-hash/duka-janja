@@ -25,17 +25,17 @@ interface Props {
 
 async function getProduct(slug: string) {
   const supabase = createServerClient()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('products')
-    .select(`
-      *,
-      seller:sellers(id, store_name, store_slug, status, logo_url, national_id_verified),
-      category:categories(*),
-      images:product_images(* order: sort_order asc)
-    `)
+    .select('*')
     .eq('slug', slug)
     .eq('status', 'active')
     .single()
+  
+  if (error) {
+    console.error('Product query error:', error)
+  }
+  
   return data as unknown as ProductPageData | null
 }
 
