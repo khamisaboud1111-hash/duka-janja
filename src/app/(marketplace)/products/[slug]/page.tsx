@@ -27,7 +27,12 @@ async function getProduct(slug: string) {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select(`
+      *,
+      seller:sellers(id, store_name, store_slug, status, logo_url, national_id_verified),
+      category:categories(*),
+      images:product_images(* order: sort_order asc)
+    `)
     .eq('slug', slug)
     .eq('status', 'active')
     .single()
