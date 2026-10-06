@@ -48,7 +48,7 @@ export default function ProductsPage() {
   const madeInZnz  = params.get('made_in_zanzibar') === 'true'
   const page       = Number(params.get('page') ?? '1')
 
-  const { products, loading, count, totalPages } = useMarketplaceProducts({
+  const { products, loading, count, totalPages, error } = useMarketplaceProducts({
     search: q, category, sort, madeInZanzibar: madeInZnz, page, pageSize: 24,
   })
 
@@ -234,6 +234,14 @@ export default function ProductsPage() {
           </p>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+            <p className="text-red-700 dark:text-red-300 text-sm font-medium">Hitilafu: {error}</p>
+            <button onClick={() => window.location.reload()} className="mt-2 text-sm text-red-600 dark:text-red-400 underline hover:no-underline">
+              Jaribu tena
+            </button>
+          </div>
+        )}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => <ProductCardSkeleton key={i} />)}

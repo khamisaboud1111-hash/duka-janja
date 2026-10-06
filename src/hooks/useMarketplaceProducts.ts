@@ -42,7 +42,7 @@ export function useMarketplaceProducts(filters: MarketplaceProductFilters = {}) 
 
     try {
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 10000)
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
 
       const response = await fetch(`/api/products?${params.toString()}`, {
         signal: controller.signal,
@@ -52,7 +52,9 @@ export function useMarketplaceProducts(filters: MarketplaceProductFilters = {}) 
       clearTimeout(timeoutId)
 
       if (!response.ok) {
-        throw new Error('Failed to fetch products')
+        const errorText = await response.text()
+        console.error('Products API error:', response.status, errorText)
+        throw new Error(`Failed to fetch products: ${response.status}`)
       }
 
       const result: MarketplaceProductsResponse = await response.json()
@@ -62,7 +64,9 @@ export function useMarketplaceProducts(filters: MarketplaceProductFilters = {}) 
       if (err instanceof Error && err.name === 'AbortError') {
         setError('Request timeout')
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to fetch products')
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch products'
+        console.error('Products fetch error:', errorMessage)
+        setError(errorMessage)
       }
       setProducts([])
       setCount(0)
