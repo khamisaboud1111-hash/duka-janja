@@ -31,9 +31,7 @@ async function getProduct(slug: string) {
       *,
       seller:sellers(id, store_name, store_slug, status, logo_url, national_id_verified, user_id),
       category:categories(*),
-      images:product_images(* order: sort_order asc),
-      videos:product_videos(* order: sort_order asc),
-      reviews(*, buyer:profiles(full_name, avatar_url))
+      images:product_images(* order: sort_order asc)
     `)
     .eq('slug', slug)
     .eq('status', 'active')
@@ -71,10 +69,8 @@ export default async function ProductPage({ params }: Props) {
 
   const related = product.category_id ? await getRelated(product.category_id, product.id) : []
   const images = product.images ?? []
-  const videos = product.videos ?? []
   const primaryImage = images.find((i: ProductImage) => i.is_primary) ?? images[0]
   const seller = product.seller
-  const reviews = product.reviews ?? []
   const isVerifiedSeller = seller?.national_id_verified ?? false
 
   return (
@@ -127,14 +123,7 @@ export default async function ProductPage({ params }: Props) {
               </div>
             )}
 
-            {/* Videos */}
-            {videos.length > 0 && (
-              <div className="grid grid-cols-2 gap-2">
-                {videos.map((vid: ProductVideo) => (
-                  <video key={vid.id} src={vid.url} controls className="w-full aspect-video rounded-xl bg-muted object-cover" />
-                ))}
-              </div>
-            )}
+            {/* Videos - disabled for now due to RLS */}
           </div>
 
           {/* Product info */}
@@ -239,45 +228,9 @@ export default async function ProductPage({ params }: Props) {
           <h2 className="font-display font-bold text-xl text-foreground mb-4">
             <LText k="customerReviews" /> ({product.review_count})
           </h2>
-          {reviews.length === 0 ? (
-            <div className="bg-card border border-border p-8 text-center">
-              <p className="text-muted-foreground text-sm"><LText k="noReviewsPrompt" /></p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {reviews.map((review: Review & { buyer?: { full_name: string; avatar_url: string | null } | null }) => (
-                <div key={review.id} className="bg-card border border-border p-4">
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-center gap-2">
-                      {review.buyer?.avatar_url ? (
-                        <Image src={review.buyer.avatar_url} alt="" width={32} height={32} unoptimized className="w-8 h-8 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold text-muted-foreground">
-                          {review.buyer?.full_name?.charAt(0) ?? 'M'}
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">{review.buyer?.full_name ?? <LText k="customer" />}</p>
-                        <p className="text-xs text-muted-foreground">{formatDate(review.created_at)}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <Star key={n} className={`w-3.5 h-3.5 ${n <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-muted'}`} />
-                      ))}
-                    </div>
-                  </div>
-                  {review.comment && <p className="text-sm text-foreground">{review.comment}</p>}
-                  {review.seller_reply && (
-                    <div className="mt-3 p-3 bg-brand-50 dark:bg-brand-500/10 rounded-xl border border-brand-100 dark:border-brand-800">
-                      <p className="text-xs text-brand-700 dark:text-brand-300 font-semibold mb-1"><LText k="sellerReply" /></p>
-                      <p className="text-sm text-foreground">{review.seller_reply}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <div className="bg-card border border-border p-8 text-center">
+            <p className="text-muted-foreground text-sm"><LText k="noReviewsPrompt" /></p>
+          </div>
         </section>
 
         {/* Related products */}
