@@ -41,12 +41,14 @@ export function useMarketplaceProducts(filters: MarketplaceProductFilters = {}) 
     params.set('pageSize', pageSize.toString())
 
     try {
+      // Simple fetch with timeout using Promise.race
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000)
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
 
       const response = await fetch(`/api/products?${params.toString()}`, {
         signal: controller.signal,
         credentials: 'include',
+        cache: 'no-store',
       })
 
       clearTimeout(timeoutId)
@@ -62,7 +64,7 @@ export function useMarketplaceProducts(filters: MarketplaceProductFilters = {}) 
       setCount(result.count ?? 0)
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
-        setError('Request timeout')
+        setError('Request timeout - please check your connection')
       } else {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch products'
         console.error('Products fetch error:', errorMessage)
