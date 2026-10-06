@@ -15,6 +15,8 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
   const displayLang = lang || storeLang
   const [isListening, setIsListening] = useState(false)
   const [isSupported, setIsSupported] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [permissionDenied, setPermissionDenied] = useState(false)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
 
@@ -22,11 +24,12 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
     const SpeechRecognitionCtor = (window as unknown as { SpeechRecognition?: unknown; webkitSpeechRecognition?: unknown }).SpeechRecognition
       || (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition as unknown as new () => unknown
 
-    setIsSupported(!!SpeechRecognitionCtor)
+    const supported = !!SpeechRecognitionCtor
+    setIsSupported(supported)
 
-    if (!SpeechRecognitionCtor) return
+    if (!supported) return
 
-    const recognition = new (SpeechRecognitionCtor as unknown as new () => unknown)() as unknown as { lang: string; continuous: boolean; interimResults: boolean; maxAlternatives: number; onresult: (e: unknown) => void; onerror: () => void; onend: () => void; start: () => void; stop: () => void; abort: () => void }
+    const recognition = new (SpeechRecognitionCtor as unknown as new () => unknown)() as unknown as { lang: string; continuous: boolean; interimResults: boolean; maxAlternatives: number; onresult: (e: unknown) => void; onerror: (e: { error: string }) => void; onend: () => void; start: () => void; stop: () => void; abort: () => void }
     // Use Swahili locale if available, fallback to en
     const locale = displayLang === 'sw' ? 'sw-TZ' : displayLang === 'ar' ? 'ar-SA' : displayLang === 'fr' ? 'fr-FR' : 'en-US'
     ;(recognition as unknown as { lang: string }).lang = locale
@@ -41,7 +44,18 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
       setIsListening(false)
     }
 
-    recognition.onerror = () => setIsListening(false)
+    recognition.onerror = (e: { error: string }) => {
+      if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+        setPermissionDenied(true)
+        setError('Microphone permission denied. Please allow microphone access in browser settings.')
+      } else if (e.error === 'no-speech') {
+        setError('No speech detected. Please try again.')
+      } else {
+        setError(`Voice recognition error: ${e.error}`)
+      }
+      setIsListening(false)
+    }
+
     recognition.onend = () => setIsListening(false)
 
     recognitionRef.current = recognition
@@ -51,9 +65,23 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
     }
   }, [onResult, displayLang])
 
-  const startListening = useCallback(() => {
+  const startListening = useCallback(async () => {
     if (!recognitionRef.current || isListening) return
+    
+    setError(null)
+    setPermissionDenied(false)
+    
     try {
+      // Request microphone permission first
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          stream.getTracks().forEach(track => track.stop())
+        } catch {
+          // Permission might be denied, but we'll let the speech recognition handle it
+        }
+      }
+      
       ;(recognitionRef.current as unknown as { start: () => void }).start()
       setIsListening(true)
     } catch {
@@ -66,5 +94,5 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
     setIsListening(false)
   }, [])
 
-  return { isListening, isSupported, startListening, stopListening }
+  return { isListening, isSupported, startListening, stopListening, error, permissionDenied }
 }

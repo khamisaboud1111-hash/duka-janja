@@ -26,15 +26,16 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   const router = useRouter()
   const isOnboarding = searchParams.get('onboarding') === 'true'
   const isSettingsPage = pathname === '/seller/settings'
+  const isDashboardPage = pathname === '/seller/dashboard'
   const { profile, loading } = useUser()
   const { seller, loading: sellerLoading, refetch } = useSeller()
 
   // Refetch seller when navigating to dashboard to handle fresh store creation
   useEffect(() => {
-    if (pathname === '/seller/dashboard' && !sellerLoading) {
+    if (isDashboardPage && !sellerLoading) {
       refetch()
     }
-  }, [pathname, sellerLoading, refetch])
+  }, [isDashboardPage, sellerLoading, refetch])
 
   if (loading || sellerLoading) return <PageLoader />
 
@@ -47,8 +48,14 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   const isStoreCreationFlow = isSettingsPage && isOnboarding && !seller
 
   // If user has seller role but no store created yet, redirect to store creation
-  if (profile.role === 'seller' && !seller && !isStoreCreationFlow) {
+  // BUT don't redirect if we're on the dashboard - the refetch will handle it
+  if (profile.role === 'seller' && !seller && !isStoreCreationFlow && !isDashboardPage) {
     router.push('/seller/settings?onboarding=true')
+    return <PageLoader />
+  }
+
+  // If on dashboard and seller not yet loaded, show loader instead of redirecting
+  if (isDashboardPage && !seller) {
     return <PageLoader />
   }
 
