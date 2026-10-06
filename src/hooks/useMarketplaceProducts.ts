@@ -46,6 +46,7 @@ export function useMarketplaceProducts(filters: MarketplaceProductFilters = {}) 
 
       const response = await fetch(`/api/products?${params.toString()}`, {
         signal: controller.signal,
+        credentials: 'include',
       })
 
       clearTimeout(timeoutId)
