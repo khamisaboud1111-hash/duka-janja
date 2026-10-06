@@ -7,6 +7,7 @@ import { Home, LayoutGrid, ShoppingCart, Package, Heart, User, Store, X, Search,
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/utils'
 import { useUiStore, useLangStore, useThemeStore } from '@/store'
+import { useUser } from '@/hooks/useUser'
 import { t, type Language, type TranslationKey } from '@/i18n/translations'
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -56,13 +57,13 @@ function Flag({ code }: { code: Language }) {
   )
 }
 
-const LINKS: { href: string; icon: any; labelKey: TranslationKey }[] = [
+const LINKS: { href: string; icon: any; labelKey: TranslationKey; sellerOnly?: boolean }[] = [
   { href: '/', icon: Home, labelKey: 'home' },
   { href: '/search', icon: LayoutGrid, labelKey: 'browse' },
   { href: '/checkout', icon: ShoppingCart, labelKey: 'cart' },
   { href: '/orders', icon: Package, labelKey: 'orders' },
   { href: '/wishlist', icon: Heart, labelKey: 'wishlist' },
-  { href: '/seller/dashboard', icon: Store, labelKey: 'myStore' },
+  { href: '/seller/dashboard', icon: Store, labelKey: 'myStore', sellerOnly: true },
   { href: '/settings', icon: User, labelKey: 'account' },
 ]
 
@@ -76,8 +77,11 @@ export default function Sidebar() {
   const theme = useThemeStore((s) => s.theme)
   const hasHydrated = useThemeStore((s) => s.hasHydrated)
   const toggleTheme = useThemeStore((s) => s.toggleTheme)
+  const { isSeller, loading: userLoading } = useUser()
   const [query, setQuery] = useState('')
   const [langOpen, setLangOpen] = useState(false)
+
+  const visibleLinks = LINKS.filter(link => !link.sellerOnly || isSeller)
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/'
@@ -98,7 +102,7 @@ export default function Sidebar() {
     <>
       {/* Desktop rail */}
       <aside className="hidden lg:flex flex-col items-center gap-1 fixed left-0 top-0 bottom-0 w-16 bg-card border-r border-border pt-20 z-30">
-        {LINKS.map((link) => {
+        {visibleLinks.map((link) => {
           const Icon = link.icon
           const active = isActive(link.href)
           return (
@@ -210,7 +214,7 @@ export default function Sidebar() {
                 <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-400 dark:text-ink-500" />
               </form>
               <nav className="flex-1 overflow-y-auto py-3 px-3">
-                {LINKS.map((link) => {
+                {visibleLinks.map((link) => {
                   const Icon = link.icon
                   const active = isActive(link.href)
                   return (
