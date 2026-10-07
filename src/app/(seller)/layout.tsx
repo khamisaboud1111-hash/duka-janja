@@ -55,7 +55,13 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
   }
 
   // If on dashboard and seller not yet loaded, show loader instead of redirecting
-  if (isDashboardPage && !seller) {
+  if (isDashboardPage && sellerLoading) {
+    return <PageLoader />
+  }
+
+  // If on dashboard and seller doesn't exist (not loading), redirect to store creation
+  if (isDashboardPage && !seller && !isStoreCreationFlow) {
+    router.push('/seller/settings?onboarding=true')
     return <PageLoader />
   }
 

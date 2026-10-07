@@ -10,6 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { EmptyState } from '@/components/ui';
 import { Skeleton } from '@/components/ui/Card';
 import type { Category } from '@/types';
+import { VoiceSearchInline } from '@/components/search/VoiceSearchButton';
 
 const POPULAR_SEARCHES = ['Karafuu', 'Kanga', 'Mafuta ya Nazi', 'Vazi la Kiislamu', 'Vikapu vya Ukili']
 
@@ -116,7 +117,7 @@ export default function ProductsPage() {
               onChange={(e) => setInputValue(e.target.value)}
               onFocus={() => setSuggestOpen(true)}
               placeholder={lang === 'sw' ? 'Tafuta bidhaa...' : 'Search products...'}
-              className="input pl-9 w-full"
+              className="input pl-9 w-full pr-12"
               autoComplete="off"
             />
             {inputValue && (
@@ -124,6 +125,7 @@ export default function ProductsPage() {
                 <X className="w-4 h-4" />
               </button>
             )}
+            <VoiceSearchInline onTranscript={(text) => { setInputValue(text); runSearch(text) }} className="absolute right-10 top-1/2 -translate-y-1/2" />
           </form>
 
           {suggestOpen && (

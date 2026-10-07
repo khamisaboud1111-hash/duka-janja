@@ -97,7 +97,7 @@ export function VoiceSearchButton({ onTranscript, className, size = 'md' }: Voic
 }
 
 // Inline variant for search bar
-export function VoiceSearchInline({ onTranscript }: { onTranscript: (text: string) => void }) {
+export function VoiceSearchInline({ onTranscript, className }: { onTranscript: (text: string) => void; className?: string }) {
   const { lang } = useLangStore()
   const { isListening, isSupported, startListening, stopListening, error, permissionDenied, permissionState } = useVoiceSearch({
     onResult: onTranscript,
@@ -111,7 +111,8 @@ export function VoiceSearchInline({ onTranscript }: { onTranscript: (text: strin
         aria-label={lang === 'sw' ? 'Tafuta kwa sauti haipatikani kwenye kivinjari hiki' : 'Voice search not supported in this browser'}
         className={cn(
           'p-2 rounded-xl transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center',
-          'bg-ink-100 dark:bg-ink-800 text-ink-400 dark:text-ink-500 cursor-not-allowed opacity-50'
+          'bg-ink-100 dark:bg-ink-800 text-ink-400 dark:text-ink-500 cursor-not-allowed opacity-50',
+          className
         )}
         title={lang === 'sw' ? 'Tafuta kwa sauti haipatikani kwenye kivinjari hiki' : 'Voice search not supported in this browser'}
       >
@@ -128,7 +129,8 @@ export function VoiceSearchInline({ onTranscript }: { onTranscript: (text: strin
         aria-label={lang === 'sw' ? 'Ruhusa ya sauti imekataliwa. Bonyeza kurejesha' : 'Microphone permission denied. Click to retry'}
         className={cn(
           'p-2 rounded-xl transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center',
-          'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/50'
+          'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/50',
+          className
         )}
         title={lang === 'sw' 
           ? 'Ruhusa ya sauti imekataliwa. Bonyeza ikoni ya sauti kwenye anwani ya kivinjari kurekebisha, kisha bonyeza tena.' 
@@ -150,7 +152,8 @@ export function VoiceSearchInline({ onTranscript }: { onTranscript: (text: strin
         isListening ? 'bg-red-50 dark:bg-red-950/30 text-red-600 animate-pulse' 
           : error ? 'bg-rose-50 dark:bg-rose-950/30 text-rose-600' 
           : isPrompting ? 'bg-blue-50 dark:bg-blue-950/30 text-blue-600 animate-pulse' 
-          : 'text-ink-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/20'
+          : 'text-ink-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-950/20',
+        className
       )}
       aria-label={lang === 'sw' ? 'Sauti' : 'Voice'}
       title={error || isPrompting 

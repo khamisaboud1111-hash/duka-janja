@@ -80,6 +80,20 @@ export default function SellerDashboardPage() {
 
   if (sellerLoading) return <PageLoader />
 
+  if (!seller) {
+    return (
+      <div className="p-6 max-w-lg mx-auto dark:bg-ink-950 min-h-screen">
+        <div className="card dark:bg-ink-900 dark:border-ink-800 p-6 border-l-4 border-amber-400">
+          <h2 className="font-bold text-lg text-ink-900 dark:text-white mb-2">Store Not Created Yet</h2>
+          <p className="text-sm text-ink-600 dark:text-ink-300 mb-4">
+            Complete your store setup to access the seller dashboard.
+          </p>
+          <Link href="/seller/settings?onboarding=true" className="btn-primary inline-flex">Create Store →</Link>
+        </div>
+      </div>
+    )
+  }
+
   if (seller?.status === 'pending') {
     return (
       <div className="p-6 max-w-lg mx-auto dark:bg-ink-950 min-h-screen">

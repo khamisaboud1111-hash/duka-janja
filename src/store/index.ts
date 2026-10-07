@@ -14,6 +14,11 @@ function detectLanguage(): Language {
   return 'en'
 }
 
+function getInitialLanguage(): Language {
+  // Stable initial value for SSR - will be updated on client after hydration
+  return 'sw'
+}
+
 // ─── Cart Store ───────────────────────────────────────────────────────────────
 
 interface CartStore {
@@ -104,8 +109,11 @@ export const useCartStore = create<CartStore>()(
             id: product.id,
             name: product.name,
             price: product.price,
+            compare_at_price: product.compare_at_price,
+            stock_quantity: product.stock_quantity,
             seller_id: product.seller_id,
             seller: product.seller ? { store_name: product.seller.store_name } : undefined,
+            images: product.images?.map(img => ({ url: img.url, is_primary: img.is_primary })) ?? [],
           },
           quantity,
         })),
@@ -148,13 +156,15 @@ function applyDir(lang: Language) {
 
 interface LangStore {
   lang: Language
+  hasHydrated: boolean
   setLang: (lang: Language) => void
 }
 
 export const useLangStore = create<LangStore>()(
   persist(
     (set) => ({
-      lang: detectLanguage(),
+      lang: getInitialLanguage(),
+      hasHydrated: false,
       setLang: (lang) => {
         applyDir(lang)
         set({ lang })
@@ -164,7 +174,10 @@ export const useLangStore = create<LangStore>()(
       name: 'duka-janja-lang',
       partialize: (state) => ({ lang: state.lang }),
       onRehydrateStorage: () => (state) => {
-        if (state) applyDir(state.lang)
+        if (state) {
+          applyDir(state.lang)
+          useLangStore.setState({ hasHydrated: true })
+        }
       },
     }
   )
