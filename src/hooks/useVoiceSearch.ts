@@ -17,6 +17,7 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
   const [isSupported, setIsSupported] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [permissionDenied, setPermissionDenied] = useState(false)
+  const [permissionState, setPermissionState] = useState<PermissionState | 'unknown'>('unknown')
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null)
 
@@ -47,6 +48,7 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
     recognition.onerror = (e: { error: string }) => {
       if (e.error === 'not-allowed' || e.error === 'permission-denied') {
         setPermissionDenied(true)
+        setPermissionState('denied')
         setError('Microphone permission denied. Please allow microphone access in browser settings.')
       } else if (e.error === 'no-speech') {
         setError('No speech detected. Please try again.')
@@ -65,6 +67,16 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
     }
   }, [onResult, displayLang])
 
+  // Check microphone permission state on mount
+  useEffect(() => {
+    if (navigator.permissions) {
+      navigator.permissions.query({ name: 'microphone' as PermissionName }).then(result => {
+        setPermissionState(result.state)
+        result.onchange = () => setPermissionState(result.state)
+      }).catch(() => setPermissionState('unknown'))
+    }
+  }, [])
+
   const startListening = useCallback(async () => {
     if (!recognitionRef.current || isListening) return
     
@@ -72,13 +84,26 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
     setPermissionDenied(false)
     
     try {
-      // Request microphone permission first
+      // Request microphone permission first - this triggers browser prompt
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
           stream.getTracks().forEach(track => track.stop())
-        } catch {
-          // Permission might be denied, but we'll let the speech recognition handle it
+          setPermissionState('granted')
+        } catch (err: any) {
+          if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+            setPermissionDenied(true)
+            setPermissionState('denied')
+            setError('Microphone access denied. Please click the microphone icon in your browser address bar to allow access, then try again.')
+            return
+          } else if (err.name === 'NotFoundError') {
+            setError('No microphone found. Please connect a microphone and try again.')
+            return
+          } else if (err.name === 'NotReadableError') {
+            setError('Microphone is in use by another application. Please close other apps using the microphone and try again.')
+            return
+          }
+          // For other errors, still try to start recognition
         }
       }
       
@@ -94,5 +119,5 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
     setIsListening(false)
   }, [])
 
-  return { isListening, isSupported, startListening, stopListening, error, permissionDenied }
+  return { isListening, isSupported, startListening, stopListening, error, permissionDenied, permissionState }
 }
