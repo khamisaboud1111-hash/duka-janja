@@ -169,7 +169,6 @@ export default function ProductsPage() {
                   <div className="grid grid-cols-2 gap-1">
                     {categories.slice(0, 6).map((cat) => (
                       <button key={cat.id} onClick={() => { setSuggestOpen(false); setParam('category', cat.slug) }} className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-ink-600 dark:text-ink-300 hover:bg-ink-50 dark:hover:bg-ink-800 transition-colors text-left">
-                        <span>{cat.icon}</span>
                         <span className="truncate">{cat.name_sw}</span>
                       </button>
                     ))}
@@ -189,7 +188,7 @@ export default function ProductsPage() {
           <div className="flex flex-wrap gap-2 mb-4">
             {q && <FilterChip label={`"${q}"`} onRemove={() => setParam('q', null)} />}
             {category && <FilterChip label={categories.find(c => c.slug === category)?.name_sw ?? category} onRemove={() => setParam('category', null)} />}
-            {madeInZnz && <FilterChip label="🏅 Imezalishwa Zanzibar" onRemove={() => setParam('made_in_zanzibar', null)} />}
+            {madeInZnz && <FilterChip label={t('madeInZanzibar', lang)} onRemove={() => setParam('made_in_zanzibar', null)} />}
             {sort !== 'newest' && <FilterChip label={sortLabel(sort)} onRemove={() => setParam('sort', null)} />}
             <button onClick={clearAll} className="text-xs text-red-500 dark:text-red-400 font-medium hover:underline px-1">{lang === 'sw' ? 'Futa chujio zote' : 'Clear all filters'}</button>
           </div>
@@ -200,11 +199,11 @@ export default function ProductsPage() {
             <div>
               <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{lang === 'sw' ? 'Aina' : 'Category'}</p>
               <div className="flex flex-wrap gap-1.5">
-                {categories.map((cat) => (
-                  <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)} className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
-                    {cat.icon} {cat.name_sw}
-                  </button>
-                ))}
+{categories.map((cat) => (
+                    <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)} className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>
+                      {cat.name_sw}
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -222,7 +221,7 @@ export default function ProductsPage() {
             <div>
               <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{lang === 'sw' ? 'Maalum' : 'Special'}</p>
               <button onClick={() => setParam('made_in_zanzibar', madeInZnz ? null : 'true')} className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${madeInZnz ? 'bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-600' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-amber-300'}`}>
-                🏅 {lang === 'sw' ? 'Imezalishwa Zanzibar' : 'Made in Zanzibar'}
+                {t('madeInZanzibar', lang)}
               </button>
             </div>
           </div>

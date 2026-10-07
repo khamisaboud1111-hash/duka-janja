@@ -17,7 +17,7 @@ import { cn } from '@/utils'
 import { VoiceSearchInline } from '@/components/search/VoiceSearchButton'
 
 const RECENT_KEY = 'dj_recent_searches'
-const POPULAR_SEARCHES = ['Karafuu', 'Kanga', 'Mafuta ya Nazi', 'Vazi la Kiislamu', 'Vikapu vya Ukili']
+const POPULAR_SEARCHES = ['Karafuu', 'Kanga', 'Mafuta ya Nazi', 'Vazi la Kiislamu', 'Vikapu vya Ukili', 'Electronics', 'Home & Garden', 'Beauty', 'Agriculture']
 
 function catName(cat: Category, lang: Language) {
   return lang === 'sw' ? cat.name_sw : cat.name_en
@@ -141,7 +141,7 @@ export default function SearchPage() {
                   : 'border-border text-muted-foreground hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-500/10'
               )}
             >
-              <span className="mr-1">{cat.icon}</span> {catName(cat, lang)}
+              {catName(cat, lang)}
             </motion.button>
           ))}
         </div>

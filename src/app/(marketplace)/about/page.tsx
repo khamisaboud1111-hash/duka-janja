@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Store, ShoppingBag, Package, Users, MapPin, Award, Globe } from "lucide-react";
@@ -6,23 +5,19 @@ import { createServerClient } from "@/lib/supabase/server";
 import LText from "@/components/shared/LText";
 
 async function getStats() {
-  try {
-    const supabase = createServerClient();
-    const [sellersRes, productsRes, ordersRes, ridersRes] = await Promise.all([
-      supabase.from("sellers").select("id", { count: "exact", head: true }).eq("status", "approved"),
-      supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "active"),
-      supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "delivered"),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "rider"),
-    ]);
-    return {
-      sellers: sellersRes.count ?? 0,
-      products: productsRes.count ?? 0,
-      orders: ordersRes.count ?? 0,
-      riders: ridersRes.count ?? 0,
-    };
-  } catch {
-    return { sellers: 0, products: 0, orders: 0, riders: 0 };
-  }
+  const supabase = createServerClient();
+  const [sellersRes, productsRes, ordersRes, ridersRes] = await Promise.all([
+    supabase.from("sellers").select("id", { count: "exact", head: true }).eq("status", "approved"),
+    supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "active"),
+    supabase.from("orders").select("id", { count: "exact", head: true }).eq("status", "delivered"),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "rider"),
+  ]);
+  return {
+    sellers: sellersRes.count ?? 0,
+    products: productsRes.count ?? 0,
+    orders: ordersRes.count ?? 0,
+    riders: ridersRes.count ?? 0,
+  };
 }
 
 const values = [
@@ -36,9 +31,8 @@ export default async function AboutPage() {
   const stats = await getStats();
 
   return (
-    <main className="min-h-screen pb-20 sm:pb-8">
+    <div className="min-h-screen pb-20 sm:pb-8">
       <div className="page-container py-8 sm:py-12">
-        {/* Hero Section */}
         <section className="text-center mb-16 sm:mb-24 animate-fade-up" style={{ animationDelay: '0.1s' }}>
           <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 text-xs font-semibold mb-4">
             <Globe className="w-3.5 h-3.5" />
@@ -54,7 +48,6 @@ export default async function AboutPage() {
           </p>
         </section>
 
-        {/* Stats */}
         <section className="mb-16 sm:mb-20">
           <div className="text-center mb-8">
             <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white mb-2">
@@ -116,7 +109,6 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* Our Story */}
         <section className="mb-16">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
             <div className="space-y-5">
@@ -144,7 +136,6 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* Mission */}
         <section className="mb-16">
           <div className="text-center mb-10">
             <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white mb-3">
@@ -156,7 +147,6 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* Values */}
         <section className="mb-16">
           <div className="text-center mb-10">
             <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white mb-3">
@@ -191,7 +181,6 @@ export default async function AboutPage() {
           </div>
         </section>
 
-        {/* CTA */}
         <section className="text-center bg-gradient-to-br from-brand-500 via-brand-600 to-amber-500 rounded-3xl p-8 sm:p-12 mb-6 animate-gradient-pan">
           <h2 className="font-display font-black text-2xl sm:text-3xl text-white mb-3">
             <LText k="aboutTeam" />
@@ -207,6 +196,6 @@ export default async function AboutPage() {
           </Link>
         </section>
       </div>
-    </main>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/Card';
 import type { Category } from '@/types';
 import SellerCard from '@/components/seller/SellerCard';
 
-const POPULAR_SEARCHES = ['Kanga', 'Kikapu', 'Vazi', 'Samani', 'Vifaa vya Nyumbani']
+const POPULAR_SEARCHES = ['Kanga', 'Kikapu', 'Vazi', 'Samani', 'Vifaa vya Nyumbani', 'Electronics', 'Home & Garden', 'Beauty', 'Agriculture']
 
 function getRecent(): string[] {
   if (typeof window === 'undefined') return []
@@ -110,7 +110,7 @@ export default function SellersPage() {
             <div>
               <p className="text-xs font-semibold text-ink-500 dark:text-ink-400 uppercase tracking-wide mb-2">{lang === 'sw' ? 'Aina' : 'Category'}</p>
               <div className="flex flex-wrap gap-1.5">
-                {categories.map((cat) => <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)} className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>{cat.icon} {cat.name_sw}</button>)}
+                {categories.map((cat) => <button key={cat.id} onClick={() => setParam('category', category === cat.slug ? null : cat.slug)} className={`text-xs px-3 py-1.5 rounded-full border font-medium transition-colors ${category === cat.slug ? 'bg-brand-500 text-white border-brand-500' : 'border-ink-200 dark:border-ink-700 text-ink-600 dark:text-ink-300 hover:border-brand-300'}`}>{cat.name_sw}</button>)}
               </div>
             </div>
             <div>

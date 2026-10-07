@@ -19,6 +19,7 @@ import type { Product } from '@/types'
 import Link from 'next/link'
 import type { HomeStats } from '@/components/home/HeroSection'
 import { SectionErrorBoundary } from '@/components/shared/SectionErrorBoundary'
+import Footer from '@/components/layout/Footer'
 
 export const dynamic = 'force-dynamic'
 
@@ -228,6 +229,7 @@ export default async function MarketplaceHomePage() {
       <SectionErrorBoundary name="WhatsAppButton">
         <WhatsAppButton />
       </SectionErrorBoundary>
+      <Footer />
     </>
   )
 }

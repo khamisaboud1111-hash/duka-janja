@@ -53,7 +53,7 @@ const contactMethods = [
     icon: Phone,
     title: "contactPhoneTitle",
     desc: "contactPhoneDesc",
-    value: "+255 777 000 000",
+    value: "0719488073",
     color: "from-emerald-500 to-teal-400",
   },
   {

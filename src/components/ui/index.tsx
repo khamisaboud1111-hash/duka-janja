@@ -1,4 +1,14 @@
 import { cn } from '@/utils'
+import { Button } from './Button'
+import { Input } from './Input'
+import { Textarea } from './Input'
+import { Select } from './Input'
+
+// Re-export UI primitives
+export { Button }
+export { Input }
+export { Textarea }
+export { Select }
 
 interface StatCardProps {
   label: string
