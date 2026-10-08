@@ -59,12 +59,6 @@ export default function SellerLayout({ children }: { children: React.ReactNode }
     return <PageLoader />
   }
 
-  // If on dashboard and seller doesn't exist (not loading), redirect to store creation
-  if (isDashboardPage && !seller && !isStoreCreationFlow) {
-    router.push('/seller/settings?onboarding=true')
-    return <PageLoader />
-  }
-
   // If seller record exists but is not approved, show pending state
   if (seller && seller.status !== 'approved' && !isStoreCreationFlow) {
     return (
