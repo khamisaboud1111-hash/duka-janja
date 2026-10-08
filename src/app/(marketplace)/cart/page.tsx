@@ -124,13 +124,14 @@ export default function CartPage() {
                         className="card p-4 flex gap-3 group"
                       >
                         <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-ink-100 flex-shrink-0">
-                          {img ? (
+                          {img?.url ? (
                             <Image
                               src={img.url}
                               alt={product.name}
                               fill
                               sizes="80px"
                               className="object-cover"
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
                             />
                           ) : (
                             <Package className="absolute inset-0 m-auto w-6 h-6 text-ink-300" />
@@ -142,7 +143,7 @@ export default function CartPage() {
                             {product.name}
                           </p>
                           <p className="text-xs text-ink-400">
-                            {product.seller?.store_name || ""}
+                            {product.seller?.store_name || product.seller_id || ""}
                           </p>
 
                           <div className="flex items-center gap-2">

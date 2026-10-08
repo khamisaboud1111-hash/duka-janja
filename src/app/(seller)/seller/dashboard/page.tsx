@@ -24,6 +24,14 @@ export default function SellerDashboardPage() {
   const [notifications, setNotifications] = useState(5)
   const [walletBalance, setWalletBalance] = useState(0)
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+  const [showContent, setShowContent] = useState(false)
+
+  // Show content only after seller is fully loaded to prevent blink
+  useEffect(() => {
+    if (!sellerLoading) {
+      setShowContent(true)
+    }
+  }, [sellerLoading])
 
   // Load alerts when stats change
   useEffect(() => {
@@ -85,7 +93,7 @@ export default function SellerDashboardPage() {
     }
   }, [stats])
 
-  if (sellerLoading) return <PageLoader />
+  if (sellerLoading || !showContent) return <PageLoader />
 
   if (!seller) {
     return (
