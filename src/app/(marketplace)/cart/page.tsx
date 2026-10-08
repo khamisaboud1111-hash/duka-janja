@@ -106,9 +106,12 @@ export default function CartPage() {
               <div className="space-y-3">
                 <AnimatePresence>
                   {items.map(({ product, quantity }) => {
+                    // Defensive: ensure product has required fields
+                    if (!product || !product.id || !product.name) return null;
+                    
                     const img = product.images?.find((i) => i.is_primary) ?? product.images?.[0];
                     const hasDiscount = product.compare_at_price && product.compare_at_price > product.price;
-                    const itemTotal = product.price * quantity;
+                    const itemTotal = (product.price ?? 0) * quantity;
 
                     return (
                       <motion.div
