@@ -52,6 +52,10 @@ export function useVoiceSearch({ onResult, lang }: VoiceSearchOptions) {
         setError('Microphone permission denied. Please allow microphone access in browser settings.')
       } else if (e.error === 'no-speech') {
         setError('No speech detected. Please try again.')
+      } else if (e.error === 'language-not-supported') {
+        // Fallback to en-US if locale not supported
+        ;(recognition as unknown as { lang: string }).lang = 'en-US'
+        try { recognition.start() } catch {}
       } else {
         setError(`Voice recognition error: ${e.error}`)
       }
