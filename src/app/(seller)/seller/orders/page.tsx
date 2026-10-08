@@ -199,7 +199,6 @@ export default function SellerOrdersPage() {
         <VirtualList
           items={filteredOrders}
           itemHeight={280}
-          containerHeight={600}
           renderItem={(order) => {
             const sellerItems = order.items?.filter((i: any) => i.seller_id === seller?.id) ?? order.items ?? []
             const next = NEXT_STATUS[order.status]
@@ -329,7 +328,6 @@ export default function SellerOrdersPage() {
           }}
           itemKey={(order) => order.id}
           overscan={3}
-          containerHeight={600}
         />
       </div>
     );

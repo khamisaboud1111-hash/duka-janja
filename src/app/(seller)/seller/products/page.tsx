@@ -259,7 +259,6 @@ export default function SellerProductsPage() {
         <VirtualList
           items={filtered}
           itemHeight={320}
-          containerHeight={600}
           renderItem={(p) => {
             const img = p.images?.find(i => i.is_primary) ?? p.images?.[0]
             const isSelected = selected.has(p.id)
@@ -324,7 +323,6 @@ export default function SellerProductsPage() {
           }}
           itemKey={(p) => p.id}
           overscan={3}
-          containerHeight={600}
         />
       ) : (
         /* List View */

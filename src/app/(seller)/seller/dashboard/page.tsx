@@ -78,6 +78,13 @@ export default function SellerDashboardPage() {
     setDismissedAlerts(prev => new Set([...prev, id]))
   }
 
+  // Calculate wallet balance from stats (must be before early returns)
+  useEffect(() => {
+    if (stats) {
+      setWalletBalance(stats.walletBalance)
+    }
+  }, [stats])
+
   if (sellerLoading) return <PageLoader />
 
   if (!seller) {
@@ -107,13 +114,6 @@ export default function SellerDashboardPage() {
       </div>
     )
   }
-
-  // Calculate wallet balance from stats
-  useEffect(() => {
-    if (stats) {
-      setWalletBalance(stats.walletBalance)
-    }
-  }, [stats])
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto dark:bg-ink-950 min-h-screen">
