@@ -21,10 +21,10 @@ async function getStats() {
 }
 
 const values = [
-  { icon: Store, title: "value1", desc: "value1Desc", color: "from-brand-500 to-teal-400" },
-  { icon: Award, title: "value2", desc: "value2Desc", color: "from-amber-500 to-orange-400" },
-  { icon: ShoppingBag, title: "value3", desc: "value3Desc", color: "from-purple-500 to-pink-400" },
-  { icon: Users, title: "value4", desc: "value4Desc", color: "from-emerald-500 to-teal-400" },
+  { icon: Store, title: "aboutValue1", desc: "aboutValue1Desc", color: "from-brand-500 to-teal-400" },
+  { icon: Award, title: "aboutValue2", desc: "aboutValue2Desc", color: "from-amber-500 to-orange-400" },
+  { icon: ShoppingBag, title: "aboutValue3", desc: "aboutValue3Desc", color: "from-purple-500 to-pink-400" },
+  { icon: Users, title: "aboutValue4", desc: "aboutValue4Desc", color: "from-emerald-500 to-teal-400" },
 ];
 
 export default async function AboutPage() {
