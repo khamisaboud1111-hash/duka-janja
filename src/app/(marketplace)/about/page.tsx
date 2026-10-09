@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Store, ShoppingBag, Package, Users, MapPin, Award, Globe } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
-import { headers } from "next/headers";
+import { cookies } from "next/headers";
 import { t, type Language } from "@/i18n/translations";
 
 async function getStats() {
@@ -29,9 +29,9 @@ const values = [
 ];
 
 export default async function AboutPage() {
-  const headersList = await headers()
-  const acceptLang = headersList.get('accept-language') || 'en'
-  const lang = (acceptLang.split(',')[0].split('-')[0] as Language) || 'en'
+  const cookieStore = await cookies()
+  const langCookie = cookieStore.get('lang')?.value
+  const lang = (langCookie as Language) || 'en'
   
   const stats = await getStats();
 
