@@ -31,7 +31,7 @@ const values = [
 export default async function AboutPage() {
   const cookieStore = await cookies()
   const langCookie = cookieStore.get('lang')?.value
-  const lang = (langCookie as Language) || 'en'
+  const lang: Language = (langCookie as Language) || 'sw'
   
   const stats = await getStats();
 
