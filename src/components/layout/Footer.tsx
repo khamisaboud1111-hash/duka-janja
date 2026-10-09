@@ -1,12 +1,7 @@
-"use client";
-
-import { useRef } from "react";
 import Link from "next/link";
-import { Send, MapPin, Phone, Mail, Facebook, Instagram, Twitter, Linkedin } from "lucide-react";
-import toast from "react-hot-toast";
+import { MapPin, Mail, Send } from "lucide-react";
 
 export default function Footer() {
-  const emailInput = useRef<HTMLInputElement>(null);
   const socialLinks = [
     { icon: "📘", href: "https://facebook.com/dukajanja", label: "Facebook" },
     { icon: "📷", href: "https://instagram.com/dukajanja", label: "Instagram" },
@@ -59,39 +54,8 @@ export default function Footer() {
               Your trusted marketplace in Zanzibar
             </p>
 
-            <form
-              className="flex gap-2"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const email = emailInput.current?.value?.trim();
-                if (!email) return;
-                alert("Subscribed!");
-                emailInput.current.value = "";
-              }}
-            >
-              <input
-                ref={emailInput}
-                type="email"
-                placeholder="Enter your email"
-                className="bg-white dark:bg-ink-800 border-ink-200 dark:border-ink-700 text-ink-900 dark:text-ink-100 placeholder:text-ink-400 focus:ring-brand-500 min-w-[220px] px-4 py-2 rounded-xl"
-                aria-label="Email address"
-              />
-              <button
-                type="submit"
-                className="bg-brand-500 text-white px-4 py-2 rounded-xl font-semibold hover:bg-brand-600 transition-colors"
-                aria-label="Subscribe"
-              >
-                Subscribe
-              </button>
-            </form>
-
             <div className="flex items-center gap-2 pt-2">
-              {[
-                { icon: "📘", href: "https://facebook.com/dukajanja", label: "Facebook" },
-                { icon: "📷", href: "https://instagram.com/dukajanja", label: "Instagram" },
-                { icon: "🐦", href: "https://twitter.com/dukajanja", label: "Twitter" },
-                { icon: "💼", href: "https://linkedin.com/company/dukajanja", label: "LinkedIn" },
-              ].map((social) => (
+              {socialLinks.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
@@ -149,15 +113,15 @@ export default function Footer() {
               </h4>
               <div className="space-y-2.5 text-sm">
                 <div className="flex items-start gap-3">
-                  <span className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0">📍</span>
+                  <MapPin className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" />
                   <span className="text-ink-600 dark:text-ink-300">Zanzibar, Tanzania</span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0">📱</span>
+                  <Send className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" />
                   <span className="text-ink-600 dark:text-ink-300">WhatsApp: 0719488073</span>
                 </div>
                 <div className="flex items-start gap-3">
-                  <span className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0">✉️</span>
+                  <Mail className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" />
                   <span className="text-ink-600 dark:text-ink-300">info@dukajanja.co.tz</span>
                 </div>
               </div>
