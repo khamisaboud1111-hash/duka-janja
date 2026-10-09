@@ -2,7 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { Store, ShoppingBag, Package, Users, MapPin, Award, Globe } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
-import LText from "@/components/shared/LText";
+import { headers } from "next/headers";
+import { t, type Language } from "@/i18n/translations";
 
 async function getStats() {
   const supabase = createServerClient();
@@ -28,30 +29,34 @@ const values = [
 ];
 
 export default async function AboutPage() {
+  const headersList = await headers()
+  const acceptLang = headersList.get('accept-language') || 'en'
+  const lang = (acceptLang.split(',')[0].split('-')[0] as Language) || 'en'
+  
   const stats = await getStats();
 
   return (
     <div className="min-h-screen pb-20 sm:pb-8">
       <div className="page-container py-8 sm:py-12">
         <section className="text-center mb-16 sm:mb-24 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 text-xs font-semibold mb-4">
-            <Globe className="w-3.5 h-3.5" />
-            <LText k="about" />
-          </span>
+<span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-brand-100 dark:bg-brand-500/15 text-brand-700 dark:text-brand-300 text-xs font-semibold mb-4">
+              <Globe className="w-3.5 h-3.5" />
+              {t("about", lang)}
+            </span>
 
-          <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-ink-900 dark:text-white leading-tight mb-4">
-            <LText k="aboutTitle" />
-          </h1>
+            <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-ink-900 dark:text-white leading-tight mb-4">
+              {t("aboutTitle", lang)}
+            </h1>
 
-          <p className="text-ink-500 dark:text-ink-300 text-sm sm:text-base max-w-2xl mx-auto">
-            <LText k="aboutSubtitle" />
-          </p>
+            <p className="text-ink-500 dark:text-ink-300 text-sm sm:text-base max-w-2xl mx-auto">
+              {t("aboutSubtitle", lang)}
+            </p>
         </section>
 
         <section className="mb-16 sm:mb-20">
           <div className="text-center mb-8">
             <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white mb-2">
-              <LText k="aboutStatsTitle" />
+              {t("aboutStatsTitle", lang)}
             </h2>
             <p className="text-sm text-ink-500 dark:text-ink-400">
               Numbers that tell our story
@@ -67,7 +72,7 @@ export default async function AboutPage() {
                 {stats.products.toLocaleString()}+
               </div>
               <p className="text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wider">
-                <LText k="aboutStatProducts" />
+                {t("aboutStatProducts", lang)}
               </p>
             </div>
 
@@ -79,7 +84,7 @@ export default async function AboutPage() {
                 {stats.sellers.toLocaleString()}+
               </div>
               <p className="text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wider">
-                <LText k="aboutStatSellers" />
+                {t("aboutStatSellers", lang)}
               </p>
             </div>
 
@@ -91,7 +96,7 @@ export default async function AboutPage() {
                 {stats.orders.toLocaleString()}+
               </div>
               <p className="text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wider">
-                <LText k="aboutStatOrders" />
+                {t("aboutStatOrders", lang)}
               </p>
             </div>
 
@@ -103,7 +108,7 @@ export default async function AboutPage() {
                 {stats.riders.toLocaleString()}+
               </div>
               <p className="text-xs text-ink-500 dark:text-ink-400 uppercase tracking-wider">
-                <LText k="aboutStatRiders" />
+                {t("aboutStatRiders", lang)}
               </p>
             </div>
           </div>
@@ -113,10 +118,10 @@ export default async function AboutPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 items-center">
             <div className="space-y-5">
               <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white">
-                <LText k="aboutOurStory" />
+                {t("aboutOurStory", lang)}
               </h2>
               <p className="text-ink-600 dark:text-ink-300 leading-relaxed">
-                <LText k="aboutStoryDesc" />
+                {t("aboutStoryDesc", lang)}
               </p>
             </div>
             <div className="relative">
@@ -139,10 +144,10 @@ export default async function AboutPage() {
         <section className="mb-16">
           <div className="text-center mb-10">
             <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white mb-3">
-              <LText k="aboutMission" />
+              {t("aboutMission", lang)}
             </h2>
             <p className="text-ink-500 dark:text-ink-300 max-w-2xl mx-auto">
-              <LText k="aboutMissionDesc" />
+              {t("aboutMissionDesc", lang)}
             </p>
           </div>
         </section>
@@ -150,7 +155,7 @@ export default async function AboutPage() {
         <section className="mb-16">
           <div className="text-center mb-10">
             <h2 className="font-display font-bold text-xl sm:text-2xl text-ink-900 dark:text-white mb-3">
-              <LText k="aboutValues" />
+              {t("aboutValues", lang)}
             </h2>
             <p className="text-ink-500 dark:text-ink-300 max-w-2xl mx-auto">
               The principles that guide everything we build
@@ -171,10 +176,10 @@ export default async function AboutPage() {
                   <value.icon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="font-display font-bold text-lg text-ink-900 dark:text-white mb-2">
-                  <LText k={value.title} />
+                  {t(value.title, lang)}
                 </h3>
                 <p className="text-xs text-ink-500 dark:text-ink-400">
-                  <LText k={value.desc} />
+                  {t(value.desc, lang)}
                 </p>
               </div>
             ))}
@@ -183,16 +188,16 @@ export default async function AboutPage() {
 
         <section className="text-center bg-gradient-to-br from-brand-500 via-brand-600 to-amber-500 rounded-3xl p-8 sm:p-12 mb-6 animate-gradient-pan">
           <h2 className="font-display font-black text-2xl sm:text-3xl text-white mb-3">
-            <LText k="aboutTeam" />
+            {t("aboutTeam", lang)}
           </h2>
           <p className="text-white/85 text-sm sm:text-base max-w-md mx-auto mb-6">
-            <LText k="aboutTeamDesc" />
+            {t("aboutTeamDesc", lang)}
           </p>
           <Link
             href="/register"
             className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-600 font-bold rounded-xl hover:bg-brand-50 transition-all shadow-lg shadow-brand-500/30 hover:shadow-brand-500/50 active:scale-95"
           >
-            <LText k="startShopping" />
+            {t("startShopping", lang)}
           </Link>
         </section>
       </div>
