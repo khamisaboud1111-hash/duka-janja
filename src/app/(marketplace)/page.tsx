@@ -10,7 +10,6 @@ import ShippingSteps from '@/components/home/ShippingSteps'
 import ZanzibarDiscovery from '@/components/home/ZanzibarDiscovery'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
-import WhatsAppButton from '@/components/home/WhatsAppButton'
 import ReelsFeed from '@/components/reels/ReelsFeed'
 import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
@@ -235,10 +234,6 @@ export default async function MarketplaceHomePage() {
             </div>
           </div>
         </section>
-      </SectionErrorBoundary>
-
-      <SectionErrorBoundary name="WhatsAppButton">
-        <WhatsAppButton />
       </SectionErrorBoundary>
       <Footer />
     </>
