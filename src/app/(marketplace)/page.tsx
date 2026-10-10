@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
 import { createServerClient } from '@/lib/supabase/server'
 import { cookies } from 'next/headers'
 import HeroSection from '@/components/home/HeroSection'
