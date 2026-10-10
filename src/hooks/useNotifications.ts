@@ -116,5 +116,15 @@ export function useNotifications() {
     }
   }
 
-  return { notifications, unreadCount, loading, error, markRead, markAllRead, refetch: fetch }
+  async function deleteNotification(id: string) {
+    try {
+      await supabase.from('notifications').delete().eq('id', id)
+      setNotifications((prev) => prev.filter((n) => n.id !== id))
+      setUnreadCount((c) => Math.max(0, c - 1))
+    } catch (err) {
+      console.error('deleteNotification error:', err)
+    }
+  }
+
+  return { notifications, unreadCount, loading, error, markRead, markAllRead, deleteNotification, refetch: fetch }
 }

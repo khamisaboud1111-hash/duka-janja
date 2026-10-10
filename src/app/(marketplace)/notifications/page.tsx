@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Bell, CheckCheck } from 'lucide-react'
 import Link from 'next/link'
 import { useNotifications } from '@/hooks/useNotifications'
