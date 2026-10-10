@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { createServerClient } from '@/lib/supabase/server'
+import { cookies } from 'next/headers'
 import HeroSection from '@/components/home/HeroSection'
 import QuickActionsCard from '@/components/home/QuickActionsCard'
 import TrustBadges from '@/components/home/TrustBadges'
@@ -19,6 +20,8 @@ import Link from 'next/link'
 import type { HomeStats } from '@/components/home/HeroSection'
 import { SectionErrorBoundary } from '@/components/shared/SectionErrorBoundary'
 import Footer from '@/components/layout/Footer'
+import MobileLanguageSelector from '@/components/layout/MobileLanguageSelector'
+import { t, type Language } from '@/i18n/translations'
 
 export const dynamic = 'force-dynamic'
 
@@ -109,6 +112,10 @@ async function getTestimonials() {
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export default async function MarketplaceHomePage() {
+  const cookieStore = await cookies()
+  const langCookie = cookieStore.get('lang')?.value
+  const lang: Language = (langCookie as Language) || 'sw'
+  
   const [stats, featuredSellers, recentProducts, categories, testimonials] = await Promise.all([
     getStats(),
     getFeaturedSellers(),
@@ -119,6 +126,7 @@ export default async function MarketplaceHomePage() {
 
   return (
     <>
+      <MobileLanguageSelector />
       <SectionErrorBoundary name="HeroSection">
         <HeroSection stats={stats} />
       </SectionErrorBoundary>
@@ -150,10 +158,10 @@ export default async function MarketplaceHomePage() {
               <section className="section">
                 <div className="page-container">
                   <SectionHeading
-                    title={<LText k="newProducts" />}
+                    title={t("newProducts", lang)}
                     action={
                       <Link href="/search?sort=newest" className="text-sm font-semibold text-brand-600 dark:text-brand-300 whitespace-nowrap hover:underline">
-                        <LText k="seeAll" /> →
+                        {t("seeAll", lang)} →
                       </Link>
                     }
                     className="mb-4"
@@ -205,20 +213,20 @@ export default async function MarketplaceHomePage() {
           <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-white/10 animate-pulse-glow" style={{ animationDelay: '2s' }} />
           <div className="page-container relative text-center">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 text-white/90 text-[11px] font-bold tracking-wide uppercase mb-4">
-              <LText k="limitedTimeOffer" />
+              {t("limitedTimeOffer", lang)}
             </span>
             <h2 className="font-display font-black text-2xl sm:text-3xl text-white mb-2">
-              <LText k="bottomCtaTitleV2" />
+              {t("bottomCtaTitleV2", lang)}
             </h2>
             <p className="text-white/85 text-sm sm:text-base mb-6 max-w-md mx-auto">
-              <LText k="bottomCtaSubtitleV2" />
+              {t("bottomCtaSubtitleV2", lang)}
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link href="/register" className="inline-flex items-center gap-2 px-6 py-3 bg-white text-brand-600 font-bold rounded-xl text-sm hover:bg-brand-50 transition-all shadow-lg hover:-translate-y-0.5 active:scale-95">
-                <LText k="gs1Cta" />
+                {t("gs1Cta", lang)}
               </Link>
               <Link href="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-white/15 text-white font-semibold rounded-xl text-sm hover:bg-white/25 transition-all border border-white/30 hover:-translate-y-0.5 active:scale-95">
-                <LText k="browse" />
+                {t("browse", lang)}
               </Link>
             </div>
           </div>
