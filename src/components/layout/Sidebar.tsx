@@ -236,39 +236,8 @@ export default function Sidebar() {
                 })}
               </nav>
 
-              {/* Language + theme controls */}
-              <div className="border-t border-ink-100 dark:border-ink-800 p-4 space-y-2">
-                <button
-                  onClick={() => setLangOpen((v) => !v)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-sm font-medium hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
-                >
-                  <Languages className="w-5 h-5" />
-                  <span>{t('language', lang)}</span>
-                  <ChevronDown className={cn('w-4 h-4 ml-auto transition-transform', langOpen && 'rotate-180')} />
-                </button>
-                {langOpen && (
-                  <div className="space-y-1 pl-1">
-                    {LANGUAGES.map((l) => (
-                      <button
-                        key={l.code}
-                        onClick={() => {
-                          setLang(l.code)
-                          setLangOpen(false)
-                        }}
-                        className={cn(
-                          'w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-colors',
-                          lang === l.code
-                            ? 'bg-brand-50 dark:bg-brand-500/15 text-brand-600 dark:text-brand-300 font-semibold'
-                            : 'text-ink-700 dark:text-ink-200 hover:bg-ink-50 dark:hover:bg-ink-800'
-                        )}
-                      >
-                        <Flag code={l.code} />
-                        <span className="flex-1 text-left">{l.label}</span>
-                        {lang === l.code && <Check className="w-4 h-4" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+              {/* Theme control only on mobile - language is in top bar */}
+              <div className="border-t border-ink-100 dark:border-ink-800 p-4">
                 <button
                   onClick={toggleTheme}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-ink-50 dark:bg-ink-800 text-ink-700 dark:text-ink-200 text-sm font-medium hover:bg-ink-100 dark:hover:bg-ink-700 transition-colors"
