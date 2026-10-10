@@ -11,6 +11,7 @@ import ZanzibarDiscovery from '@/components/home/ZanzibarDiscovery'
 import CategoryGrid from '@/components/home/CategoryGrid'
 import TestimonialsSection from '@/components/home/TestimonialsSection'
 import WhatsAppButton from '@/components/home/WhatsAppButton'
+import ReelsFeed from '@/components/reels/ReelsFeed'
 import { FadeInView, StaggerGrid, StaggerItem } from '@/components/shared/FadeInView'
 import ProductCard from '@/components/product/ProductCard'
 import { SectionHeading } from '@/components/shared/SectionHeading'
@@ -202,11 +203,14 @@ export default async function MarketplaceHomePage() {
         <TestimonialsSection testimonials={testimonials} />
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="ZanzibarDiscovery">
+<SectionErrorBoundary name="ZanzibarDiscovery">
         <ZanzibarDiscovery />
       </SectionErrorBoundary>
 
-      {/* Bottom CTA */}
+      <SectionErrorBoundary name="ReelsFeed">
+        <ReelsFeed />
+      </SectionErrorBoundary>
+
       <SectionErrorBoundary name="BottomCTA">
         <section className="relative isolate overflow-hidden bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 py-14 sm:py-16 animate-gradient-pan">
           <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 animate-pulse-glow" />
