@@ -701,6 +701,11 @@ export const sw: Record<TranslationKey, string> = {
     description: 'Samahani, hitilafu imetokea. Tafadhali jaribu tena.',
     retryLabel: 'Jaribu tena',
   },
+
+  // Section Error Boundary
+  somethingWentWrong: 'Kitu kimekosea',
+  errorOccurred: 'Samahani, hitilafu imetokea.',
+  tryAgain: 'Jaribu tena',
 } as const
 
 

@@ -698,6 +698,11 @@ export const en = {
     description: 'Sorry, an error occurred. Please try again.',
     retryLabel: 'Try again',
   },
+
+  // Section Error Boundary
+  somethingWentWrong: 'Something went wrong',
+  errorOccurred: 'Sorry, an error occurred.',
+  tryAgain: 'Try again',
 // Help pages
   sellerHelp: 'Seller Help',
   sellerHelpSubtitle: 'Find answers to common questions about selling on Duka Janja.',

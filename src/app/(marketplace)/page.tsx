@@ -127,30 +127,30 @@ export default async function MarketplaceHomePage() {
   return (
     <>
       <MobileLanguageSelector />
-      <SectionErrorBoundary name="HeroSection">
+      <SectionErrorBoundary name="HeroSection" lang={lang}>
         <HeroSection stats={stats} />
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="QuickActionsCard">
+      <SectionErrorBoundary name="QuickActionsCard" lang={lang}>
         <QuickActionsCard />
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="TrustBadges">
+      <SectionErrorBoundary name="TrustBadges" lang={lang}>
         <FadeInView>
           <TrustBadges />
         </FadeInView>
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="GetStartedSteps">
+      <SectionErrorBoundary name="GetStartedSteps" lang={lang}>
         <GetStartedSteps />
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="CategoryGrid">
+      <SectionErrorBoundary name="CategoryGrid" lang={lang}>
         <CategoryGrid categories={categories} />
       </SectionErrorBoundary>
 
       {recentProducts.length > 0 && (
-        <SectionErrorBoundary name="NewProducts">
+        <SectionErrorBoundary name="NewProducts" lang={lang}>
           <FadeInView>
             <React.Suspense fallback={
               <div className="section"><SkeletonGrid count={4} className="grid-cols-2 sm:grid-cols-4" /></div>
@@ -180,7 +180,7 @@ export default async function MarketplaceHomePage() {
         </SectionErrorBoundary>
       )}
 
-      <SectionErrorBoundary name="FeaturedSellersShowcase">
+      <SectionErrorBoundary name="FeaturedSellersShowcase" lang={lang}>
         <FadeInView>
           <React.Suspense fallback={<div className="h-64 w-full rounded-2xl bg-muted animate-pulse" />}>
             <FeaturedSellersShowcase sellers={featuredSellers} />
@@ -188,7 +188,7 @@ export default async function MarketplaceHomePage() {
         </FadeInView>
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="ShippingSteps">
+      <SectionErrorBoundary name="ShippingSteps" lang={lang}>
         <FadeInView>
           <section className="section">
             <div className="page-container">
@@ -198,19 +198,19 @@ export default async function MarketplaceHomePage() {
         </FadeInView>
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="TestimonialsSection">
+      <SectionErrorBoundary name="TestimonialsSection" lang={lang}>
         <TestimonialsSection testimonials={testimonials} />
       </SectionErrorBoundary>
 
-<SectionErrorBoundary name="ZanzibarDiscovery">
-        <ZanzibarDiscovery />
+      <SectionErrorBoundary name="ZanzibarDiscovery" lang={lang}>
+        <ZanzibarDiscovery lang={lang} />
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="ReelsFeed">
-        <ReelsFeed />
+      <SectionErrorBoundary name="ReelsFeed" lang={lang}>
+        <ReelsFeed lang={lang} />
       </SectionErrorBoundary>
 
-      <SectionErrorBoundary name="BottomCTA">
+      <SectionErrorBoundary name="BottomCTA" lang={lang}>
         <section className="relative isolate overflow-hidden bg-gradient-to-r from-brand-600 via-brand-500 to-amber-500 py-14 sm:py-16 animate-gradient-pan">
           <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-white/10 animate-pulse-glow" />
           <div className="absolute -bottom-12 -right-12 w-48 h-48 rounded-full bg-white/10 animate-pulse-glow" style={{ animationDelay: '2s' }} />

@@ -1,7 +1,6 @@
 'use client'
 
-import { useLangStore } from '@/store'
-import { t, type TranslationKey } from '@/i18n/translations'
+import { t, type TranslationKey, type Language } from '@/i18n/translations'
 import { MapPin, Star, Heart, Leaf, Waves, Sun, Camera, Building2 } from 'lucide-react'
 
 interface Place {
@@ -49,8 +48,11 @@ function getPlaceColor(index: number): string {
   return colors[index % 5]
 }
 
-export default function ZanzibarDiscovery() {
-  const lang = useLangStore((s) => s.lang)
+interface ZanzibarDiscoveryProps {
+  lang: Language
+}
+
+export default function ZanzibarDiscovery({ lang }: ZanzibarDiscoveryProps) {
   return (
     <section className="section dark:bg-ink-950">
       <div className="page-container">

@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { Heart, MessageCircle, Share2, ShoppingBag, MoreHorizontal, Loader2, Play, Pause, Volume2, VolumeX, CheckCircle } from 'lucide-react'
 import { cn } from '@/utils'
-import { useLangStore } from '@/store'
-import { t } from '@/i18n/translations'
+import { t, type Language } from '@/i18n/translations'
 import { formatTZS } from '@/utils'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -40,10 +39,10 @@ interface ReelsFeedProps {
   initialReels?: Reel[]
   hashtag?: string
   sellerId?: string
+  lang: Language
 }
 
-export default function ReelsFeed({ initialReels = [], hashtag, sellerId }: ReelsFeedProps) {
-  const { lang } = useLangStore()
+export default function ReelsFeed({ initialReels = [], hashtag, sellerId, lang }: ReelsFeedProps) {
   const { profile, loading: userLoading } = useUser()
   const [reels, setReels] = useState<Reel[]>(initialReels)
   const [loading, setLoading] = useState(false)

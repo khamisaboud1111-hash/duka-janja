@@ -1,14 +1,14 @@
 'use client'
 
-import { useEffect, useState, Component, ReactNode } from 'react'
+import { Component, ReactNode } from 'react'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { useLangStore } from '@/store'
-import { t } from '@/i18n/translations'
+import { t, type Language } from '@/i18n/translations'
 
 interface Props {
   children: ReactNode
   fallback?: ReactNode
   name?: string
+  lang?: Language
 }
 
 interface State {
@@ -33,14 +33,14 @@ export class SectionErrorBoundary extends Component<Props, State> {
         return this.props.fallback
       }
 
-      const { lang } = useLangStore.getState()
+      const lang = this.props.lang || 'sw'
       return (
         <div className="section">
           <div className="page-container">
             <ErrorState
-              title="Kitu kimekosea"
-              description={this.state.error?.message || "Samahani, hitilafu imetokea."}
-              retryLabel="Jaribu tena"
+              title={t('somethingWentWrong', lang)}
+              description={this.state.error?.message || t('errorOccurred', lang)}
+              retryLabel={t('tryAgain', lang)}
               onClick={() => this.setState({ hasError: false, error: null })}
             />
           </div>
@@ -52,6 +52,6 @@ export class SectionErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default function withSectionErrorBoundary(children: ReactNode, name?: string) {
-  return <SectionErrorBoundary name={name}>{children}</SectionErrorBoundary>
+export default function withSectionErrorBoundary(children: ReactNode, name?: string, lang?: Language) {
+  return <SectionErrorBoundary name={name} lang={lang}>{children}</SectionErrorBoundary>
 }
