@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { t, type TranslationKey, type Language } from '@/i18n/translations'
 import { MapPin, Star, Heart, Leaf, Waves, Sun, Camera, Building2 } from 'lucide-react'
 
