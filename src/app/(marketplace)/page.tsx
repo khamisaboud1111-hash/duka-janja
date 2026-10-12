@@ -152,7 +152,7 @@ export default async function MarketplaceHomePage() {
       {recentProducts.length > 0 && (
         <SectionErrorBoundary name="NewProducts">
           <FadeInView>
-            <Suspense fallback={
+            <React.Suspense fallback={
               <div className="section"><SkeletonGrid count={4} className="grid-cols-2 sm:grid-cols-4" /></div>
             }>
               <section className="section">
@@ -175,16 +175,16 @@ export default async function MarketplaceHomePage() {
                   </StaggerGrid>
                 </div>
               </section>
-            </Suspense>
+            </React.Suspense>
           </FadeInView>
         </SectionErrorBoundary>
       )}
 
       <SectionErrorBoundary name="FeaturedSellersShowcase">
         <FadeInView>
-          <Suspense fallback={<div className="h-64 w-full rounded-2xl bg-muted animate-pulse" />}>
+          <React.Suspense fallback={<div className="h-64 w-full rounded-2xl bg-muted animate-pulse" />}>
             <FeaturedSellersShowcase sellers={featuredSellers} />
-          </Suspense>
+          </React.Suspense>
         </FadeInView>
       </SectionErrorBoundary>
 

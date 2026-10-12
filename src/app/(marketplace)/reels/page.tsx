@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useSearchParams } from 'next/navigation'
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { PageLoader } from '@/components/ui'
 import { useLangStore } from '@/store'
@@ -26,12 +26,12 @@ export default function ReelsPage() {
 
   return (
     <main className="h-screen w-full overflow-hidden bg-black">
-      <Suspense fallback={<PageLoader />}>
+      <React.Suspense fallback={<PageLoader />}>
         <ReelsFeed
           hashtag={hashtag}
           sellerId={sellerId}
         />
-      </Suspense>
+      </React.Suspense>
     </main>
   )
 }

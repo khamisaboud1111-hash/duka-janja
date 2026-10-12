@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import React, { Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import OnboardingCard, { type OnboardingMode, type AccountRole } from '@/components/onboarding/OnboardingCard'
 import { SimplifiedOnboarding } from '@/components/onboarding/SimplifiedOnboarding'
@@ -35,8 +35,8 @@ function OnboardingInner() {
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={null}>
+    <React.Suspense fallback={null}>
       <OnboardingInner />
-    </Suspense>
+    </React.Suspense>
   )
 }
