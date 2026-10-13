@@ -187,6 +187,12 @@ export const useLangStore = create<LangStore>()(
 
 export type Theme = 'light' | 'dark'
 
+function readThemeCookie(): Theme {
+  if (typeof document === 'undefined') return 'light'
+  const cookie = document.cookie.split('; ').find(row => row.startsWith('theme='))
+  return cookie?.split('=')[1] === 'dark' ? 'dark' : 'light'
+}
+
 function applyTheme(theme: Theme) {
   if (typeof document !== 'undefined') {
     document.documentElement.classList.toggle('dark', theme === 'dark')
@@ -203,36 +209,27 @@ interface ThemeStore {
   toggleHighContrast: () => void
 }
 
+// NO persist - use cookie only for SSR/client sync
 export const useThemeStore = create<ThemeStore>()(
-  persist(
-    (set, get) => ({
-      theme: 'light',
-      hasHydrated: false,
-      highContrast: false,
-      toggleTheme: () => {
-        const next: Theme = get().theme === 'light' ? 'dark' : 'light'
-        applyTheme(next)
-        set({ theme: next })
-      },
-      setTheme: (theme) => {
-        applyTheme(theme)
-        set({ theme })
-      },
-      toggleHighContrast: () => {
-        const next = !get().highContrast
-        if (typeof document !== 'undefined') {
-          document.documentElement.classList.toggle('high-contrast', next)
-        }
-        set({ highContrast: next })
-      },
-    }),
-    {
-      name: 'duka-janja-theme',
-      partialize: (state) => ({ theme: state.theme, highContrast: state.highContrast }),
-      onRehydrateStorage: () => (state) => {
-        state?.setTheme(state.theme)
-        useThemeStore.setState({ hasHydrated: true })
-      },
-    }
-  )
+  (set, get) => ({
+    theme: readThemeCookie(),
+    hasHydrated: false,
+    highContrast: false,
+    toggleTheme: () => {
+      const next: Theme = get().theme === 'light' ? 'dark' : 'light'
+      applyTheme(next)
+      set({ theme: next })
+    },
+    setTheme: (theme) => {
+      applyTheme(theme)
+      set({ theme })
+    },
+    toggleHighContrast: () => {
+      const next = !get().highContrast
+      if (typeof document !== 'undefined') {
+        document.documentElement.classList.toggle('high-contrast', next)
+      }
+      set({ highContrast: next })
+    },
+  })
 )
