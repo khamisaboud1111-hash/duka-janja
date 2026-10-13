@@ -191,3 +191,11 @@
 [2026-10-13T19:25:16.647Z] [INFO] Worker testgaps completed in 8ms
 [2026-10-13T19:29:16.788Z] [INFO] Starting worker: audit (1/2 concurrent)
 [2026-10-13T19:29:16.790Z] [INFO] Worker audit completed in 11ms
+[2026-10-13T19:32:16.717Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-10-13T19:32:16.728Z] [INFO] Worker map completed in 44ms
+[2026-10-13T19:36:16.721Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-10-13T19:36:16.723Z] [INFO] Worker optimize completed in 25ms
+[2026-10-13T19:39:16.844Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-10-13T19:39:16.848Z] [INFO] Worker audit completed in 34ms
+[2026-10-13T19:45:16.671Z] [INFO] Starting worker: testgaps (1/2 concurrent)
+[2026-10-13T19:45:16.673Z] [INFO] Worker testgaps completed in 26ms
