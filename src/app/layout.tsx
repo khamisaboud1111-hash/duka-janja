@@ -8,7 +8,7 @@ import { GlobalErrorBoundary } from '@/components/shared/GlobalErrorBoundary'
 import GlobalErrorHandler from '@/components/shared/GlobalErrorHandler'
 import { QueryProvider } from '@/lib/query/provider'
 import { ServiceWorkerRegistration } from '@/components/shared/ServiceWorkerRegistration'
-import { ClientInitializer } from '@/components/shared/ClientInitializer'
+import { HydrationProvider } from '@/components/shared/HydrationProvider'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -116,50 +116,51 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
-        {/* Accessibility Skip Link */}
-        <a 
-          href="#main-content" 
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:font-semibold focus:rounded-lg focus:shadow-lg"
-        >
-          Rukia kwenye maudhui makuu (Skip to content)
-        </a>
+        <HydrationProvider>
+          {/* Accessibility Skip Link */}
+          <a 
+            href="#main-content" 
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:font-semibold focus:rounded-lg focus:shadow-lg"
+          >
+            Rukia kwenye maudhui makuu (Skip to content)
+          </a>
 
-        <ClientInitializer />
-        <PullToRefreshIndicator />
-        <GlobalErrorHandler />
-        <ServiceWorkerRegistration />
+          <PullToRefreshIndicator />
+          <GlobalErrorHandler />
+          <ServiceWorkerRegistration />
 
-        {/* Semantic main container wrapper */}
-        <main id="main-content">
-          <QueryProvider>
-            <GlobalErrorBoundary>
-              {children}
-            </GlobalErrorBoundary>
-          </QueryProvider>
-        </main>
+          {/* Semantic main container wrapper */}
+          <main id="main-content">
+            <QueryProvider>
+              <GlobalErrorBoundary>
+                {children}
+              </GlobalErrorBoundary>
+            </QueryProvider>
+          </main>
 
-        <Toaster 
-          position="top-center"
-          gutter={10}
-          reverseOrder={false}
-          toastOptions={{
-            duration: 3500,
-            success: {
-              duration: 2500,
-              style: { background: '#ecfdf5', color: '#065f46', border: '1px solid #10b981' }
-            },
-            error: {
-              duration: 5000,
-              style: { background: '#fef2f2', color: '#991b1b', border: '1px solid #ef4444' }
-            },
-            style: { 
-              borderRadius: '14px',
-              padding: '14px 18px',
-              fontWeight: 500,
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-            },
-          }}
-        />
+          <Toaster 
+            position="top-center"
+            gutter={10}
+            reverseOrder={false}
+            toastOptions={{
+              duration: 3500,
+              success: {
+                duration: 2500,
+                style: { background: '#ecfdf5', color: '#065f46', border: '1px solid #10b981' }
+              },
+              error: {
+                duration: 5000,
+                style: { background: '#fef2f2', color: '#991b1b', border: '1px solid #ef4444' }
+              },
+              style: { 
+                borderRadius: '14px',
+                padding: '14px 18px',
+                fontWeight: 500,
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+              },
+            }}
+          />
+        </HydrationProvider>
       </body>
     </html>
   )

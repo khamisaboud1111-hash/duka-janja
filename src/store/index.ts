@@ -3,22 +3,6 @@ import { persist } from 'zustand/middleware'
 import type { CartItem, Product } from '@/types'
 import type { Language } from '@/i18n/translations'
 
-// ─── Helpers ────────────────────────────────────────────────────────────────────
-
-function detectLanguage(): Language {
-  if (typeof navigator === 'undefined') return 'sw'
-  const lang = navigator.language.toLowerCase()
-  if (lang.startsWith('sw')) return 'sw'
-  if (lang.startsWith('ar')) return 'ar'
-  if (lang.startsWith('fr')) return 'fr'
-  return 'en'
-}
-
-function getInitialLanguage(): Language {
-  // Stable initial value for SSR - will be updated on client after hydration
-  return 'sw'
-}
-
 // ─── Cart Store ───────────────────────────────────────────────────────────────
 
 interface CartStore {
@@ -154,24 +138,15 @@ function applyDir(lang: Language) {
   }
 }
 
-function readLangCookie(): Language {
-  if (typeof document === 'undefined') return 'sw'
-  const cookie = document.cookie.split('; ').find(row => row.startsWith('lang='))
-  const val = cookie?.split('=')[1]
-  return (val === 'ar' || val === 'en' || val === 'fr') ? val : 'sw'
-}
-
 interface LangStore {
   lang: Language
-  hasHydrated: boolean
   setLang: (lang: Language) => void
 }
 
-// NO persist - ClientInitializer syncs from cookie after hydration
+// NO initial value - HydrationProvider initializes after hydration
 export const useLangStore = create<LangStore>()(
-  (set, get) => ({
-    lang: readLangCookie(),
-    hasHydrated: false,
+  (set) => ({
+    lang: 'sw', // Safe default for SSR, will be overridden by HydrationProvider
     setLang: (lang) => {
       applyDir(lang)
       set({ lang })
@@ -183,12 +158,6 @@ export const useLangStore = create<LangStore>()(
 
 export type Theme = 'light' | 'dark'
 
-function readThemeCookie(): Theme {
-  if (typeof document === 'undefined') return 'light'
-  const cookie = document.cookie.split('; ').find(row => row.startsWith('theme='))
-  return cookie?.split('=')[1] === 'dark' ? 'dark' : 'light'
-}
-
 function applyTheme(theme: Theme) {
   if (typeof document !== 'undefined') {
     document.documentElement.classList.toggle('dark', theme === 'dark')
@@ -198,24 +167,22 @@ function applyTheme(theme: Theme) {
 
 interface ThemeStore {
   theme: Theme
-  hasHydrated: boolean
   highContrast: boolean
   toggleTheme: () => void
   setTheme: (theme: Theme) => void
   toggleHighContrast: () => void
 }
 
-// NO persist - ClientInitializer syncs from cookie after hydration
+// NO initial value - HydrationProvider initializes after hydration
 export const useThemeStore = create<ThemeStore>()(
   (set, get) => ({
-    theme: readThemeCookie(),
-    hasHydrated: false,
+    theme: 'light', // Safe default for SSR, will be overridden by HydrationProvider
     highContrast: false,
-    toggleTheme: () => {
-      const next: Theme = get().theme === 'light' ? 'dark' : 'light'
+    toggleTheme: () => set((state) => {
+      const next: Theme = state.theme === 'light' ? 'dark' : 'light'
       applyTheme(next)
-      set({ theme: next })
-    },
+      return { theme: next }
+    }),
     setTheme: (theme) => {
       applyTheme(theme)
       set({ theme })
