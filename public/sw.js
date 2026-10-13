@@ -125,8 +125,8 @@ self.addEventListener('fetch', (event) => {
     // Next.js static assets - cache first
     event.respondWith(CACHE_STRATEGIES.cacheFirst(request, STATIC_CACHE));
   } else if (url.pathname === '/' || url.pathname.startsWith('/products') || url.pathname.startsWith('/seller') || url.pathname.startsWith('/rider')) {
-    // Page routes - stale while revalidate
-    event.respondWith(CACHE_STRATEGIES.staleWhileRevalidate(request, DYNAMIC_CACHE));
+    // Page routes - network first to avoid caching blank screens/broken deploys
+    event.respondWith(CACHE_STRATEGIES.networkFirst(request, DYNAMIC_CACHE));
   } else {
     // Default - network first
     event.respondWith(CACHE_STRATEGIES.networkFirst(request, DYNAMIC_CACHE));
