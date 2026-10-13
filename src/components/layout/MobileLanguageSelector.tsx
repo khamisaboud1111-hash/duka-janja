@@ -6,10 +6,10 @@ import { useLangStore } from "@/store"
 import { t, type Language } from "@/i18n/translations"
 
 const LANGUAGES = [
-  { code: "en", label: "English", nativeLabel: "English", flag: "US" },
-  { code: "sw", label: "Swahili", nativeLabel: "Kiswahili", flag: "TZ" },
-  { code: "ar", label: "Arabic", nativeLabel: "Arabic", flag: "SA" },
-  { code: "fr", label: "French", nativeLabel: "French", flag: "FR" },
+  { code: "en", label: "English", nativeLabel: "English", flag: "🇺🇸" },
+  { code: "sw", label: "Swahili", nativeLabel: "Kiswahili", flag: "🇹🇿" },
+  { code: "ar", label: "Arabic", nativeLabel: "العربية", flag: "🇸🇦" },
+  { code: "fr", label: "French", nativeLabel: "Français", flag: "🇫🇷" },
 ]
 
 export default function MobileLanguageSelector() {

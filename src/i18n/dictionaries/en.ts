@@ -340,6 +340,12 @@ export const en = {
   page: 'Page',
   clearAllFilters: 'Clear all filters',
   searchProducts: 'Search products',
+  searchProductsPlaceholder: 'Search products...',
+  allProducts: 'All Products',
+  allProductsDesc: 'Discover and order the best products from verified sellers',
+  loading: 'Loading...',
+  error: 'Error',
+  prev: 'Prev',
 
   // Wishlist
   loginToViewWishlist: 'Log in to view your wishlist',

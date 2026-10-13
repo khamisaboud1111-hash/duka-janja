@@ -343,6 +343,12 @@ export const sw: Record<TranslationKey, string> = {
   page: 'Ukurasa',
   clearAllFilters: 'Futa chujio zote',
   searchProducts: 'Tafuta bidhaa',
+  searchProductsPlaceholder: 'Tafuta bidhaa...',
+  allProducts: 'Bidhaa Zote',
+  allProductsDesc: 'Tafuta na uagize bidhaa bora zaidi kutoka kwa wauzaji wathibitishwaji',
+  loading: 'Inapakia...',
+  error: 'Hitilafu',
+  prev: 'Nyuma',
 
   // Wishlist
   loginToViewWishlist: 'Ingia ili kuona orodha yako',

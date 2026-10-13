@@ -333,6 +333,12 @@
   page: 'Page',
   clearAllFilters: 'Effacer tous les filtres',
   searchProducts: 'Rechercher des produits',
+  searchProductsPlaceholder: 'Rechercher des produits...',
+  allProducts: 'Tous les produits',
+  allProductsDesc: 'DÃ©couvrez et commandez les meilleurs produits des vendeurs vÃ©rifiÃ©s',
+  loading: 'Chargement...',
+  error: 'Erreur',
+  prev: 'PrÃ©cÃ©dent',
 
   // Wishlist
   loginToViewWishlist: 'Connectez-vous pour voir votre liste de favoris',
