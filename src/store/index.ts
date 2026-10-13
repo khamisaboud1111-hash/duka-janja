@@ -147,18 +147,23 @@ export const useUiStore = create<UiStore>()((set) => ({
 
 // ─── Language Store ───────────────────────────────────────────────────────────
 
-function readLangCookie(): Language {
-  if (typeof document === 'undefined') return 'sw'
-  const cookie = document.cookie.split('; ').find(row => row.startsWith('lang='))
-  const val = cookie?.split('=')[1]
-  return (val === 'ar' || val === 'en' || val === 'fr') ? val : 'sw'
-}
-
 function applyDir(lang: Language) {
   if (typeof document !== 'undefined') {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
     document.cookie = `lang=${lang}; path=/; max-age=31536000`
   }
+}
+
+function readLangFromInitialState(): Language {
+  if (typeof window === 'undefined') return 'sw'
+  const state = (window as any).__DJ_INITIAL_STATE__
+  if (state?.lang && (state.lang === 'ar' || state.lang === 'en' || state.lang === 'fr')) {
+    return state.lang
+  }
+  // Fallback to cookie
+  const cookie = document.cookie.split('; ').find(row => row.startsWith('lang='))
+  const val = cookie?.split('=')[1]
+  return (val === 'ar' || val === 'en' || val === 'fr') ? val : 'sw'
 }
 
 interface LangStore {
@@ -167,10 +172,10 @@ interface LangStore {
   setLang: (lang: Language) => void
 }
 
-// NO persist - use cookie only for SSR/client sync
+// NO persist - use server-injected initial state + cookie fallback
 export const useLangStore = create<LangStore>()(
   (set, get) => ({
-    lang: readLangCookie(),
+    lang: readLangFromInitialState(),
     hasHydrated: false,
     setLang: (lang) => {
       applyDir(lang)
@@ -183,8 +188,13 @@ export const useLangStore = create<LangStore>()(
 
 export type Theme = 'light' | 'dark'
 
-function readThemeCookie(): Theme {
-  if (typeof document === 'undefined') return 'light'
+function readThemeFromInitialState(): Theme {
+  if (typeof window === 'undefined') return 'light'
+  const state = (window as any).__DJ_INITIAL_STATE__
+  if (state?.theme && (state.theme === 'dark' || state.theme === 'light')) {
+    return state.theme
+  }
+  // Fallback to cookie
   const cookie = document.cookie.split('; ').find(row => row.startsWith('theme='))
   return cookie?.split('=')[1] === 'dark' ? 'dark' : 'light'
 }
@@ -205,10 +215,10 @@ interface ThemeStore {
   toggleHighContrast: () => void
 }
 
-// NO persist - use cookie only for SSR/client sync
+// NO persist - use server-injected initial state + cookie fallback
 export const useThemeStore = create<ThemeStore>()(
   (set, get) => ({
-    theme: readThemeCookie(),
+    theme: readThemeFromInitialState(),
     hasHydrated: false,
     highContrast: false,
     toggleTheme: () => {

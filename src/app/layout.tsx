@@ -102,6 +102,15 @@ export default function RootLayout({ children }: RootLayoutProps) {
     }
   };
 
+  // Inject initial state for guaranteed server/client sync
+  const initialStateScript = `
+    window.__DJ_INITIAL_STATE__ = {
+      lang: "${ssrLang}",
+      dir: "${ssrDir}",
+      theme: "${ssrTheme}"
+    };
+  `
+
   return (
     <html lang={ssrLang} dir={ssrDir} className={ssrThemeClass} suppressHydrationWarning>
       <head>
@@ -113,6 +122,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <script dangerouslySetInnerHTML={{ __html: initialStateScript }} />
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
         {/* Accessibility Skip Link */}
