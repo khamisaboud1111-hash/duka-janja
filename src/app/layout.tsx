@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next'
 import PullToRefreshIndicator from '@/components/layout/PullToRefreshIndicator'
 import { Inter, Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
-import ThemeScript from '@/components/layout/ThemeScript'
 import { cookies } from 'next/headers'
 import { getSiteOrigin } from '@/lib/site'
 import { GlobalErrorBoundary } from '@/components/shared/GlobalErrorBoundary'
@@ -86,6 +85,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const ssrLang = langCookie === 'ar' || langCookie === 'en' || langCookie === 'fr' ? langCookie : 'sw'
   const ssrDir = ssrLang === 'ar' ? 'rtl' : 'ltr'
 
+  // Read theme from cookie for SSR to avoid hydration mismatch
+  const themeCookie = cookies().get('theme')?.value
+  const ssrTheme = themeCookie === 'dark' ? 'dark' : 'light'
+  const ssrThemeClass = ssrTheme === 'dark' ? 'dark' : ''
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -99,9 +103,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   };
 
   return (
-    <html lang={ssrLang} dir={ssrDir} suppressHydrationWarning>
+    <html lang={ssrLang} dir={ssrDir} className={ssrThemeClass} suppressHydrationWarning>
       <head>
-        <ThemeScript />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />

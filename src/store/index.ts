@@ -187,6 +187,13 @@ export const useLangStore = create<LangStore>()(
 
 export type Theme = 'light' | 'dark'
 
+function applyTheme(theme: Theme) {
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    document.cookie = `theme=${theme}; path=/; max-age=31536000`
+  }
+}
+
 interface ThemeStore {
   theme: Theme
   hasHydrated: boolean
@@ -204,15 +211,11 @@ export const useThemeStore = create<ThemeStore>()(
       highContrast: false,
       toggleTheme: () => {
         const next: Theme = get().theme === 'light' ? 'dark' : 'light'
-        if (typeof document !== 'undefined') {
-          document.documentElement.classList.toggle('dark', next === 'dark')
-        }
+        applyTheme(next)
         set({ theme: next })
       },
       setTheme: (theme) => {
-        if (typeof document !== 'undefined') {
-          document.documentElement.classList.toggle('dark', theme === 'dark')
-        }
+        applyTheme(theme)
         set({ theme })
       },
       toggleHighContrast: () => {
