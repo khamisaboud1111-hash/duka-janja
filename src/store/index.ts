@@ -138,15 +138,20 @@ function applyDir(lang: Language) {
   }
 }
 
+function getInitialLang(): Language {
+  if (typeof document === 'undefined') return 'sw'
+  const htmlLang = document.documentElement.lang
+  return (htmlLang === 'ar' || htmlLang === 'en' || htmlLang === 'fr') ? htmlLang : 'sw'
+}
+
 interface LangStore {
   lang: Language
   setLang: (lang: Language) => void
 }
 
-// NO initial value - HydrationProvider initializes after hydration
 export const useLangStore = create<LangStore>()(
   (set) => ({
-    lang: 'sw', // Safe default for SSR, will be overridden by HydrationProvider
+    lang: getInitialLang(), // Reads from <html lang> (matches server)
     setLang: (lang) => {
       applyDir(lang)
       set({ lang })
