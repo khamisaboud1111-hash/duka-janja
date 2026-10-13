@@ -154,13 +154,8 @@ function applyDir(lang: Language) {
   }
 }
 
-function readLangFromInitialState(): Language {
-  if (typeof window === 'undefined') return 'sw'
-  const state = (window as any).__DJ_INITIAL_STATE__
-  if (state?.lang && (state.lang === 'ar' || state.lang === 'en' || state.lang === 'fr')) {
-    return state.lang
-  }
-  // Fallback to cookie
+function readLangCookie(): Language {
+  if (typeof document === 'undefined') return 'sw'
   const cookie = document.cookie.split('; ').find(row => row.startsWith('lang='))
   const val = cookie?.split('=')[1]
   return (val === 'ar' || val === 'en' || val === 'fr') ? val : 'sw'
@@ -172,10 +167,10 @@ interface LangStore {
   setLang: (lang: Language) => void
 }
 
-// NO persist - use server-injected initial state + cookie fallback
+// NO persist - ClientInitializer syncs from cookie after hydration
 export const useLangStore = create<LangStore>()(
   (set, get) => ({
-    lang: readLangFromInitialState(),
+    lang: readLangCookie(),
     hasHydrated: false,
     setLang: (lang) => {
       applyDir(lang)
@@ -188,13 +183,8 @@ export const useLangStore = create<LangStore>()(
 
 export type Theme = 'light' | 'dark'
 
-function readThemeFromInitialState(): Theme {
-  if (typeof window === 'undefined') return 'light'
-  const state = (window as any).__DJ_INITIAL_STATE__
-  if (state?.theme && (state.theme === 'dark' || state.theme === 'light')) {
-    return state.theme
-  }
-  // Fallback to cookie
+function readThemeCookie(): Theme {
+  if (typeof document === 'undefined') return 'light'
   const cookie = document.cookie.split('; ').find(row => row.startsWith('theme='))
   return cookie?.split('=')[1] === 'dark' ? 'dark' : 'light'
 }
@@ -215,10 +205,10 @@ interface ThemeStore {
   toggleHighContrast: () => void
 }
 
-// NO persist - use server-injected initial state + cookie fallback
+// NO persist - ClientInitializer syncs from cookie after hydration
 export const useThemeStore = create<ThemeStore>()(
   (set, get) => ({
-    theme: readThemeFromInitialState(),
+    theme: readThemeCookie(),
     hasHydrated: false,
     highContrast: false,
     toggleTheme: () => {

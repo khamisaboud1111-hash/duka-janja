@@ -1,7 +1,21 @@
 {
-  "timestamp": "2026-08-15T14:18:46.932Z",
+  "timestamp": "2026-10-13T18:27:16.645Z",
   "backedUp": true,
-  "path": "C:\\Users\\hp\\duka-janja\\.swarm\\backups\\memory-2026-08-15T14-18-46-898Z.db",
+  "backups": [
+    {
+      "backedUp": true,
+      "path": "C:\\Users\\hp\\duka-janja\\.swarm\\backups\\memory-2026-10-13T18-27-16-592Z.db",
+      "sizeBytes": 548864,
+      "rotatedAway": [],
+      "dbPath": "C:\\Users\\hp\\duka-janja\\.swarm\\memory.db"
+    },
+    {
+      "backedUp": false,
+      "skipped": "no-db",
+      "dbPath": "C:\\Users\\hp\\duka-janja\\.swarm\\agentdb-memory.db"
+    }
+  ],
+  "path": "C:\\Users\\hp\\duka-janja\\.swarm\\backups\\memory-2026-10-13T18-27-16-592Z.db",
   "sizeBytes": 548864,
   "rotatedAway": 0
 }

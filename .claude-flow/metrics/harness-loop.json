@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-08-15T14:20:46.891Z",
+  "timestamp": "2026-10-13T18:29:16.595Z",
   "flywheel": {
     "ran": false,
     "reason": "opt-in required (RUFLO_HARNESS_LOOP=1)",
@@ -78,6 +78,14 @@
         "typePenaltyFactor": 1
       },
       "hash": null
+    },
+    "sequential": {
+      "nextTestIndex": 1,
+      "alphaAllocatedNext": 0.03039635509270134,
+      "thresholdNext": 32.89868133696452,
+      "minInformativePairsNext": 9,
+      "remainingAlphaBudget": 0.05,
+      "alphaTotal": 0.05
     }
   }
 }
