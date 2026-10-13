@@ -147,6 +147,13 @@ export const useUiStore = create<UiStore>()((set) => ({
 
 // ─── Language Store ───────────────────────────────────────────────────────────
 
+function readLangCookie(): Language {
+  if (typeof document === 'undefined') return 'sw'
+  const cookie = document.cookie.split('; ').find(row => row.startsWith('lang='))
+  const val = cookie?.split('=')[1]
+  return (val === 'ar' || val === 'en' || val === 'fr') ? val : 'sw'
+}
+
 function applyDir(lang: Language) {
   if (typeof document !== 'undefined') {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
@@ -160,27 +167,16 @@ interface LangStore {
   setLang: (lang: Language) => void
 }
 
+// NO persist - use cookie only for SSR/client sync
 export const useLangStore = create<LangStore>()(
-  persist(
-    (set) => ({
-      lang: getInitialLanguage(),
-      hasHydrated: false,
-      setLang: (lang) => {
-        applyDir(lang)
-        set({ lang })
-      },
-    }),
-    {
-      name: 'duka-janja-lang',
-      partialize: (state) => ({ lang: state.lang }),
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          applyDir(state.lang)
-          useLangStore.setState({ hasHydrated: true })
-        }
-      },
-    }
-  )
+  (set, get) => ({
+    lang: readLangCookie(),
+    hasHydrated: false,
+    setLang: (lang) => {
+      applyDir(lang)
+      set({ lang })
+    },
+  })
 )
 
 // ─── Theme Store (dark / light mode) ──────────────────────────────────────────
