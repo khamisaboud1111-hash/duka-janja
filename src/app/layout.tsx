@@ -8,7 +8,7 @@ import { GlobalErrorBoundary } from '@/components/shared/GlobalErrorBoundary'
 import GlobalErrorHandler from '@/components/shared/GlobalErrorHandler'
 import { QueryProvider } from '@/lib/query/provider'
 import { ServiceWorkerRegistration } from '@/components/shared/ServiceWorkerRegistration'
-import { ClientInitializer } from '@/components/shared/ClientInitializer'
+import { StoresProvider } from '@/store'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
