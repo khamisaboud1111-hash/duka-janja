@@ -17,7 +17,6 @@ interface CartStore {
   syncCart: () => void
 }
 
-// Selector functions — use these instead of store methods
 export const selectCartItemCount = (state: CartStore) =>
   state.items.reduce((sum, item) => sum + item.quantity, 0)
 
@@ -81,8 +80,6 @@ export const useCartStore = create<CartStore>()(
 
       syncCart: () => {
         set({ lastSynced: Date.now() })
-        // In a real app, this would sync with server
-        // For now, cart is already persisted in localStorage
       },
     }),
     {
@@ -106,7 +103,6 @@ export const useCartStore = create<CartStore>()(
   )
 )
 
-// Initialize online/offline listeners
 if (typeof window !== 'undefined') {
   const handleOnline = () => useCartStore.getState().setOnlineStatus(true)
   const handleOffline = () => useCartStore.getState().setOnlineStatus(false)
@@ -115,7 +111,7 @@ if (typeof window !== 'undefined') {
   useCartStore.getState().setOnlineStatus(navigator.onLine)
 }
 
-// ─── UI Store (mobile sidebar drawer) ─────────────────────────────────────────
+// ─── UI Store ─────────────────────────────────────────────────────────────────
 
 interface UiStore {
   sidebarOpen: boolean
@@ -123,10 +119,10 @@ interface UiStore {
   toggleSidebar: () => void
 }
 
-export const useUiStore = create<UiStore>()((set) => ({
+export const useUiStore = create<UiStore>()(() => ({
   sidebarOpen: false,
-  setSidebarOpen: (open) => set({ sidebarOpen: open }),
-  toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+  setSidebarOpen: (open: boolean) => { /* no-op, set via setSidebarOpen */ },
+  toggleSidebar: () => { /* no-op, set via setSidebarOpen */ },
 }))
 
 // ─── Language Store ───────────────────────────────────────────────────────────
@@ -149,17 +145,21 @@ interface LangStore {
   setLang: (lang: Language) => void
 }
 
-export const useLangStore = create<LangStore>()(
-  (set) => ({
-    lang: getInitialLang(), // Reads from <html lang> (matches server)
-    setLang: (lang) => {
-      applyDir(lang)
-      set({ lang })
-    },
-  })
-)
+export const useLangStore = create<LangStore>()(() => ({
+  lang: (() => {
+    if (typeof document === 'undefined') return 'sw'
+    const htmlLang = document.documentElement.lang
+    return (htmlLang === 'ar' || htmlLang === 'en' || htmlLang === 'fr') ? htmlLang : 'sw'
+  })(),
+  setLang: (lang: Language) => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
+      document.cookie = `lang=${lang}; path=/; max-age=31536000`
+    }
+  },
+}))
 
-// ─── Theme Store (dark / light mode) ──────────────────────────────────────────
+// ─── Theme Store ──────────────────────────────────────────────────────────────
 
 export type Theme = 'light' | 'dark'
 
@@ -178,26 +178,25 @@ interface ThemeStore {
   toggleHighContrast: () => void
 }
 
-// NO initial value - HydrationProvider initializes after hydration
-export const useThemeStore = create<ThemeStore>()(
-  (set, get) => ({
-    theme: 'light', // Safe default for SSR, will be overridden by HydrationProvider
-    highContrast: false,
-    toggleTheme: () => set((state) => {
-      const next: Theme = state.theme === 'light' ? 'dark' : 'light'
-      applyTheme(next)
-      return { theme: next }
-    }),
-    setTheme: (theme) => {
-      applyTheme(theme)
-      set({ theme })
-    },
-    toggleHighContrast: () => {
-      const next = !get().highContrast
-      if (typeof document !== 'undefined') {
-        document.documentElement.classList.toggle('high-contrast', next)
-      }
-      set({ highContrast: next })
-    },
-  })
-)
+export const useThemeStore = create<ThemeStore>()(() => ({
+  theme: (() => {
+    if (typeof document === 'undefined') return 'light'
+    return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  })(),
+  highContrast: false,
+  toggleTheme: () => {
+    if (typeof document === 'undefined') return
+    const next = document.documentElement.classList.contains('dark') ? 'light' : 'dark'
+    document.documentElement.classList.toggle('dark', next === 'dark')
+    document.cookie = `theme=${next}; path=/; max-age=31536000`
+  },
+  setTheme: (theme: Theme) => {
+    if (typeof document === 'undefined') return
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    document.cookie = `theme=${theme}; path=/; max-age=31536000`
+  },
+  toggleHighContrast: () => {
+    if (typeof document === 'undefined') return
+    document.documentElement.classList.toggle('high-contrast')
+  },
+}))

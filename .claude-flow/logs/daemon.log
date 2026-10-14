@@ -199,3 +199,12 @@
 [2026-10-13T19:39:16.848Z] [INFO] Worker audit completed in 34ms
 [2026-10-13T19:45:16.671Z] [INFO] Starting worker: testgaps (1/2 concurrent)
 [2026-10-13T19:45:16.673Z] [INFO] Worker testgaps completed in 26ms
+[2026-10-13T19:47:16.774Z] [INFO] Starting worker: map (1/2 concurrent)
+[2026-10-13T19:47:16.776Z] [INFO] Worker map completed in 26ms
+[2026-10-13T19:49:16.881Z] [INFO] Starting worker: audit (1/2 concurrent)
+[2026-10-13T19:49:16.882Z] [INFO] Worker audit completed in 25ms
+[2026-10-13T19:51:16.746Z] [INFO] Starting worker: optimize (1/2 concurrent)
+[2026-10-13T19:51:16.749Z] [INFO] Worker optimize completed in 12ms
+[2026-10-13T19:53:16.859Z] [INFO] Starting worker: consolidate (1/2 concurrent)
+[2026-10-13T19:53:16.867Z] [INFO] Consolidate worker: distillation skipped (target table reasoning_patterns missing (agentdb schema not initialised))
+[2026-10-13T19:53:16.869Z] [INFO] Worker consolidate completed in 16ms
