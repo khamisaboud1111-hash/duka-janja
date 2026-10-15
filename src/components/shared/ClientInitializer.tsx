@@ -24,8 +24,9 @@ function applyTheme(theme: Theme) {
 }
 
 export function ClientInitializer() {
-  const setLang = useLangStore((s) => s.setLang)
-  const setTheme = useThemeStore((s) => s.setTheme)
+  // Resolve the real zustand stores during render (hooks are legal here).
+  const langStore = useLangStore()
+  const themeStore = useThemeStore()
 
   useEffect(() => {
     // Read cookies AFTER hydration - guaranteed to match server
@@ -38,9 +39,13 @@ export function ClientInitializer() {
     // Sync stores with cookie values (no-op if already matching)
     applyDir(lang)
     applyTheme(theme)
-    setLang(lang)
-    setTheme(theme)
-  }, [setLang, setTheme])
+
+    // Use the stores' static API inside the effect. Calling a hook-selected
+    // action here invoked the store hook outside of render, which is an invalid
+    // hook call and took the whole app down with React error #321.
+    langStore.getState().setLang(lang)
+    themeStore.getState().setTheme(theme)
+  }, [langStore, themeStore])
 
   return null
 }
