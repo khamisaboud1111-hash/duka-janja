@@ -1,8 +1,8 @@
 // Service Worker for Duka Janja - Offline Support
-const CACHE_NAME = 'duka-janja-v1';
-const STATIC_CACHE = 'duka-janja-static-v1';
-const DYNAMIC_CACHE = 'duka-janja-dynamic-v1';
-const API_CACHE = 'duka-janja-api-v1';
+const CACHE_NAME = 'duka-janja-v2';
+const STATIC_CACHE = 'duka-janja-static-v2';
+const DYNAMIC_CACHE = 'duka-janja-dynamic-v2';
+const API_CACHE = 'duka-janja-api-v2';
 
 // Assets to cache on install
 const STATIC_ASSETS = [
@@ -100,6 +100,17 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // NEVER serve documents from cache. The app shell references content-hashed
+  // chunk filenames, so a cached HTML shell points at chunks that no longer
+  // exist after a deploy - the page then loads forever and renders nothing.
+  // Go to the network first, and only fall back to cache when offline.
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    );
     return;
   }
 

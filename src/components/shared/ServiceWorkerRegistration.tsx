@@ -25,12 +25,13 @@ export function ServiceWorkerRegistration() {
             }
           })
 
-          // Handle controller change
+          // Handle updates. Do not force a reload here - reloading on
+          // controllerchange combined with clients.claim() produced a reload
+          // loop that left the app stuck on a blank screen after each deploy.
           let refreshing = false
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if (refreshing) return
             refreshing = true
-            window.location.reload()
           })
         })
         .catch((error) => {

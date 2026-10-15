@@ -108,6 +108,11 @@ function createCartStore() {
       }),
       {
         name: 'duka-janja-cart',
+        // Rehydrating from localStorage during the first client render makes the
+        // cart differ from the server-rendered markup, which threw a hydration
+        // mismatch (React #418/#422) and left the root on a blank client render.
+        // Defer rehydration until after mount - see StoresProvider below.
+        skipHydration: true,
         partialize: (state) => ({
           items: state.items.map(({ product, quantity }) => ({
             product: {
@@ -203,6 +208,10 @@ export function StoresProvider({ children }: { children: ReactNode }) {
   }))
 
   useEffect(() => {
+    // Rehydrate persisted state only after the first client render has matched
+    // the server output, otherwise localStorage leaks into the initial markup.
+    stores.useCartStore.persist?.rehydrate()
+
     // Initialize online/offline listeners
     const handleOnline = () => stores.useCartStore.getState().setOnlineStatus(true)
     const handleOffline = () => stores.useCartStore.getState().setOnlineStatus(false)
