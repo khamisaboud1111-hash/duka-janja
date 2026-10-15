@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { withValidation } from '@/lib/validation/withValidation'
@@ -44,7 +46,7 @@ export const POST = withValidation(readyForPickupSchema, async (data) => {
       ? `POINT(${data.delivery_lng} ${data.delivery_lat})`
       : null
 
-  // 2. Insert the delivery row regardless of whether a rider was found —
+  // 2. Insert the delivery row regardless of whether a rider was found ΓÇö
   //    if none is found yet, it stays unassigned and re-dispatch will retry
   //    when a rider comes online (handled by the timeout-check route).
   const timeoutExpiresAt = riderMatch

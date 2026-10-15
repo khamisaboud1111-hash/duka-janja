@@ -9,6 +9,9 @@ export const translations = { en, sw, ar, fr } as const
 
 export type { TranslationKey }
 
-export function t(key: TranslationKey, lang: Language): string {
-  return (translations[lang] as Record<TranslationKey, string>)[key] ?? translations.en[key] ?? key
+export function t(key: TranslationKey, lang?: Language | null): string {
+  // Guard the lookup: an unknown/undefined language used to throw
+  // "Cannot read properties of undefined" and white-screen the whole page.
+  const dict = (lang && translations[lang]) || translations.en
+  return (dict as Record<string, string | undefined>)[key] ?? key
 }

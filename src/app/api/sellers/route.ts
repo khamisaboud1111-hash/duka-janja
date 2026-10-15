@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { slugify } from '@/utils'
@@ -35,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ data: null, error: error.message }, { status: 400 })
 
-  // Update profile role — but don't downgrade an existing admin. They keep
+  // Update profile role ΓÇö but don't downgrade an existing admin. They keep
   // their admin role and can still access the seller dashboard by switching
   // roles from Settings once approved.
   const { data: currentProfile } = await supabase.from('profiles').select('role').eq('id', user.id).single()

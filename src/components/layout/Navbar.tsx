@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useEffect, useMemo, useRef, useState, Component } from "react";
 import Link from "next/link";
@@ -292,7 +292,7 @@ export default function Navbar({ categories = [] }: NavbarProps) {
                               </div>
                             ) : (
                               <span className="w-12 h-12 rounded-xl bg-gradient-to-br from-brand-100 to-amber-100 dark:from-brand-900/30 dark:to-amber-900/30 flex items-center justify-center text-lg flex-shrink-0">
-                                📦
+                                ðŸ“¦
                               </span>
                             )}
                             <span className="flex-1 min-w-0">

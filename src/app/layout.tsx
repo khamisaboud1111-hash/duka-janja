@@ -9,6 +9,7 @@ import GlobalErrorHandler from '@/components/shared/GlobalErrorHandler'
 import { QueryProvider } from '@/lib/query/provider'
 import { ServiceWorkerRegistration } from '@/components/shared/ServiceWorkerRegistration'
 import { StoresProvider } from '@/store'
+import { ClientInitializer } from '@/components/shared/ClientInitializer'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -116,6 +117,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
+        <StoresProvider>
         <ClientInitializer />
         {/* Accessibility Skip Link */}
         <a 
@@ -126,17 +128,17 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </a>
 
         <PullToRefreshIndicator />
-        <GlobalErrorHandler />
-        <ServiceWorkerRegistration />
+          <GlobalErrorHandler />
+          <ServiceWorkerRegistration />
 
-        {/* Semantic main container wrapper */}
-        <main id="main-content">
-          <QueryProvider>
-            <GlobalErrorBoundary>
-              {children}
-            </GlobalErrorBoundary>
-          </QueryProvider>
-        </main>
+          {/* Semantic main container wrapper */}
+          <main id="main-content">
+            <QueryProvider>
+              <GlobalErrorBoundary>
+                {children}
+              </GlobalErrorBoundary>
+            </QueryProvider>
+          </main>
 
         <Toaster 
           position="top-center"
@@ -160,6 +162,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             },
           }}
         />
+        </StoresProvider>
       </body>
     </html>
   )

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getDefaultDeliveryZones } from '@/lib/deliveryZones'
@@ -40,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   // The entire order (price/seller re-read, stock locking, inserts, stock
   // decrements, tracking, commissions, notifications) runs atomically inside
-  // the create_order database function — never trust the client's unit_price
+  // the create_order database function ΓÇö never trust the client's unit_price
   // or seller_id.
   const { data, error } = await supabase.rpc('create_order', {
     p_buyer_id: user.id,

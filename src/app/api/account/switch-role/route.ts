@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 
@@ -16,7 +18,7 @@ export async function POST(req: NextRequest) {
   }
   const targetRole = role as AllowedRole
 
-  // Buyer is always available — everyone can browse and buy.
+  // Buyer is always available ΓÇö everyone can browse and buy.
   if (targetRole === 'seller') {
     const { data: seller } = await supabase
       .from('sellers')

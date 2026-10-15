@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { getPaymentAdapter } from '@/lib/payments'
@@ -29,7 +31,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Order already paid' }, { status: 400 })
   }
 
-  // Cash on delivery needs no provider call — just record intent
+  // Cash on delivery needs no provider call ΓÇö just record intent
   if (body.provider === 'cash_on_delivery') {
     const { data: txn } = await supabase
       .from('payment_transactions')

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { withValidation } from '@/lib/validation/withValidation'
@@ -10,7 +12,7 @@ export const POST = withValidation(riderApplicationSchema, async (data) => {
     return NextResponse.json({ error: 'Hujaingia (not authenticated)' }, { status: 401 })
   }
 
-  // Don't let a rider application clobber an existing admin's role — keep
+  // Don't let a rider application clobber an existing admin's role ΓÇö keep
   // them as admin, just also let them hold a rider_profiles row so they can
   // switch into rider mode from Settings if they want to.
   const { data: currentProfile } = await supabase

@@ -191,18 +191,18 @@ export function useStores() {
 // ─── Provider ──────────────────────────────────────────────────────────────────
 
 export function StoresProvider({ children }: { children: ReactNode }) {
-  const [stores, setStores] = useState<Stores | null>(null)
+  // Created synchronously so the server renders `children` instead of null.
+  // Every factory guards its browser API access with `typeof document`, so this
+  // is SSR-safe; creating them in useEffect left the whole app unrendered on the
+  // server and made every useStores() call throw.
+  const [stores] = useState<Stores>(() => ({
+    useCartStore: createCartStore(),
+    useUiStore: createUiStore(),
+    useLangStore: createLangStore(),
+    useThemeStore: createThemeStore(),
+  }))
 
   useEffect(() => {
-    // Only create stores on client side
-    const stores: Stores = {
-      useCartStore: createCartStore(),
-      useUiStore: createUiStore(),
-      useLangStore: createLangStore(),
-      useThemeStore: createThemeStore(),
-    }
-    setStores(stores)
-
     // Initialize online/offline listeners
     const handleOnline = () => stores.useCartStore.getState().setOnlineStatus(true)
     const handleOffline = () => stores.useCartStore.getState().setOnlineStatus(false)
@@ -214,12 +214,7 @@ export function StoresProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [])
-
-  if (!stores) {
-    // Render nothing until stores are created (prevents SSR mismatch)
-    return null
-  }
+  }, [stores])
 
   return (
     <StoresContext.Provider value={stores}>
