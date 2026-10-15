@@ -9,7 +9,7 @@ import GlobalErrorHandler from '@/components/shared/GlobalErrorHandler'
 import { QueryProvider } from '@/lib/query/provider'
 import { StoresProvider } from '@/store'
 import { ClientInitializer } from '@/components/shared/ClientInitializer'
-import PWAInitializer from '@/components/layout/PWAInitializer'
+import PWAinitializer from '@/components/layout/PWAinitializer'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
@@ -119,7 +119,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
         <StoresProvider>
         <ClientInitializer />
-      <PWAInitializer />
+      <PWAinitializer />
         {/* Accessibility Skip Link */}
         <a 
           href="#main-content" 

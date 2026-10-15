@@ -15,12 +15,10 @@ export default function PWAInitializer() {
   useEffect(() => {
     if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    let cancelled = false;
-
     (async () => {
       try {
         const registrations = await navigator.serviceWorker.getRegistrations();
-        await Promise.all(registrations.map((r) => r.unregister()));
+        await Promise.all(registrations.map((registration) => registration.unregister()));
 
         if ('caches' in window) {
           const keys = await caches.keys();
@@ -34,11 +32,6 @@ export default function PWAInitializer() {
         // Cleanup is best-effort; never block render on it.
       }
     })();
-
-    return () => {
-      cancelled = true;
-      void cancelled;
-    };
   }, []);
 
   return null;
