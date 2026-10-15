@@ -28,6 +28,13 @@ export function ClientInitializer() {
   const langStore = useLangStore()
   const themeStore = useThemeStore()
 
+  // Signal to CSS that the client has taken over, which re-enables reveal-on-
+  // scroll animations. Until then globals.css forces hidden elements visible so
+  // a hydration failure can never leave the page blank.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-hydrated', 'true')
+  }, [])
+
   useEffect(() => {
     // Read cookies AFTER hydration - guaranteed to match server
     const langCookie = readCookie('lang')

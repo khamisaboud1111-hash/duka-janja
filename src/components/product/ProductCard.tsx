@@ -110,22 +110,20 @@ export default function ProductCard({ product, imageless = false }: ProductCardP
           <Heart className={cn('w-4 h-4', isWishlisted && 'fill-current')} />
         </button>
 
-        <Link
-          href={`/products/${product.slug}`}
-          onClick={(e) => e.stopPropagation()}
-          className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/95 text-foreground text-xs font-semibold shadow-sm"
+        <span
+          aria-hidden="true"
+          className="absolute bottom-2 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-background/95 text-foreground text-xs font-semibold shadow-sm pointer-events-none"
         >
           <Eye className="w-3.5 h-3.5" /> {t('view', lang)}
-        </Link>
+        </span>
 
         {(product as any).videos?.length > 0 && (
-          <Link
-            href={`/reels?productId=${product.id}`}
-            onClick={(e) => e.stopPropagation()}
-            className="absolute bottom-2 left-1/2 -translate-x-1/2 translate-y-[44px] opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500 text-white text-xs font-semibold shadow-sm"
+          <span
+            aria-hidden="true"
+            className="absolute bottom-2 left-1/2 -translate-x-1/2 translate-y-[44px] opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-purple-500 text-white text-xs font-semibold shadow-sm pointer-events-none"
           >
             <PlayCircle className="w-3.5 h-3.5" /> {t('watchReel', lang)}
-          </Link>
+          </span>
         )}
 
         <div className="absolute bottom-2 right-2 flex items-center gap-1">

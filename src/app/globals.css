@@ -311,3 +311,18 @@
     scroll-behavior: auto !important;
   }
 }
+
+/*
+ * Fail-safe for reveal-on-scroll animations.
+ *
+ * framer-motion writes inline `opacity: 0` into the server HTML while waiting
+ * for `whileInView` to fire after hydration. If hydration throws for any reason
+ * those elements never animate in and the page renders as an empty black
+ * screen. Nothing must depend on JavaScript to become visible, so before
+ * hydration completes we force every hidden element into its resting state.
+ */
+html:not([data-hydrated]) [style*="opacity:0"],
+html:not([data-hydrated]) [style*="opacity: 0"] {
+  opacity: 1 !important;
+  transform: none !important;
+}
