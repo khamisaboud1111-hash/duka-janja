@@ -1,9 +1,7 @@
 'use client'
 
-import { useEffect, useState, Component, ReactNode } from 'react'
+import { useEffect, useState, Component, ReactNode } from 'react'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { useLangStore } from '@/store'
-import { t } from '@/i18n/translations'
 
 interface Props {
   children: ReactNode
@@ -32,9 +30,10 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback
       }
 
-      const { lang } = useLangStore.getState()
+      // Self-contained fallback: never touch the store/context that may have
+      // crashed, otherwise the boundary throws too and the page stays blank.
       return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-white to-ink-50 dark:from-ink-950 dark:to-ink-900">
+        <div className="min-h-screen flex items-center justify-center p-4 bg-white">
           <div className="w-full max-w-md">
             <ErrorState
               title="Kitu kimekosea"

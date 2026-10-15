@@ -233,21 +233,31 @@ export function StoresProvider({ children }: { children: ReactNode }) {
 }
 
 // ─── Hooks ────────────────────────────────────────────────────────────────────
+//
+// These delegate to the underlying zustand hooks and forward any selector.
+// Previously they ignored arguments and returned the store function itself, so
+// `const { lang } = useLangStore()` destructured undefined and
+// `useLangStore.getState()` threw - which broke the error boundaries into
+// rendering nothing (a silent blank page) and add-to-cart into failing.
 
-export function useCartStore() {
-  return useStores().useCartStore
+export function useCartStore<T>(selector?: (state: CartStore) => T): T | ReturnType<typeof createCartStore> {
+  const store = useStores().useCartStore
+  return selector ? store(selector) : store
 }
 
-export function useUiStore() {
-  return useStores().useUiStore
+export function useUiStore<T>(selector?: (state: UiStore) => T): T | ReturnType<typeof createUiStore> {
+  const store = useStores().useUiStore
+  return selector ? store(selector) : store
 }
 
-export function useLangStore() {
-  return useStores().useLangStore
+export function useLangStore<T>(selector?: (state: LangStore) => T): T | ReturnType<typeof createLangStore> {
+  const store = useStores().useLangStore
+  return selector ? store(selector) : store
 }
 
-export function useThemeStore() {
-  return useStores().useThemeStore
+export function useThemeStore<T>(selector?: (state: ThemeStore) => T): T | ReturnType<typeof createThemeStore> {
+  const store = useStores().useThemeStore
+  return selector ? store(selector) : store
 }
 
 // ─── Selectors ────────────────────────────────────────────────────────────────
