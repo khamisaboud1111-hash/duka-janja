@@ -118,54 +118,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
-        {/* The boundary sits ABOVE every provider on purpose. It used to live
-            inside <main> and inside StoresProvider, so any error thrown by the
-            providers themselves escaped it, React unmounted the whole tree and
-            the site went blank with nothing logged. */}
         <GlobalErrorBoundary>
         <StoresProvider>
         <ClientInitializer />
-      <PWAinitializer />
-        {/* Accessibility Skip Link */}
-        <a 
-          href="#main-content" 
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-white focus:font-semibold focus:rounded-lg focus:shadow-lg"
-        >
-          Rukia kwenye maudhui makuu (Skip to content)
-        </a>
-
-        <PullToRefreshIndicator />
-          <GlobalErrorHandler />
-
-          {/* Semantic main container wrapper */}
-          <main id="main-content">
-            <QueryProvider>
-                {children}
+        <main id="main-content">
+          <QueryProvider>
+              {children}
             </QueryProvider>
           </main>
-
-        <Toaster 
-          position="top-center"
-          gutter={10}
-          reverseOrder={false}
-          toastOptions={{
-            duration: 3500,
-            success: {
-              duration: 2500,
-              style: { background: '#ecfdf5', color: '#065f46', border: '1px solid #10b981' }
-            },
-            error: {
-              duration: 5000,
-              style: { background: '#fef2f2', color: '#991b1b', border: '1px solid #ef4444' }
-            },
-            style: { 
-              borderRadius: '14px',
-              padding: '14px 18px',
-              fontWeight: 500,
-              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
-            },
-          }}
-        />
         </StoresProvider>
         </GlobalErrorBoundary>
       </body>
