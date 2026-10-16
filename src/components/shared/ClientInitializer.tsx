@@ -101,6 +101,12 @@ export function ClientInitializer() {
       }
     }
 
+    const origError = window.console.error.bind(window.console)
+    window.console.error = (...args: unknown[]) => {
+      origError(...args)
+      storeErr(args[0])
+    }
+
     const handleError = (event: ErrorEvent) => {
       storeErr(event.error || event.message)
     }
@@ -111,6 +117,7 @@ export function ClientInitializer() {
     window.addEventListener('error', handleError)
     window.addEventListener('unhandledrejection', handleRejection)
     return () => {
+      window.console.error = origError
       window.removeEventListener('error', handleError)
       window.removeEventListener('unhandledrejection', handleRejection)
     }
