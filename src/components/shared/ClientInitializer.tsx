@@ -87,5 +87,34 @@ export function ClientInitializer() {
     themeStore.getState().setTheme(theme)
   }, [langStore, themeStore])
 
+  // Capture any rendering/runtime error that escapes React's error boundary so
+  // we can read it after a blank load instead of guessing.
+  useEffect(() => {
+    const storeErr = (reason: unknown) => {
+      try {
+        const payload = reason instanceof Error
+          ? { name: reason.name, message: reason.message, stack: reason.stack?.slice(0, 500) }
+          : String(reason)
+        sessionStorage.setItem('dj_last_error', JSON.stringify({ at: Date.now(), payload }))
+      } catch {
+        // best effort only
+      }
+    }
+
+    const handleError = (event: ErrorEvent) => {
+      storeErr(event.error || event.message)
+    }
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      storeErr(event.reason)
+    }
+
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleRejection)
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleRejection)
+    }
+  }, [])
+
   return null
 }

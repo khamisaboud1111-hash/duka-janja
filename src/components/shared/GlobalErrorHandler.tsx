@@ -12,6 +12,11 @@ export default function GlobalErrorHandler() {
     // Catch unhandled promise rejections
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('Unhandled rejection:', event.reason)
+      try {
+        sessionStorage.setItem('dj_unhandled_rejection', JSON.stringify(String(event.reason)))
+      } catch {
+        // best effort
+      }
     }
 
     // Catch unhandled errors.
@@ -20,6 +25,22 @@ export default function GlobalErrorHandler() {
     // silently behind a blank page. Log only, never swallow.
     const handleError = (event: ErrorEvent) => {
       console.error('Global error:', event.error)
+      try {
+        const err = event.error || { name: 'ErrorEvent', message: event.message }
+        sessionStorage.setItem(
+          'dj_window_error',
+          JSON.stringify({
+            name: err.name,
+            message: err.message,
+            stack: (err as Error)?.stack?.slice(0, 500),
+            filename: event.filename,
+            lineno: event.lineno,
+            colno: event.colno,
+          })
+        )
+      } catch {
+        // best effort
+      }
     }
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection)
