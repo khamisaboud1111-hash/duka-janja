@@ -210,18 +210,33 @@ export function StoresProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Rehydrate persisted state only after the first client render has matched
     // the server output, otherwise localStorage leaks into the initial markup.
-    stores.useCartStore.persist?.rehydrate()
+    // The read can fail (private browsing, blocked storage, corrupted cache) and
+    // must never crash hydration - an unhandled effect error unmounts the whole
+    // tree and leaves a blank page with nothing to report.
+    try {
+      stores.useCartStore.persist?.rehydrate()
+    } catch {
+      // Persist is a convenience, never hard-require it.
+    }
 
     // Initialize online/offline listeners
-    const handleOnline = () => stores.useCartStore.getState().setOnlineStatus(true)
-    const handleOffline = () => stores.useCartStore.getState().setOnlineStatus(false)
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-    stores.useCartStore.getState().setOnlineStatus(navigator.onLine)
+    try {
+      const handleOnline = () => stores.useCartStore.getState().setOnlineStatus(true)
+      const handleOffline = () => stores.useCartStore.getState().setOnlineStatus(false)
+      window.addEventListener('online', handleOnline)
+      window.addEventListener('offline', handleOffline)
+      stores.useCartStore.getState().setOnlineStatus(navigator.onLine)
+    } catch {
+      // Online-status tracking is a convenience, never hard-require it.
+    }
 
     return () => {
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
+      try {
+        window.removeEventListener('online', handleOnline)
+        window.removeEventListener('offline', handleOffline)
+      } catch {
+        // Best-effort cleanup only.
+      }
     }
   }, [stores])
 
