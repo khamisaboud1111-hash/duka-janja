@@ -16,6 +16,11 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null }
 
   static getDerivedStateFromError(error: Error): State {
+    try {
+      document.title = 'ERR: ' + (error.name + ': ' + error.message).slice(0, 90)
+    } catch {
+      // best effort
+    }
     return { hasError: true, error }
   }
 
