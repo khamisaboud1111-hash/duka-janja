@@ -106,7 +106,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   };
 
   return (
-    <html lang={ssrLang} dir={ssrDir} className={ssrThemeClass} suppressHydrationWarning>
+    <html lang={ssrLang} dir={ssrDir} className={ssrThemeClass}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
