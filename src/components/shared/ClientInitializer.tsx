@@ -92,9 +92,7 @@ export function ClientInitializer() {
   useEffect(() => {
   const storeErr = (reason: unknown) => {
     try {
-      const err = reason instanceof Error ? reason : new Error(String(reason))
-      const firstFrame = (err.stack || '').split(/\r?\n/)[1] || ''
-      sessionStorage.setItem('dj_last_error', err.name + ': ' + err.message + ' | ' + firstFrame.trim())
+      sessionStorage.setItem('dj_last_error', String(reason))
     } catch {
       // best effort only
     }
