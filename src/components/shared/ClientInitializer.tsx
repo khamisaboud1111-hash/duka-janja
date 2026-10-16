@@ -90,16 +90,15 @@ export function ClientInitializer() {
   // Capture any rendering/runtime error that escapes React's error boundary so
   // we can read it after a blank load instead of guessing.
   useEffect(() => {
-    const storeErr = (reason: unknown) => {
-      try {
-        const payload = reason instanceof Error
-          ? { name: reason.name, message: reason.message, stack: reason.stack?.slice(0, 500) }
-          : String(reason)
-        sessionStorage.setItem('dj_last_error', JSON.stringify({ at: Date.now(), payload }))
-      } catch {
-        // best effort only
-      }
+  const storeErr = (reason: unknown) => {
+    try {
+      const err = reason instanceof Error ? reason : new Error(String(reason))
+      const firstFrame = (err.stack || '').split(/\r?\n/)[1] || ''
+      sessionStorage.setItem('dj_last_error', err.name + ': ' + err.message + ' | ' + firstFrame.trim())
+    } catch {
+      // best effort only
     }
+  }
 
     const origError = window.console.error.bind(window.console)
     window.console.error = (...args: unknown[]) => {

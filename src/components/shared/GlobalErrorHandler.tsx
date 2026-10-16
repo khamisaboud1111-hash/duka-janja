@@ -13,7 +13,7 @@ export default function GlobalErrorHandler() {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('Unhandled rejection:', event.reason)
       try {
-        sessionStorage.setItem('dj_unhandled_rejection', JSON.stringify(String(event.reason)))
+        sessionStorage.setItem('dj_unhandled_rejection', String(event.reason))
       } catch {
         // best effort
       }
@@ -26,17 +26,11 @@ export default function GlobalErrorHandler() {
     const handleError = (event: ErrorEvent) => {
       console.error('Global error:', event.error)
       try {
-        const err = event.error || { name: 'ErrorEvent', message: event.message }
+        const err = event.error || new Error(event.message)
         sessionStorage.setItem(
           'dj_window_error',
-          JSON.stringify({
-            name: err.name,
-            message: err.message,
-            stack: (err as Error)?.stack?.slice(0, 500),
-            filename: event.filename,
-            lineno: event.lineno,
-            colno: event.colno,
-          })
+          err.name + ': ' + err.message + ' | ' + ((err.stack || '').split(/\r?\n/)[1] || '').trim() +
+            ' | file=' + event.filename + ' line=' + event.lineno
         )
       } catch {
         // best effort
