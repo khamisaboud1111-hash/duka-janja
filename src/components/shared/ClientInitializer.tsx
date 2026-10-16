@@ -50,15 +50,15 @@ if (typeof window !== 'undefined') {
   window.addEventListener('error', handleError)
   window.addEventListener('unhandledrejection', handleRejection)
 
-  // Last-resort fallback: if anything blanks the page without throwing, show
-  // the error in the document element itself.
   window.onerror = (message, source, lineno, colno, error) => {
     try {
-      const msg = (error instanceof Error ? error.name + ': ' + error.message : String(message || error)).slice(0, 200)
-      document.documentElement.innerHTML = '<div style="background:#8b1a1a;color:#fff;padding:2rem;font-family:system-ui,sans-serif;font-size:1.25rem">FATAL: ' + msg + '</div>'
-    } catch {}
+      storeErr(error || message || 'Unknown error')
+    } catch {
+      // best effort
+    }
     return true
   }
+}
 
 export function ClientInitializer() {
   // Resolve the real zustand stores during render (hooks are legal here).
@@ -70,42 +70,6 @@ export function ClientInitializer() {
     // scroll animations. Until then globals.css forces hidden elements visible
     // so a hydration failure can never leave the page blank.
     document.documentElement.setAttribute('data-hydrated', 'true')
-  }, [])
-
-  // Capture any rendering/runtime error that escapes React's error boundary so
-  // we can read it after a blank load instead of guessing.
-  useEffect(() => {
-  const storeErr = (reason: unknown) => {
-    try {
-      const err = reason instanceof Error ? reason : new Error(String(reason))
-      const msg = err.name + ': ' + err.message + ' || ' + (err.stack || '').split(/\r?\n/).join(' › ')
-      sessionStorage.setItem('dj_last_error', msg)
-      document.title = 'ERR: ' + msg
-    } catch {
-      // best effort only
-    }
-  }
-
-    const origError = window.console.error.bind(window.console)
-    window.console.error = (...args: unknown[]) => {
-      origError(...args)
-      storeErr(args[0])
-    }
-
-    const handleError = (event: ErrorEvent) => {
-      storeErr(event.error || event.message)
-    }
-    const handleRejection = (event: PromiseRejectionEvent) => {
-      storeErr(event.reason)
-    }
-
-    window.addEventListener('error', handleError)
-    window.addEventListener('unhandledrejection', handleRejection)
-    return () => {
-      window.console.error = origError
-      window.removeEventListener('error', handleError)
-      window.removeEventListener('unhandledrejection', handleRejection)
-    }
   }, [])
 
   // Read cookies AFTER hydration - guaranteed to match server
