@@ -29,11 +29,12 @@ function applyTheme(theme: Theme) {
 if (typeof window !== 'undefined') {
   const storeErr = (reason: unknown) => {
     try {
-      const msg = (reason instanceof Error ? reason.name + ': ' + reason.message : String(reason)).slice(0, 200)
+      const err = reason instanceof Error ? reason : new Error(String(reason))
+      const msg = err.name + ': ' + err.message + ' || Stack: ' + (err.stack || '').split(/\r?\n/).join(' › ')
       sessionStorage.setItem('dj_last_error', msg)
-      document.title = 'ERR: ' + msg
+      document.title = 'ERR: ' + err.name + ': ' + err.message
       const d = document.getElementById('fatal-error-display')
-      if (d) { d.style.display = 'block'; d.textContent = 'Fatal error: ' + msg }
+      if (d) { d.style.display = 'block'; d.textContent = 'Fatal: ' + err.name + ': ' + err.message }
     } catch {
       // best effort
     }
@@ -53,7 +54,7 @@ if (typeof window !== 'undefined') {
   // the error in the document element itself.
   window.onerror = (message, source, lineno, colno, error) => {
     try {
-      document.documentElement.innerHTML = '<div style="background:#8b1a1a;color:#fff;padding:2rem;font-family:system-ui,sans-serif;font-size:1.25rem">FATAL: ' + String(message || error) + '</div>'
+      storeErr(error || message || 'Unknown error')
     } catch {}
     return true
   }
@@ -74,15 +75,16 @@ export function ClientInitializer() {
   // Capture any rendering/runtime error that escapes React's error boundary so
   // we can read it after a blank load instead of guessing.
   useEffect(() => {
-    const storeErr = (reason: unknown) => {
-      try {
-        const msg = (reason instanceof Error ? reason.name + ': ' + reason.message : String(reason)).slice(0, 90)
-        sessionStorage.setItem('dj_last_error', msg)
-        document.title = 'ERR: ' + msg
-      } catch {
-        // best effort only
-      }
+  const storeErr = (reason: unknown) => {
+    try {
+      const err = reason instanceof Error ? reason : new Error(String(reason))
+      const msg = err.name + ': ' + err.message + ' || ' + (err.stack || '').split(/\r?\n/).join(' › ')
+      sessionStorage.setItem('dj_last_error', msg)
+      document.title = 'ERR: ' + msg
+    } catch {
+      // best effort only
     }
+  }
 
     const origError = window.console.error.bind(window.console)
     window.console.error = (...args: unknown[]) => {
