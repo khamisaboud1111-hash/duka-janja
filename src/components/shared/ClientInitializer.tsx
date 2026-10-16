@@ -29,9 +29,11 @@ function applyTheme(theme: Theme) {
 if (typeof window !== 'undefined') {
   const storeErr = (reason: unknown) => {
     try {
-      const msg = (reason instanceof Error ? reason.name + ': ' + reason.message : String(reason)).slice(0, 90)
+      const msg = (reason instanceof Error ? reason.name + ': ' + reason.message : String(reason)).slice(0, 200)
       sessionStorage.setItem('dj_last_error', msg)
       document.title = 'ERR: ' + msg
+      const d = document.getElementById('fatal-error-display')
+      if (d) { d.style.display = 'block'; d.textContent = 'Fatal error: ' + msg }
     } catch {
       // best effort
     }

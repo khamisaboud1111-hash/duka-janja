@@ -117,6 +117,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
+        {/* Fatal-error display lives outside React's #__next tree so it survives
+            even if React unmounts the entire app during hydration. */}
+        <div id="fatal-error-display" style={{ display: 'none', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#8b1a1a', color: '#fff', zIndex: 999999, padding: '2rem', fontFamily: 'system-ui, sans-serif', fontSize: '1rem', lineHeight: '1.5', overflow: 'auto' }} />
         {/* The boundary sits ABOVE every provider on purpose. It used to live
             inside <main> and inside StoresProvider, so any error thrown by the
             providers themselves escaped it, React unmounted the whole tree and
