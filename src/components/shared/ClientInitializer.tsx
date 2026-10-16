@@ -35,6 +35,39 @@ export function ClientInitializer() {
     document.documentElement.setAttribute('data-hydrated', 'true')
   }, [])
 
+  // Reveal-on-scroll safety net.
+  //
+  // Several sections render inline `opacity: 0` from the server and rely on
+  // framer-motion's whileInView to animate them in once the IntersectionObserver
+  // fires. If that never fires - observer quirk, throttled tab, or an error
+  // higher up - the element stays at opacity 0 forever and the user stares at a
+  // black page even though hydration succeeded.
+  //
+  // Content must never depend on an animation to become visible. Once the page
+  // has settled, force anything still hidden into view.
+  useEffect(() => {
+    const reveal = () => {
+      document.querySelectorAll<HTMLElement>('[style*="opacity"]').forEach((el) => {
+        if (getComputedStyle(el).opacity === '0') {
+          el.style.setProperty('opacity', '1', 'important')
+          el.style.setProperty('transform', 'none', 'important')
+        }
+      })
+    }
+
+    const timers = [
+      window.setTimeout(reveal, 1200),
+      window.setTimeout(reveal, 3000),
+      window.setTimeout(reveal, 6000),
+    ]
+
+    window.addEventListener('scroll', reveal, { passive: true })
+    return () => {
+      timers.forEach(window.clearTimeout)
+      window.removeEventListener('scroll', reveal)
+    }
+  }, [])
+
   useEffect(() => {
     // Read cookies AFTER hydration - guaranteed to match server
     const langCookie = readCookie('lang')

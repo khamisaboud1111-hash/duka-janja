@@ -326,3 +326,23 @@ html:not([data-hydrated]) [style*="opacity: 0"] {
   opacity: 1 !important;
   transform: none !important;
 }
+
+/*
+ * Hard guarantee: nothing on this site may depend on JavaScript to be visible.
+ *
+ * If the stylesheet fails to load, JS errors out, or an IntersectionObserver
+ * never fires, reveal-on-scroll sections must still show their content rather
+ * than leaving a black page. `no-js` is applied when JS is absent; the
+ * ClientInitializer sweep handles the runtime cases.
+ */
+@media (scripting: none) {
+  [style*="opacity"] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+html:not([data-hydrated]) [style*="opacity"] {
+  opacity: 1 !important;
+  transform: none !important;
+}
