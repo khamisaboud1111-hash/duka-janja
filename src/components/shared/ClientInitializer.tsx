@@ -23,6 +23,31 @@ function applyTheme(theme: Theme) {
   }
 }
 
+// Module-level error capture, active as soon as this module loads during
+// client hydration. Errors thrown during hydration (before any useEffect
+// runs) would otherwise leave a blank page with nothing to report.
+if (typeof window !== 'undefined') {
+  const storeErr = (reason: unknown) => {
+    try {
+      const msg = (reason instanceof Error ? reason.name + ': ' + reason.message : String(reason)).slice(0, 90)
+      sessionStorage.setItem('dj_last_error', msg)
+      document.title = 'ERR: ' + msg
+    } catch {
+      // best effort
+    }
+  }
+
+  const handleError = (event: ErrorEvent) => {
+    storeErr(event.error || event.message)
+  }
+  const handleRejection = (event: PromiseRejectionEvent) => {
+    storeErr(event.reason)
+  }
+
+  window.addEventListener('error', handleError)
+  window.addEventListener('unhandledrejection', handleRejection)
+}
+
 export function ClientInitializer() {
   // Resolve the real zustand stores during render (hooks are legal here).
   const langStore = useLangStore()
