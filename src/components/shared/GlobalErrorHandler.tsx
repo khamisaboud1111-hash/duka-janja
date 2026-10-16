@@ -6,19 +6,20 @@ import { useLangStore } from '@/store'
 import { t } from '@/i18n/translations'
 
 export default function GlobalErrorHandler() {
-  const { lang } = useLangStore()
+  const lang = useLangStore((s) => s.lang)
 
   useEffect(() => {
     // Catch unhandled promise rejections
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('Unhandled rejection:', event.reason)
-      event.preventDefault()
     }
 
-    // Catch unhandled errors
+    // Catch unhandled errors.
+    // Do NOT call event.preventDefault() here: it suppresses the browser's
+    // default error reporting, which is how every render error ended up
+    // silently behind a blank page. Log only, never swallow.
     const handleError = (event: ErrorEvent) => {
       console.error('Global error:', event.error)
-      event.preventDefault()
     }
 
     window.addEventListener('unhandledrejection', handleUnhandledRejection)

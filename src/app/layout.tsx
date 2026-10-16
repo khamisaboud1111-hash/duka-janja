@@ -117,6 +117,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
         />
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
+        {/* The boundary sits ABOVE every provider on purpose. It used to live
+            inside <main> and inside StoresProvider, so any error thrown by the
+            providers themselves escaped it, React unmounted the whole tree and
+            the site went blank with nothing logged. */}
+        <GlobalErrorBoundary>
         <StoresProvider>
         <ClientInitializer />
       <PWAinitializer />
@@ -134,9 +139,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           {/* Semantic main container wrapper */}
           <main id="main-content">
             <QueryProvider>
-              <GlobalErrorBoundary>
                 {children}
-              </GlobalErrorBoundary>
             </QueryProvider>
           </main>
 
@@ -163,6 +166,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           }}
         />
         </StoresProvider>
+        </GlobalErrorBoundary>
       </body>
     </html>
   )
