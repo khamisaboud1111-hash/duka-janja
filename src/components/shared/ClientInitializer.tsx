@@ -92,10 +92,13 @@ export function ClientInitializer() {
   useEffect(() => {
   const storeErr = (reason: unknown) => {
     try {
-      sessionStorage.setItem('dj_last_error', (reason?.constructor?.name || typeof reason) + ': ' + String(reason))
+      const msg = (reason instanceof Error ? reason.name + ': ' + reason.message : String(reason)).slice(0, 90)
+      sessionStorage.setItem('dj_last_error', msg)
+      document.title = 'ERR: ' + msg
     } catch {
-      sessionStorage.setItem('dj_last_error', String(reason))
+      // best effort only
     }
+  }
   }
 
     const origError = window.console.error.bind(window.console)

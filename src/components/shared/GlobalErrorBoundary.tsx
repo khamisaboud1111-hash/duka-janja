@@ -22,11 +22,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Global error caught:', error, errorInfo)
     try {
-      const firstFrame = (error.stack || '').split(/\r?\n/)[1] || ''
-      sessionStorage.setItem(
-        'dj_boundary_error',
-        error.name + ': ' + error.message + ' | ' + firstFrame.trim()
-      )
+      document.title = 'ERR: ' + (error.name + ': ' + error.message).slice(0, 90)
     } catch {
       // best effort
     }

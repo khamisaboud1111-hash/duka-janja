@@ -27,11 +27,7 @@ export default function GlobalErrorHandler() {
       console.error('Global error:', event.error)
       try {
         const err = event.error || new Error(event.message)
-        sessionStorage.setItem(
-          'dj_window_error',
-          err.name + ': ' + err.message + ' | ' + ((err.stack || '').split(/\r?\n/)[1] || '').trim() +
-            ' | file=' + event.filename + ' line=' + event.lineno
-        )
+        document.title = 'ERR: ' + (err.name + ': ' + err.message).slice(0, 90)
       } catch {
         // best effort
       }
