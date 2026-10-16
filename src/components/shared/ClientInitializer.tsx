@@ -54,11 +54,11 @@ if (typeof window !== 'undefined') {
   // the error in the document element itself.
   window.onerror = (message, source, lineno, colno, error) => {
     try {
-      storeErr(error || message || 'Unknown error')
+      const msg = (error instanceof Error ? error.name + ': ' + error.message : String(message || error)).slice(0, 200)
+      document.documentElement.innerHTML = '<div style="background:#8b1a1a;color:#fff;padding:2rem;font-family:system-ui,sans-serif;font-size:1.25rem">FATAL: ' + msg + '</div>'
     } catch {}
     return true
   }
-}
 
 export function ClientInitializer() {
   // Resolve the real zustand stores during render (hooks are legal here).
