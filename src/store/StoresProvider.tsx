@@ -33,8 +33,6 @@ interface LangStore {
   setLang: (lang: Language) => void
 }
 
-export type Theme = 'light' | 'dark'
-
 interface ThemeStore {
   theme: Theme
   hasHydrated: boolean
