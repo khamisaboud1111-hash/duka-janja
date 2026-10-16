@@ -106,7 +106,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   };
 
   return (
-    <html lang={ssrLang} dir={ssrDir} className={ssrThemeClass}>
+      <html lang={ssrLang} dir={ssrDir} className={ssrThemeClass}>
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -117,7 +117,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
+      <body>
         <GlobalErrorBoundary>
           <main id="main-content">
             {children}
