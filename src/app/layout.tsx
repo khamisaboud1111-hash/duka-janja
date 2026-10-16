@@ -119,13 +119,9 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
         <GlobalErrorBoundary>
-        <StoresProvider>
-        <main id="main-content">
-          <QueryProvider>
-              {children}
-            </QueryProvider>
+          <main id="main-content">
+            {children}
           </main>
-        </StoresProvider>
         </GlobalErrorBoundary>
       </body>
     </html>
