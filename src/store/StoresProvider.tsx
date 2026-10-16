@@ -143,11 +143,7 @@ function createUiStore() {
 
 function createLangStore() {
   return create<LangStore>()(() => ({
-    lang: (() => {
-      if (typeof document === 'undefined') return 'sw'
-      const htmlLang = document.documentElement.lang
-      return (htmlLang === 'ar' || htmlLang === 'en' || htmlLang === 'fr') ? htmlLang : 'sw'
-    })(),
+    lang: 'sw',
     setLang: (lang: Language) => {
       if (typeof document !== 'undefined') {
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr'
@@ -159,10 +155,7 @@ function createLangStore() {
 
 function createThemeStore() {
   return create<ThemeStore>()(() => ({
-    theme: (() => {
-      if (typeof document === 'undefined') return 'light'
-      return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-    })(),
+    theme: 'light',
     hasHydrated: true,
     highContrast: false,
     toggleTheme: () => {
