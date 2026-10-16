@@ -23,70 +23,18 @@ function applyTheme(theme: Theme) {
   }
 }
 
-// Module-level error capture, active as soon as this module loads during
-// client hydration. Errors thrown during hydration (before any useEffect
-// runs) would otherwise leave a blank page with nothing to report.
-if (typeof window !== 'undefined') {
-  const storeErr = (reason: unknown) => {
-    try {
-      const err = reason instanceof Error ? reason : new Error(String(reason))
-      const msg = err.name + ': ' + err.message + ' || Stack: ' + (err.stack || '').split(/\r?\n/).join(' › ')
-      sessionStorage.setItem('dj_last_error', msg)
-      document.title = 'ERR: ' + err.name + ': ' + err.message
-      const d = document.getElementById('fatal-error-display')
-      if (d) { d.style.display = 'block'; d.textContent = 'Fatal: ' + err.name + ': ' + err.message }
-    } catch {
-      // best effort
-    }
-  }
-
-  const handleError = (event: ErrorEvent) => {
-    storeErr(event.error || event.message)
-  }
-  const handleRejection = (event: PromiseRejectionEvent) => {
-    storeErr(event.reason)
-  }
-
-  window.addEventListener('error', handleError)
-  window.addEventListener('unhandledrejection', handleRejection)
-
-  window.onerror = (message, source, lineno, colno, error) => {
-    try {
-      storeErr(error || message || 'Unknown error')
-    } catch {
-      // best effort
-    }
-    return true
-  }
-}
-
 export function ClientInitializer() {
-  // Resolve the real zustand stores during render (hooks are legal here).
   const langStore = useLangStore()
   const themeStore = useThemeStore()
 
-  useEffect(() => {
-    // Signal to CSS that the client has taken over, which re-enables reveal-on-
-    // scroll animations. Until then globals.css forces hidden elements visible
-    // so a hydration failure can never leave the page blank.
-    document.documentElement.setAttribute('data-hydrated', 'true')
-  }, [])
-
-  // Read cookies AFTER hydration - guaranteed to match server
+  // Sync from cookies after hydration
   useEffect(() => {
     const langCookie = readCookie('lang')
     const themeCookie = readCookie('theme')
-
     const lang: Language = (langCookie === 'ar' || langCookie === 'en' || langCookie === 'fr') ? langCookie : 'sw'
     const theme: Theme = themeCookie === 'dark' ? 'dark' : 'light'
-
-    // Sync stores with cookie values (no-op if already matching)
     applyDir(lang)
     applyTheme(theme)
-
-    // Use the stores' static API inside the effect. Calling a hook-selected
-    // action here invoked the store hook outside of render, which is an invalid
-    // hook call and took the whole app down with React error #321.
     langStore.getState().setLang(lang)
     themeStore.getState().setTheme(theme)
   }, [langStore, themeStore])

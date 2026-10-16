@@ -116,44 +116,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <Script strategy="beforeInteractive">
-          {`
-            window.addEventListener('error', (event) => {
-              try {
-                const err = event.error || new Error(event.message || 'Unknown error')
-                document.title = 'ERR: ' + (err.name + ': ' + err.message).slice(0, 90)
-                sessionStorage.setItem('dj_script_error', err.name + ': ' + err.message)
-                const d = document.getElementById('fatal-error-display')
-                if (d) { d.style.display = 'block'; d.textContent = 'Fatal error: ' + err.name + ': ' + err.message }
-              } catch {}
-            })
-            window.addEventListener('unhandledrejection', (event) => {
-              try {
-                document.title = 'ERR: ' + String(event.reason).slice(0, 90)
-                sessionStorage.setItem('dj_script_rejection', String(event.reason))
-                const d = document.getElementById('fatal-error-display')
-                if (d) { d.style.display = 'block'; d.textContent = 'Fatal: ' + String(event.reason).slice(0, 200) }
-              } catch {}
-            })
-          `}
-        </Script>
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
-        <div id="raw-sentinel-react">RAW REACT</div>
-        <script
-          id="raw-sentinel-script"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function(){
-                const s = document.createElement('div')
-                s.id = 'raw-sentinel-script'
-                s.textContent = 'RAW SCRIPT'
-                document.body.insertBefore(s, document.body.firstChild)
-              })()
-            `
-          }}
-        />
-        <div id="fatal-error-display" style={{ display: 'none', position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: '#8b1a1a', color: '#fff', zIndex: 999999, padding: '2rem', fontFamily: 'system-ui, sans-serif', fontSize: '1rem', lineHeight: '1.5', overflow: 'auto' }} />
         {/* The boundary sits ABOVE every provider on purpose. It used to live
             inside <main> and inside StoresProvider, so any error thrown by the
             providers themselves escaped it, React unmounted the whole tree and
