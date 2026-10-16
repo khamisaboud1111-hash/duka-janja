@@ -48,6 +48,15 @@ if (typeof window !== 'undefined') {
 
   window.addEventListener('error', handleError)
   window.addEventListener('unhandledrejection', handleRejection)
+
+  // Last-resort fallback: if anything blanks the page without throwing, show
+  // the error in the document element itself.
+  window.onerror = (message, source, lineno, colno, error) => {
+    try {
+      document.documentElement.innerHTML = '<div style="background:#8b1a1a;color:#fff;padding:2rem;font-family:system-ui,sans-serif;font-size:1.25rem">FATAL: ' + String(message || error) + '</div>'
+    } catch {}
+    return true
+  }
 }
 
 export function ClientInitializer() {
