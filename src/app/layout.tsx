@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import PullToRefreshIndicator from '@/components/layout/PullToRefreshIndicator'
 import { Inter, Poppins } from 'next/font/google'
 import { Toaster } from 'react-hot-toast'
@@ -115,6 +116,27 @@ export default function RootLayout({ children }: RootLayoutProps) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <Script strategy="beforeInteractive">
+          {`
+            window.addEventListener('error', (event) => {
+              try {
+                const err = event.error || new Error(event.message || 'Unknown error')
+                document.title = 'ERR: ' + (err.name + ': ' + err.message).slice(0, 90)
+                sessionStorage.setItem('dj_script_error', err.name + ': ' + err.message)
+                const d = document.getElementById('fatal-error-display')
+                if (d) { d.style.display = 'block'; d.textContent = 'Fatal error: ' + err.name + ': ' + err.message }
+              } catch {}
+            })
+            window.addEventListener('unhandledrejection', (event) => {
+              try {
+                document.title = 'ERR: ' + String(event.reason).slice(0, 90)
+                sessionStorage.setItem('dj_script_rejection', String(event.reason))
+                const d = document.getElementById('fatal-error-display')
+                if (d) { d.style.display = 'block'; d.textContent = 'Fatal: ' + String(event.reason).slice(0, 200) }
+              } catch {}
+            })
+          `}
+        </Script>
       </head>
       <body className={`${inter.variable} ${poppins.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}>
         {/* Fatal-error display lives outside React's #__next tree so it survives
